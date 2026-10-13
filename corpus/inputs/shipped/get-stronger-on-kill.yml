@@ -1,0 +1,63 @@
+# Bundled JManhunt modifier: get-stronger-on-kill
+# Two new permanent hearts on every kill (plus a heal and a feed),
+# stacking up to 40 contribution points (30 hearts total with the base).
+# Uses the shared max-health ledger (pmaxhp tags): the 40 cap binds only
+# this modifier's own id, so other modifiers stack past it independently.
+# Cleanup drops this modifier's entry, leaving other entries untouched.
+enabled: false
+meta:
+  name: "Get Stronger On Kill"
+  description: "Gain two new permanent hearts on every kill."
+  icon: NETHERITE_SWORD
+  author: JManhunt
+  visibility:
+    icon: NETHERITE_SWORD
+    broadcast: true
+config:
+  settings:
+    cap:
+      value: 40
+      def:
+        meta:
+          name: Cap
+          desc: Cap for this modifier's own ledger entry in half-hearts, excluding the base 20.
+          icon: GOLDEN_APPLE
+        value:
+          type: INTEGER
+          default: 40
+          allowed:
+            min: 0
+            max: 200
+    step:
+      value: 4
+      def:
+        meta:
+          name: Step
+          desc: Gain per kill in half-hearts.
+          icon: NETHERITE_SWORD
+        value:
+          type: INTEGER
+          default: 4
+          allowed:
+            min: 1
+            max: 20
+behavior:
+  main:
+    runs-on:
+      - ON_PLAYER_KILLS
+    commands:
+      player:
+        # Room left before this id hits the cap, at most one step: the
+        # bump below never pushes this entry past the cap.
+        - "<lflag:room,<clamp:<setting:cap>-<pmaxhp.get:<p>,stronger-kills>,0,<setting:step>>>"
+        # Only grow the entry when room remains (fractional-safe: gt 0,
+        # not ge 1). The heal and feed below always run, even at cap.
+        - "<if:'<lflag:room> gt 0','<pmaxhp.modify:<p>,stronger-kills,<lflag:room>>'>"
+        # Always heals 2 hearts, even at the cap.
+        - '<peffect:<p>,[[minecraft:instant_health, 0, 1]]>'
+        # Missing hunger points (0 if already full).
+        - "<lflag:missing,<clamp:20-<pstat:<p>,hunger>,0,20>>"
+        # Only feed if something is missing.
+        - "<if:'<lflag:missing> lt 1','exit','<peffect:<p>,[[minecraft:saturation, <clamp:<lflag:missing>-1,0,19>, 1]]>>'>"
+      player-cleanup:
+        - "<pmaxhp.clear:<p>,stronger-kills>"

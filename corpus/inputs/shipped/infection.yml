@@ -1,0 +1,137 @@
+# Bundled JManhunt modifier: infection
+# Infection: speedrunners who die their final death come back as hunters
+# instead of dying permanently. The engine still ends the match with a
+# hunter win once no runners remain. Disconnects are never converted:
+# the strike system removes quitters without firing ON_DEATH, so this
+# block never sees them. Engine elimination and win announcements still
+# run, so Infection lines may duplicate engine chat and sounds. Two
+# blocks below: ON_DEATH converts and announces, INTERVAL debuffs the
+# infected hunters (root hunters are left alone).
+enabled: false
+meta:
+  name: "Infection ☣"
+  description: "Fallen runners rise as hunters."
+  icon: POISONOUS_POTATO
+  author: JManhunt
+  visibility:
+    icon: POISONOUS_POTATO
+    color: ff5555
+    broadcast: true
+config:
+  settings:
+    effects:
+      value: true
+      def:
+        meta:
+          name: Effects
+          desc: Apply sporadic effects to infected hunters.
+          icon: POTION
+        value:
+          type: BOOLEAN
+          default: true
+    effect_list:
+      value: [[blindness, 0, 5]]
+      def:
+        meta:
+          name: Effect List
+          desc: Effects as id, amplifier, seconds triples.
+          icon: GLASS_BOTTLE
+        value:
+          type: EFFECTS
+          default: [[blindness, 0, 5]]
+    items:
+      value: true
+      def:
+        meta:
+          name: Items
+          desc: Hand out groceries on luck to infected hunters.
+          icon: ROTTEN_FLESH
+        value:
+          type: BOOLEAN
+          default: true
+    item_list:
+      value: [[rotten_flesh, 3, 7], [bone, 2, 4]]
+      def:
+        meta:
+          name: Item List
+          desc: Items as item, min, max triples with a rolled count each firing.
+          icon: BONE
+        value:
+          type: ITEMS
+          default: [[rotten_flesh, 3, 7], [bone, 2, 4]]
+    give_fail_chance:
+      value: 80
+      def:
+        meta:
+          name: Give Fail Chance
+          desc: Percent chance each item candidate fails per firing.
+          icon: DIRT
+        value:
+          type: INTEGER
+          default: 80
+          allowed:
+            min: 0
+            max: 100
+behavior:
+  main:
+    # Final runner deaths convert to hunter; hunter deaths exit quietly.
+    runs-on:
+      - ON_DEATH
+    commands:
+      console:
+        # MiniMessage color for every message.
+        - "<lflag:color,red>"
+        # args:2 is the victim former role (only runners convert).
+        - '<if:"<args:2> != SPEEDRUNNER","exit">'
+        # Only eliminated victims convert: non-final deaths keep playing.
+        - '<if:"<peliminated:<args:0>> != true","exit">'
+        # The victim was already eliminated: switch them back in as a hunter.
+        - "<pswitch:<args:0>,HUNTER>"
+        # Remember the converted: the debuff block below tells infected
+        # hunters from root hunters by membership in this list. The
+        # verbatim flag reference stores back into the flag; an unset
+        # flag parses as empty, so the first convert starts the list.
+        - "<list.append:<gflag:infected>,<args:0>>"
+        # Count the runners left after the conversion.
+        - "<lflag:remaining,<len:<active-players:SPEEDRUNNER>>>"
+        # Everyone converted: the engine hunter win follows on its own.
+        # MiniMessage brackets are backslash-escaped so the tag scanner
+        # skips them; real nested tags stay unescaped.
+        - '<if:"<lflag:remaining> == 0","<gmsg:\<<lflag:color>\>Everyone got infected!>">'
+        - '<if:"<lflag:remaining> == 0","<gsound:item.bucket.fill_sulfur_cube,0.7>">'
+        # Otherwise announce this victim with a random middle phrase.
+        - '<if:"<lflag:remaining> != 0","<gmsg:\<<lflag:color>\>\<white\><args:0>\</white\> <random-pick:got infected,caught a cold,has fallen ill>! \<white\><lflag:remaining>\</white\> left.>">'
+        - '<if:"<lflag:remaining> != 0","<gsound:event.mob_effect.trial_omen,0.8>">'
+  1:
+    # Block 2: debuffs for infected hunters only; root hunters exit on
+    # the first line. Each hunter runs this on their own 12-second
+    # timer (plus up to a quarter second of jitter either way).
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 12
+        deviation: 0.25
+        behavior: PER_EXECUTOR
+    commands:
+      hunter:
+        # Sporadic effects plus a per-firing item drop, both tuned in
+        # config.settings. Effects are [id, amplifier, seconds] triples,
+        # so unlike the VIP list the duration is configurable per entry.
+        # Items are [item, min, max] triples with a rolled count each
+        # firing, and each candidate independently fails give_fail_chance
+        # percent of the time (80: an uncommon treat, not a steady
+        # stream). Ids stay bare (no minecraft: prefix) for maximum
+        # give and effect compatibility.
+        # Never converted means never debuffed. An unset flag reads
+        # null, which contains no name, so this exits quietly too.
+        - '<if:"<list.contains:<default:<gflag:infected>,[]>,<p>> != true","exit">'
+        # Sporadic effects: roughly one firing in three lands these,
+        # each entry in turn with particles hidden.
+        - '<if:"<setting:effects> == true and <random-num:1,3> == 1","<peffect:<p>,<setting:effect_list>>">'
+        # Groceries on luck: each entry rolls its own count and its
+        # own fail chance, so most firings hand out nothing. The roll
+        # beats the fail chance only on 81 to 100. Single quotes nest
+        # the inner if inside the double-quoted for body (doubled for
+        # YAML).
+        - '<if:"<setting:items> == true","<for:<setting:item_list>,<if:''<random-num:1,100> gt <setting:give_fail_chance>'',''<run:give <p> <list.get:<i>,0> <random-num:<list.get:<i>,1>,<list.get:<i>,2>>>''>>">'

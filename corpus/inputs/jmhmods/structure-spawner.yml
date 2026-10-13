@@ -1,0 +1,262 @@
+# Structure Spawner 🏡: structures spawn on players on a cooldown.
+# Defined structures are for 26.3+ only.
+# Main runs the spawner on an interval; the engine announces the mod at start.
+enabled: false
+meta:
+  name: "Structure Spawner 🏡"
+  description: "Structures spawn on players on a timer (v1.0)"
+  icon: SPRUCE_DOOR
+  author: DaVeltto
+  visibility:
+    icon: SPRUCE_DOOR
+    color: bd7139
+    broadcast: true
+config:
+  settings:
+    timing:
+      def:
+        meta:
+          name: Timing
+          desc: Spawn cadence and first-spawn behavior.
+          icon: CLOCK
+        folder:
+          - cooldown:
+              value: 120
+              def:
+                meta:
+                  name: Cooldown
+                  desc: Seconds between structures, with a random plus or minus spread per player.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 120
+                  allowed:
+                    min: 5
+                    max: 3600
+          - deviation:
+              value: 15
+              def:
+                meta:
+                  name: Deviation
+                  desc: Random spread in seconds around the cooldown per player.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 15
+                  allowed:
+                    min: 0
+                    max: 600
+          - first-immediate:
+              value: true
+              def:
+                meta:
+                  name: First Immediate
+                  desc: True spawns at the first poll; false waits a full cooldown first.
+                  icon: TORCH
+                value:
+                  type: BOOLEAN
+                  default: true
+    messages:
+      def:
+        meta:
+          name: Messages
+          desc: Message toggles, sounds, and warning window.
+          icon: BELL
+        folder:
+          - message:
+              value: true
+              def:
+                meta:
+                  name: Message
+                  desc: Structure spawned message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - sound:
+              value: [true, block.bell.use, 1.4, 1.0]
+              def:
+                meta:
+                  name: Sound
+                  desc: Structure spawned sound.
+                  icon: BELL
+                value:
+                  type: SOUND
+                  default: [true, block.bell.use, 1.4, 1.0]
+          - warn_time:
+              value: 20
+              def:
+                meta:
+                  name: Warn Time
+                  desc: Heads-up seconds before a spawn; the message shows this number.
+                  icon: BELL
+                value:
+                  type: INTEGER
+                  default: 20
+                  allowed:
+                    min: 0
+                    max: 600
+          - warn_message:
+              value: true
+              def:
+                meta:
+                  name: Warn Message
+                  desc: Heads-up message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - warn_sound:
+              value: [true, block.bell.resonate, 1.4, 1.0]
+              def:
+                meta:
+                  name: Warn Sound
+                  desc: Heads-up sound.
+                  icon: NOTE_BLOCK
+                value:
+                  type: SOUND
+                  default: [true, block.bell.resonate, 1.4, 1.0]
+    depth:
+      def:
+        meta:
+          name: Depth Tiers
+          desc: Y levels selecting underground structure pools.
+          icon: DEEPSLATE
+        folder:
+          - ug_top_y:
+              value: 0
+              def:
+                meta:
+                  name: Upper Underground Y
+                  desc: At or below this level only underground structures spawn.
+                  icon: STONE
+                value:
+                  type: INTEGER
+                  default: 0
+                  allowed:
+                    min: -64
+                    max: 320
+          - ug_mid_y:
+              value: -20
+              def:
+                meta:
+                  name: Middle Underground Y
+                  desc: At or below this level the middle pool joins.
+                  icon: DEEPSLATE
+                value:
+                  type: INTEGER
+                  default: -20
+                  allowed:
+                    min: -64
+                    max: 320
+          - ug_deep_y:
+              value: -35
+              def:
+                meta:
+                  name: Deep Underground Y
+                  desc: At or below this level the deep pool joins.
+                  icon: BEDROCK
+                value:
+                  type: INTEGER
+                  default: -35
+                  allowed:
+                    min: -64
+                    max: 320
+behavior:
+  main:
+    # One shared poll, each player has their own cooldown.
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 5.0
+        behavior: PER_INVOKE
+    commands:
+      player:
+        # Tunables live in config.settings above; structure pools stay
+        # local flags because weighted pools are content, not scalars.
+        # Messages are on/off. Sounds are [enabled, id, pitch, volume].
+        # Underground tiers: a player at or below the y level can get that
+        # tier. At or below ug_top_y only underground structures spawn (the
+        # ground list is not used); deeper tiers are added to the pool.
+        # Structure lists: [[name, weight, [structure ids]], ...]. The name is
+        # what the player sees, one id is picked at random from the group, and
+        # groups are picked by weight. Ids are placed with /place structure.
+        # Overworld, above ug_top_y:
+        - "<lf:ow_ground,[[village, 3.0, [village_desert, village_plains, village_savanna, village_snowy, village_taiga]],
+          [large house, 0.6, [pillager_outpost, mansion]],
+          [remnant from the ocean, 2.0, [shipwreck, shipwreck_beached, ocean_ruin_cold, ocean_ruin_warm]],
+          [temple, 1.2, [desert_pyramid, jungle_pyramid]],
+          [campsite, 2.5, [abandoned_camp_bamboo_jungle, abandoned_camp_birch_forest, abandoned_camp_cherry_grove,
+          abandoned_camp_dappled_forest, abandoned_camp_flower_forest, abandoned_camp_forest, abandoned_camp_meadow,
+          abandoned_camp_old_growth_birch_forest, abandoned_camp_old_growth_pine_taiga,
+          abandoned_camp_old_growth_spruce_taiga, abandoned_camp_pale_garden, abandoned_camp_savanna,
+          abandoned_camp_snowy_taiga, abandoned_camp_sparse_jungle, abandoned_camp_swamp, abandoned_camp_taiga,
+          abandoned_camp_windswept_forest, abandoned_camp_wooded_badlands]],
+          [mystery, 0.5, [igloo, end_city, swamp_hut, trail_ruins]],
+          [ruined portal, 1.2, [ruined_portal_ocean, ruined_portal_jungle]]]>"
+        # Overworld, at or below ug_top_y:
+        - "<lf:ug_top,[[mineshaft, 1.0, [mineshaft, stronghold]]]>"
+        # ...and at or below ug_mid_y:
+        - "<lf:ug_mid,[[chamber, 1.0, [trial_chambers]]]>"
+        # ...and at or below ug_deep_y:
+        - "<lf:ug_deep,[[ancient city, 1.0, [ancient_city]]]>"
+        # Nether:
+        - "<lf:nether_list,[[nether remnant, 1.0, [bastion_remnant, fortress]],
+          [nether ruins, 2.0, [ruined_portal_nether, nether_fossil]]]>"
+        # The End never gets structures: they could land on the portal and
+        # make the game unbeatable.
+        # ---- Cooldown state ----
+        # This player's own wait: drawn after each spawn, base cooldown the first time.
+        - '<lf:wait,<default:<pf:wait-<id>>,<setting:timing.cooldown>>>'
+        # Range for drawing the next wait (cooldown +/- deviation, never below 0).
+        - '<lf:lo,<ceil:<max:<setting:timing.cooldown>-<setting:timing.deviation>,0>>>'
+        - '<lf:hi,<ceil:<setting:timing.cooldown>+<setting:timing.deviation>>>'
+        # Seconds left on the cooldown (0 when ready or never stamped).
+        - '<lf:left,<pcooldown.get:<p>,structure-<id>,<lf:wait>>>'
+        - '<lf:world,<pworld:<p>>>'
+        # ---- Optional: start with a full wait ----
+        - '<lf:fresh,<if:"<default:<pf:wait-<id>>,none> == none",true,false>>'
+        - '<if:"<lf:fresh> == true and <setting:timing.first-immediate> != true","<lf:ignored,<pcooldown:<p>,structure-<id>,<lf:wait>>>">'
+        - '<if:"<lf:fresh> == true and <setting:timing.first-immediate> != true","<pf:wait-<id>,<random-num:<lf:lo>,<lf:hi>>>">'
+        - '<if:"<lf:fresh> == true and <setting:timing.first-immediate> != true","exit">'
+        # ---- Heads-up ----
+        # One attempt per cooldown, once the wait is inside the warning window.
+        - '<lf:attempt,<if:"<lf:left> gt 0 and <lf:left> le <setting:messages.warn_time> and <pf:warned-<id>> != true",true,false>>'
+        # Mark it done even if nothing plays below (the player is in the End).
+        - '<if:"<lf:attempt> == true","<pf:warned-<id>,true>">'
+        - '<lf:notify,<if:"<lf:attempt> == true and <lf:world> != end",true,false>>'
+        - '<if:"<lf:notify> == true","<pmsg:<p>,[<setting:messages.warn_message>,Your \<bold\>structure\</bold\> spawns in the next \<white\><round:<setting:messages.warn_time>>\</white\> seconds.]>">'
+        - '<if:"<lf:notify> == true","<psound:<p>,<setting:messages.warn_sound>>">'
+        # ---- Spawn ----
+        # In the End: skip without touching the cooldown.
+        - '<if:"<lf:world> == end","exit">'
+        # Cooldown gate: yields true (and stamps) when ready.
+        - '<if:"<pcooldown:<p>,structure-<id>,<lf:wait>> != true","exit">'
+        # New cycle: the next heads-up may fire again, and draw the next wait.
+        - '<pf:warned-<id>,false>'
+        - '<pf:wait-<id>,<random-num:<lf:lo>,<lf:hi>>>'
+        # Build the pool for where the player is.
+        - '<lf:y,<py:<p>>>'
+        - '<lf:ow,<if:"<lf:world> != nether and <lf:world> != end",true,false>>'
+        - '<lf:pool,[]>'
+        - '<if:"<lf:world> == nether","<lf:pool,<lf:nether_list>>">'
+        - '<if:"<lf:ow> == true and <lf:y> gt <setting:depth.ug_top_y>","<lf:pool,<lf:ow_ground>>">'
+        - '<if:"<lf:ow> == true and <lf:y> le <setting:depth.ug_top_y>","<for:<lf:ug_top>,<list.append:<lf:pool>,<i>>>">'
+        - '<if:"<lf:ow> == true and <lf:y> le <setting:depth.ug_mid_y>","<for:<lf:ug_mid>,<list.append:<lf:pool>,<i>>>">'
+        - '<if:"<lf:ow> == true and <lf:y> le <setting:depth.ug_deep_y>","<for:<lf:ug_deep>,<list.append:<lf:pool>,<i>>>">'
+        - '<if:"<len:<lf:pool>> == 0","exit">'
+        # Weighted pick. Weights are scaled by 100 so they roll as whole numbers.
+        - '<lf:total,0>'
+        - '<for:<lf:pool>,<lf:total,<round:<lf:total>+<list.get:<i>,1>*100>>>'
+        - '<lf:roll,<random-num:1,<lf:total>>>'
+        - '<lf:acc,0>'
+        - '<lf:pick,[]>'
+        # Walk the pool; the last group reached before the roll is covered wins.
+        - '<for:<lf:pool>,<if:''<lf:acc> lt <lf:roll>'',''<lf:acc,<round:<lf:acc>+<list.get:<i>,1>*100>><lf:pick,<i>>''>>'
+        - '<lf:kind,<list.get:<lf:pick>,0>>'
+        - '<lf:structure,<random-pick:<list.get:<lf:pick>,2>>>'
+        # Place it at the player, then the feedback.
+        - 'execute at <p> run place structure <lf:structure>'
+        - '<psound:<p>,<setting:messages.sound>>'
+        - '<pmsg:<p>,[<setting:messages.message>,You spawned a \<white\><lf:kind>\</white\>!]>'

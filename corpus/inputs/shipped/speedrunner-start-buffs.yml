@@ -1,0 +1,20 @@
+# Bundled JManhunt modifier: speedrunner-start-buffs
+# Speedrunners get buffed right out of the gate: speed II and strength I
+enabled: false
+meta:
+  name: "Speedrunner Start Buffs"
+  description: "Speed II for 30s and strength I for 15s at start"
+  icon: BLAZE_POWDER
+  author: JManhunt
+  visibility:
+    icon: BLAZE_POWDER
+    broadcast: true
+behavior:
+  main:
+    runs-on:
+      - ON_START
+    on-start:
+      pre-start-order: AFTER
+    commands:
+      speedrunner:
+        - '<peffect:<p>,[[minecraft:speed, 1, 30],[minecraft:strength, 0, 15]]>'

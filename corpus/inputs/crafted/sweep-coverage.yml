@@ -1,0 +1,50 @@
+# Crafted sweep coverage: one line per check shape. Goldens pin old behavior.
+enabled: false
+meta:
+  name: Sweep Coverage
+behavior:
+  main:
+    runs-on:
+      - ON_START
+    commands:
+      player:
+        - 'say <min:5>'
+        - 'say <clamp:1,2,3,4>'
+        - 'say <if:foo,bar>'
+        - 'say <win:MAYBE>'
+        - 'say <win:>'
+        - 'say <pswitch:Steve>'
+        - 'say <pswitch:Steve,MAYBE>'
+        - 'say <rcolor:MAYBE>'
+        - 'say <range:1,2,3,4>'
+        - 'say <pstat:Steve,boguskey>'
+        - 'say <gflag:>'
+        - 'say <active-players:MAYBE>'
+        - 'say <overlap-players:Steve>'
+        - 'say <distance:here>'
+        - 'say <for:1>'
+        - 'say <def:>'
+        - 'say <args:xyz>'
+        - 'say <random-num:1>'
+        - 'say <random-pick:>'
+        - 'say <id:1>'
+        - 'say <count'
+        - 'say done>>'
+        - 'say <bogus:1>'
+        - 'say <random-pick:ok,"bad>'
+        - 'say <random-pick:ok,>'
+        - 'say <all-players:HUNTER1>'
+        - 'say <active-players:<lf:t>>'
+        - 'say <switch:1>'
+        - 'say <setting:>'
+        - ''
+      console:
+        - 'say <win:<lf:team>,done>'
+        - '<def:sneaking,<pstate:who,SNEAK>,who>'
+        - '<if:"<sneaking:<p>> != true","exit">'
+        - 'give <p> beef <min:1,2>'
+  second:
+    commands:
+      player:
+        - 'say <gstat:boguskey>'
+        - 'say <loseplayer:>'

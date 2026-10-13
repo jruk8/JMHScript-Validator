@@ -1,0 +1,299 @@
+{
+  "reportVersion": 1,
+  "validatorVersion": "unversioned",
+  "registry": {
+    "engine": "JManhunt",
+    "engineVersion": "dev"
+  },
+  "files": [
+    {
+      "file": "crafted/sweep-coverage.yml",
+      "diagnostics": [
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 1,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <min> needs two numbers."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 2,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <clamp> needs a value plus low and high."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 3,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <if> condition needs a comparison (==, !=, lt, le, gt, ge)."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 4,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <win> needs HUNTER or SPEEDRUNNER."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 5,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <win> needs HUNTER or SPEEDRUNNER."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 6,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <pswitch> needs a player and a role like <pswitch:Steve,HUNTER>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 7,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <pswitch> needs a valid role like <pswitch:Steve,HUNTER>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 8,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <rcolor> needs a role like <rcolor:HUNTER>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 9,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <range> needs stop like <range:5>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 10,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Unknown <pstat> key 'boguskey'. Valid keys: health, hunger, max-health, mobs-killed, achievements-gained, exp-level, damage-dealt, crafts, blocks-broken."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 11,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <gflag> needs a name plus an optional value."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 12,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <active-players> needs HUNTER, SPEEDRUNNER, or ALL."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 13,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <overlap-players> needs an origin, a role, a radius, and a max."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 14,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <distance> needs 2 args like <distance:loc1,loc2>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 15,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <for> needs a condition or list plus a body."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 16,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <def> needs a name and a body like <def:double,x+x,x>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 17,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <args> needs a whole index like <args:0>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 18,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <random-num:1> needs two numbers like <random-num:1,6>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 19,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <random-pick> needs at least one item."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 20,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <id> takes no arguments."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 21,
+          "char": 5,
+          "severity": "error",
+          "code": "E_BRACKET_UNCLOSED_OPEN",
+          "message": "Unclosed angle bracket"
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 22,
+          "char": 9,
+          "severity": "error",
+          "code": "E_BRACKET_UNMATCHED_CLOSE",
+          "message": "Unmatched angle bracket"
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 23,
+          "char": 5,
+          "severity": "warning",
+          "code": "W_UNKNOWN_TAG",
+          "message": "Unknown tag '<bogus:1>', left untouched at runtime."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 24,
+          "char": 5,
+          "severity": "error",
+          "code": "E_BRACKET_UNCLOSED_OPEN",
+          "message": "Unclosed angle bracket"
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 25,
+          "char": 5,
+          "severity": "warning",
+          "code": "W_RANDOM_PICK_ITEM",
+          "message": "Skipping invalid <random-pick> item () at index 1."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 26,
+          "char": 5,
+          "severity": "warning",
+          "code": "W_ALL_PLAYERS_FILTER",
+          "message": "Tag <all-players:HUNTER1> filter should be letters only."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 28,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <switch> needs a value plus at least one result or default: <switch:value,case,result,...[,default]>"
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 29,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <setting> needs a setting id like <setting:base-y>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 30,
+          "char": null,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Command must not be empty."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 1,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Unknown <gstat> key 'boguskey'. Valid keys: duration, daytime."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 2,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <loseplayer> needs a player like <loseplayer:Steve>."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "files": 1,
+    "errors": 28,
+    "warnings": 3
+  }
+}

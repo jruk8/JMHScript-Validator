@@ -1,0 +1,395 @@
+# Sneaky Archer 🏹: hold sneak to fire arrows from a recharging bank.
+# One shared INTERVAL polls players; bank, hold timer, and recharge are tracked per player. Team picks the side.
+enabled: false
+meta:
+  name: "Sneaky Archer 🏹"
+  description: "Crouching players fire arrows from a recharging bank; Team picks the side (v2.0)"
+  icon: BOW
+  author: DaVeltto
+  visibility:
+    icon: BOW
+    color: d4953d
+    broadcast: true
+config:
+  settings:
+    team:
+      def:
+        meta:
+          name: Team
+          desc: Which side this modifier affects.
+          icon: SHIELD
+        folder:
+          - affected_team:
+              value: BOTH
+              def:
+                meta:
+                  name: Affected Team
+                  desc: RUNNER hits speedrunners, HUNTER hits hunters, BOTH hits everyone.
+                  icon: SHIELD
+                value:
+                  type: ENUM
+                  default: BOTH
+                  allowed: [BOTH, RUNNER, HUNTER]
+    bow:
+      def:
+        meta:
+          name: Bow
+          desc: Bank size and arrow ballistics.
+          icon: BOW
+        folder:
+          - max_arrows:
+              value: 12
+              def:
+                meta:
+                  name: Max Arrows
+                  desc: Arrow bank size. Arrows are an internal counter, not items.
+                  icon: ARROW
+                value:
+                  type: INTEGER
+                  default: 12
+                  allowed:
+                    min: 1
+                    max: 64
+          - velocity:
+              value: 2
+              def:
+                meta:
+                  name: Velocity
+                  desc: Arrow speed multiplier on the look direction.
+                  icon: FEATHER
+                value:
+                  type: DOUBLE
+                  default: 2
+                  allowed:
+                    min: 0.1
+                    max: 10.0
+          - damage:
+              value: 1.3
+              def:
+                meta:
+                  name: Damage
+                  desc: Arrow damage (a vanilla full-charge arrow deals 2.0).
+                  icon: NETHERITE_SWORD
+                value:
+                  type: DOUBLE
+                  default: 1.3
+                  allowed:
+                    min: 0.0
+                    max: 100.0
+          - pierce:
+              value: 1
+              def:
+                meta:
+                  name: Pierce
+                  desc: Extra entities each arrow pierces through (0 is none).
+                  icon: SPECTRAL_ARROW
+                value:
+                  type: INTEGER
+                  default: 1
+                  allowed:
+                    min: 0
+                    max: 127
+          - shot_cooldown:
+              value: 0.4
+              def:
+                meta:
+                  name: Shot Cooldown
+                  desc: Seconds between shots while the ability is active.
+                  icon: CLOCK
+                value:
+                  type: DOUBLE
+                  default: 0.4
+                  allowed:
+                    min: 0.1
+                    max: 60.0
+    charge:
+      def:
+        meta:
+          name: Charge
+          desc: Hold timing, recharge pacing, and starting bank.
+          icon: CLOCK
+        folder:
+          - min_hold:
+              value: 1.4
+              def:
+                meta:
+                  name: Hold Time
+                  desc: Seconds sneak must be held before the ability activates.
+                  icon: LEATHER_BOOTS
+                value:
+                  type: DOUBLE
+                  default: 1.4
+                  allowed:
+                    min: 0.1
+                    max: 60.0
+          - allow_movement:
+              value: true
+              def:
+                meta:
+                  name: Allow Movement
+                  desc: True charges while moving, false requires standing still.
+                  icon: FEATHER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - recharge_delay:
+              value: 2.4
+              def:
+                meta:
+                  name: Recharge Delay
+                  desc: Idle seconds after uncrouching before arrows recharge.
+                  icon: CLOCK
+                value:
+                  type: DOUBLE
+                  default: 2.4
+                  allowed:
+                    min: 0.0
+                    max: 3600.0
+          - recharge_time:
+              value: 0.9
+              def:
+                meta:
+                  name: Recharge Time
+                  desc: Recharge seconds per arrow.
+                  icon: ARROW
+                value:
+                  type: DOUBLE
+                  default: 0.9
+                  allowed:
+                    min: 0.1
+                    max: 3600.0
+          - start-with-full:
+              value: true
+              def:
+                meta:
+                  name: Start Full
+                  desc: True starts with a full bank, false starts empty.
+                  icon: TORCH
+                value:
+                  type: BOOLEAN
+                  default: true
+    messages:
+      def:
+        meta:
+          name: Messages
+          desc: Message toggles and sounds.
+          icon: BELL
+        folder:
+          - message:
+              value: true
+              def:
+                meta:
+                  name: Message
+                  desc: Activation message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - sound:
+              value: [true, block.anvil.destroy, 1.4, 0.9]
+              def:
+                meta:
+                  name: Sound
+                  desc: Activation sound.
+                  icon: ANVIL
+                value:
+                  type: SOUND
+                  default: [true, block.anvil.destroy, 1.4, 0.9]
+          - empty_message:
+              value: true
+              def:
+                meta:
+                  name: Empty Message
+                  desc: Bank empty notice in the error color, once per crouch.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - empty_sound:
+              value: [true, block.anvil.place, 1.4, 1.0]
+              def:
+                meta:
+                  name: Empty Sound
+                  desc: Bank empty sound.
+                  icon: ANVIL
+                value:
+                  type: SOUND
+                  default: [true, block.anvil.place, 1.4, 1.0]
+          - full_message:
+              value: true
+              def:
+                meta:
+                  name: Full Message
+                  desc: Bank refilled message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - full_sound:
+              value: [true, block.anvil.step, 1.2, 1.0]
+              def:
+                meta:
+                  name: Full Sound
+                  desc: Bank refilled sound.
+                  icon: NOTE_BLOCK
+                value:
+                  type: SOUND
+                  default: [true, block.anvil.step, 1.2, 1.0]
+          - recharge_sound:
+              value: [true, block.calcite.break, 1.6, 0.35]
+              def:
+                meta:
+                  name: Recharge Sound
+                  desc: Per arrow recharged tick, at most one per poll.
+                  icon: CALCITE
+                value:
+                  type: SOUND
+                  default: [true, block.calcite.break, 1.6, 0.35]
+          - shot_sound:
+              value: [true, entity.snow_golem.shoot, 1.6, 0.6]
+              def:
+                meta:
+                  name: Shot Sound
+                  desc: Per arrow shot.
+                  icon: SNOWBALL
+                value:
+                  type: SOUND
+                  default: [true, entity.snow_golem.shoot, 1.6, 0.6]
+          - move_message:
+              value: true
+              def:
+                meta:
+                  name: Move Message
+                  desc: Stand-still notice while moving, at most once per 20s.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+behavior:
+  main:
+    # One shared poll, each player has their own bank and timers.
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 0.5
+        behavior: PER_INVOKE
+    commands:
+      player:
+        # Team gate: RUNNER reads the SPEEDRUNNER side. One branch fires,
+        # then the shared block below does the work.
+        # BOTH means both TEAMS, never spectators: the null guard below keeps
+        # null-prole executors out (old speedrunner:/hunter: lists never ran
+        # for them, and <active-players:null> would warn every poll).
+        - '<lf:mine,<prole:<p>>>'
+        - '<lf:wanted,<setting:team.affected_team>>'
+        - '<lf:hit,<if:"<lf:wanted> == BOTH and <lf:mine> != null",true,false>>'
+        - '<if:"<lf:wanted> == RUNNER and <lf:mine> == SPEEDRUNNER","<lf:hit,true>">'
+        - '<if:"<lf:wanted> == HUNTER and <lf:mine> == HUNTER","<lf:hit,true>">'
+        - '<if:"<lf:hit> == true","<runblock:logic>">'
+  logic:
+    # Called-only: same executor (<p>) and same interval args (<args:0>)
+    # as the caller; one-part <runblock:logic> inherits both. Local flags
+    # and <def:> functions do not cross the hop, so everything below
+    # re-derives from <p>, <args:0>, and <setting:...>.
+    commands:
+      player:
+        # Tunables live in config.settings above; arrows are an internal
+        # counter, not items. Messages are on/off. Sounds are
+        # [enabled, id, pitch, volume].
+        # ---- Functions ----
+        # sneaking(who): true while the player is crouching.
+        - '<def:sneaking,<pstate:who,SNEAK>,who>'
+        # ---- Bank ----
+        # First poll of the match: full bank or empty, per start-with-full.
+        - '<lf:fresh,<if:"<default:<pf:bank-<id>>,none> == none",true,false>>'
+        - '<if:"<lf:fresh> == true and <setting:charge.start-with-full> == true","<pf:bank-<id>,<setting:bow.max_arrows>>">'
+        - '<if:"<lf:fresh> == true and <setting:charge.start-with-full> != true","<pf:bank-<id>,0>">'
+        - '<lf:bank,<pf:bank-<id>>>'
+        - '<lf:was_full,<if:"<lf:bank> ge <setting:bow.max_arrows>",true,false>>'
+        # ---- Idle: recharge while not crouching ----
+        # Fresh uncrouch resets the hold timer, the active flag, and the
+        # per-crouch empty notice (a new crouch may notify again).
+        - '<if:"<sneaking:<p>> != true","<pf:hold-<id>,0>">'
+        - '<if:"<sneaking:<p>> != true","<pf:active-<id>,false>">'
+        - '<if:"<sneaking:<p>> != true","<pf:emptied-<id>,false>">'
+        # Idle seconds since the last crouch, capped at the delay.
+        - '<if:"<sneaking:<p>> != true","<pf:idle-<id>,<min:<default:<pf:idle-<id>>,0>+<args:0>,<setting:charge.recharge_delay>>>">'
+        # Charging only once the delay has passed: bank the seconds waited.
+        - '<lf:charging,<if:"<sneaking:<p>> != true and <pf:idle-<id>> ge <setting:charge.recharge_delay>",true,false>>'
+        - '<if:"<lf:charging> == true","<pf:progress-<id>,<max:<default:<pf:progress-<id>>,0>+<args:0>,0>>">'
+        # Whole arrows earned, capped at the room left in the bank.
+        - '<lf:gain,<floor:<default:<pf:progress-<id>>,0>/<setting:charge.recharge_time>>>'
+        - '<lf:add,<max:<min:<lf:gain>,<setting:bow.max_arrows>-<lf:bank>>,0>>'
+        - '<if:"<lf:charging> == true and <lf:add> gt 0","<pf:bank-<id>,<min:<lf:bank>+<lf:add>,<setting:bow.max_arrows>>>">'
+        # Drop the leftover so ticks stay on even polls instead of drifting into pairs.
+        - '<if:"<lf:charging> == true and <lf:add> gt 0","<pf:progress-<id>,0>">'
+        # One tick when arrows recharged this poll (at most one per poll).
+        - '<if:"<lf:charging> == true and <lf:add> gt 0","<psound:<p>,<setting:messages.recharge_sound>>">'
+        # A full bank holds no partial progress.
+        - '<if:"<lf:charging> == true and <pf:bank-<id>> ge <setting:bow.max_arrows>","<pf:progress-<id>,0>">'
+        # Refilled to full just now: tell them once.
+        - '<lf:now_full,<if:"<pf:bank-<id>> ge <setting:bow.max_arrows>",true,false>>'
+        - '<if:"<lf:charging> == true and <lf:was_full> != true and <lf:now_full> == true","<pmsg:<p>,[<setting:messages.full_message>,Your \<bold\>Archer 🏹\</bold\> ability has recharged!]>">'
+        - '<if:"<lf:charging> == true and <lf:was_full> != true and <lf:now_full> == true","<psound:<p>,<setting:messages.full_sound>>">'
+        - '<if:"<sneaking:<p>> != true","exit">'
+        # ---- Crouched: hold to activate, then shoot ----
+        # Crouched polls restart the idle delay and drop partial progress.
+        - "<pf:idle-<id>,0>"
+        - "<pf:progress-<id>,0>"
+        # Moving while charging resets the hold timer; once the
+        # ability is active, movement is allowed. allow_movement lifts
+        # the pre-activation stillness gate entirely.
+        - '<lf:moving,<pismoving:<p>>>'
+        - '<lf:still,<if:"<pf:active-<id>> != true and <setting:charge.allow_movement> != true",true,false>>'
+        # Held the full duration before this move: eligible for the
+        # stand-still notice (checked before the reset below).
+        - '<lf:held_long,<if:"<default:<pf:hold-<id>>,0> ge <setting:charge.min_hold>",true,false>>'
+        # Stand-still notice, at most once per 20s per player. The
+        # cooldown stamps only on qualifying polls (lazy branch), so
+        # idle sneaking never consumes the window.
+        - '<lf:warn,<if:"<lf:still> == true and <lf:moving> == true and <lf:held_long> == true","<pcooldown:<p>,movewarn-<id>,20>",false>>'
+        - '<if:"<lf:warn> == true","<pmsg:<p>,[<setting:messages.move_message>,\<white\>Stand still\</white\> to activate this ability!]>>">'
+        - '<if:"<lf:still> == true and <lf:moving> == true","<pf:hold-<id>,0>">'
+        - '<if:"<lf:still> == true and <lf:moving> == true","exit">'
+        # Add the seconds waited, capped at min_hold.
+        - '<pf:hold-<id>,<clamp:<default:<pf:hold-<id>>,0>+<args:0>,0,<setting:charge.min_hold>>>'
+        # Not held long enough yet.
+        - '<if:"<pf:hold-<id>> lt <setting:charge.min_hold>","exit">'
+        # Activation, once per crouch. Feedback only when at least
+        # min(max_arrows, 3) arrows are banked.
+        - '<lf:activating,<if:"<pf:active-<id>> != true",true,false>>'
+        - '<if:"<lf:activating> == true","<pf:active-<id>,true>">'
+        - '<lf:ready,<if:"<lf:activating> == true and <lf:bank> ge <min:<setting:bow.max_arrows>,3>",true,false>>'
+        - '<if:"<lf:ready> == true","<pmsg:<p>,[<setting:messages.message>,\<bold\>Archer 🏹\</bold\> ability activated!]>">'
+        - '<if:"<lf:ready> == true","<psound:<p>,<setting:messages.sound>>">'
+        # Bank empty: error-color notice, once per crouch.
+        - '<lf:empty,<if:"<lf:bank> le 0 and <pf:emptied-<id>> != true",true,false>>'
+        - '<if:"<lf:empty> == true","<perror:<p>,[<setting:messages.empty_message>,You\''ve ran out of arrows! Wait a bit.]>">'
+        - '<if:"<lf:empty> == true","<psound:<p>,<setting:messages.empty_sound>>">'
+        - '<if:"<lf:empty> == true","<pf:emptied-<id>,true>">'
+        - '<if:"<lf:bank> le 0","exit">'
+        # Shot gate: stamps and yields true only when ready.
+        - '<if:"<pcooldown:<p>,shot-<id>,<setting:bow.shot_cooldown>> != true","exit">'
+        # Fire: spend one arrow, aimed and owned by the player.
+        - '<pf:bank-<id>,<max:<lf:bank>-1,0>>'
+        # That shot spent the last arrow: same empty notice, still once
+        # per crouch (shares the emptied flag with the check above).
+        - '<lf:spent_last,<if:"<pf:bank-<id>> le 0 and <pf:emptied-<id>> != true",true,false>>'
+        - '<if:"<lf:spent_last> == true","<perror:<p>,[<setting:messages.empty_message>,You\''ve ran out of arrows! Wait a bit.]>">'
+        - '<if:"<lf:spent_last> == true","<psound:<p>,<setting:messages.empty_sound>>">'
+        - '<if:"<lf:spent_last> == true","<pf:emptied-<id>,true>">'
+        # Scaled look components; the .0 suffix keeps every Motion
+        # entry a double so vanilla never sees a mixed list.
+        - '<lf:mx,<min:<pdirx:<p>>*<setting:bow.velocity>,999999>>'
+        - '<lf:my,<min:<pdiry:<p>>*<setting:bow.velocity>,999999>>'
+        - '<lf:mz,<min:<pdirz:<p>>*<setting:bow.velocity>,999999>>'
+        - '<lf:mxd,<if:"<str.contains:<lf:mx>,.> == true",<lf:mx>,"<lf:mx>.0">>'
+        - '<lf:myd,<if:"<str.contains:<lf:my>,.> == true",<lf:my>,"<lf:my>.0">>'
+        - '<lf:mzd,<if:"<str.contains:<lf:mz>,.> == true",<lf:mz>,"<lf:mz>.0">>'
+        # Arrow entities render mirrored: negate both angles so the nose
+        # points along Motion (N/S only looked right because -0=0, -180=180).
+        - '<lf:ryaw,<min:<pyaw:<p>>*-1,999999>>'
+        - '<lf:rpitch,<min:<ppitch:<p>>*-1,999999>>'
+        - 'summon arrow ^ ^1.3 ^0.5 {Owner:[I;<list.join:<puuid:<p>>,",">],damage:<setting:bow.damage>d,PierceLevel:<setting:bow.pierce>b,Motion:[<lf:mxd>,<lf:myd>,<lf:mzd>],Rotation:[<lf:ryaw>F,<lf:rpitch>F]}'
+        - '<psound:<p>,<setting:messages.shot_sound>>'

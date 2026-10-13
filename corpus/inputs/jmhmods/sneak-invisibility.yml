@@ -1,0 +1,232 @@
+# Sneak Invisibility: hold sneak to turn invisible briefly.
+# Polls players on one shared INTERVAL; hold timer and cooldown are tracked per player. Team picks the side.
+enabled: false
+meta:
+  name: "Sneak Invisibility"
+  description: "Sneaking turns players invisible; Team picks the side (v2.0)"
+  icon: LEATHER_BOOTS
+  author: DaVeltto
+  visibility:
+    icon: LEATHER_BOOTS
+    color: 8bc2c4
+    broadcast: true
+config:
+  settings:
+    team:
+      def:
+        meta:
+          name: Team
+          desc: Which side this modifier affects.
+          icon: SHIELD
+        folder:
+          - affected_team:
+              value: BOTH
+              def:
+                meta:
+                  name: Affected Team
+                  desc: RUNNER hits speedrunners, HUNTER hits hunters, BOTH hits everyone.
+                  icon: SHIELD
+                value:
+                  type: ENUM
+                  default: BOTH
+                  allowed: [BOTH, RUNNER, HUNTER]
+    ability:
+      def:
+        meta:
+          name: Ability
+          desc: Cooldown, hold time, and granted effects.
+          icon: PHANTOM_MEMBRANE
+        folder:
+          - cooldown:
+              value: 10
+              def:
+                meta:
+                  name: Cooldown
+                  desc: Seconds before the ability can trigger again.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 10
+                  allowed:
+                    min: 1
+                    max: 3600
+          - min_hold:
+              value: 1.2
+              def:
+                meta:
+                  name: Hold Time
+                  desc: Seconds sneak must be held before it triggers.
+                  icon: LEATHER_BOOTS
+                value:
+                  type: DOUBLE
+                  default: 1.2
+                  allowed:
+                    min: 0.1
+                    max: 60.0
+          - allow_movement:
+              value: true
+              def:
+                meta:
+                  name: Allow Movement
+                  desc: True charges while moving, false requires standing still.
+                  icon: FEATHER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - effects:
+              value: true
+              def:
+                meta:
+                  name: Effects
+                  desc: Apply the effect list on trigger.
+                  icon: POTION
+                value:
+                  type: BOOLEAN
+                  default: true
+          - effect_list:
+              value: [[invisibility, 0, 5]]
+              def:
+                meta:
+                  name: Effect List
+                  desc: Effects as id, amplifier, seconds triples. Ids stay bare.
+                  icon: GLASS_BOTTLE
+                value:
+                  type: EFFECTS
+                  default: [[invisibility, 0, 5]]
+    messages:
+      def:
+        meta:
+          name: Messages
+          desc: Message toggles and sounds.
+          icon: BELL
+        folder:
+          - message:
+              value: true
+              def:
+                meta:
+                  name: Message
+                  desc: Trigger message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - sound:
+              value: [true, block.brewing_stand.brew, 0.8, 0.75]
+              def:
+                meta:
+                  name: Sound
+                  desc: Trigger sound.
+                  icon: BREWING_STAND
+                value:
+                  type: SOUND
+                  default: [true, block.brewing_stand.brew, 0.8, 0.75]
+          - wait_message:
+              value: true
+              def:
+                meta:
+                  name: Wait Message
+                  desc: Cooldown wait notice, once per sneak.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - wait_sound:
+              value: [true, block.glass.step, 0.8, 0.7]
+              def:
+                meta:
+                  name: Wait Sound
+                  desc: Cooldown wait sound.
+                  icon: GLASS
+                value:
+                  type: SOUND
+                  default: [true, block.glass.step, 0.8, 0.7]
+          - move_message:
+              value: true
+              def:
+                meta:
+                  name: Move Message
+                  desc: Stand-still notice while moving, at most once per 20s.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+behavior:
+  main:
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 0.3
+        behavior: PER_INVOKE
+    commands:
+      player:
+        # Team gate: RUNNER reads the SPEEDRUNNER side. One branch fires,
+        # then the shared block below does the work.
+        # BOTH means both TEAMS, never spectators: the null guard below keeps
+        # null-prole executors out (old speedrunner:/hunter: lists never ran
+        # for them, and <active-players:null> would warn every poll).
+        - '<lf:mine,<prole:<p>>>'
+        - '<lf:wanted,<setting:team.affected_team>>'
+        - '<lf:hit,<if:"<lf:wanted> == BOTH and <lf:mine> != null",true,false>>'
+        - '<if:"<lf:wanted> == RUNNER and <lf:mine> == SPEEDRUNNER","<lf:hit,true>">'
+        - '<if:"<lf:wanted> == HUNTER and <lf:mine> == HUNTER","<lf:hit,true>">'
+        - '<if:"<lf:hit> == true","<runblock:logic>">'
+  logic:
+    # Called-only: same executor (<p>) and same interval args (<args:0>)
+    # as the caller; one-part <runblock:logic> inherits both. Local flags
+    # and <def:> functions do not cross the hop, so everything below
+    # re-derives from <p>, <args:0>, and <setting:...>.
+    commands:
+      player:
+        # Tunables live in config.settings above. Messages are on/off.
+        # Sounds are [enabled, id, pitch, volume].
+        # ---- Functions ----
+        # sneaking(who): true while the player is crouching.
+        - '<def:sneaking,<pstate:who,SNEAK>,who>'
+        # give_effects(who): applies every effect in effect_list,
+        # particles hidden.
+        - '<def:give_effects,<peffect:who,<setting:ability.effect_list>>,who>'
+        # ---- Logic ----
+        # Not sneaking: reset the hold timer and the per-sneak notice
+        # flag (a fresh sneak may notify again), then leave quietly.
+        - '<if:"<sneaking:<p>> != true","<pf:hold-<id>,0>">'
+        - '<if:"<sneaking:<p>> != true","<pf:noticed-<id>,false>">'
+        - '<if:"<sneaking:<p>> != true","exit">'
+        # Moving while charging resets the hold timer; the trigger
+        # only fires while standing still. allow_movement lifts the
+        # stillness gate entirely.
+        - '<lf:moving,<pismoving:<p>>>'
+        - '<lf:still,<if:"<setting:ability.allow_movement> != true",true,false>>'
+        # Held the full duration before this move: eligible for the
+        # stand-still notice (checked before the reset below).
+        - '<lf:held_long,<if:"<default:<pf:hold-<id>>,0> ge <setting:ability.min_hold>",true,false>>'
+        # Stand-still notice, at most once per 20s per player. The
+        # cooldown stamps only on qualifying polls (lazy branch), so
+        # idle sneaking never consumes the window.
+        - '<lf:warn,<if:"<lf:still> == true and <lf:moving> == true and <lf:held_long> == true","<pcooldown:<p>,movewarn-<id>,20>",false>>'
+        - '<if:"<lf:warn> == true","<pmsg:<p>,[<setting:messages.move_message>,\<white\>Stand still\</white\> to activate this ability!]>>">'
+        - '<if:"<lf:still> == true and <lf:moving> == true","<pf:hold-<id>,0>">'
+        - '<if:"<lf:still> == true and <lf:moving> == true","exit">'
+        # Sneaking: add the seconds waited, capped at min_hold.
+        - '<pf:hold-<id>,<clamp:<default:<pf:hold-<id>>,0>+<args:0>,0,<setting:ability.min_hold>>>'
+        # Not held long enough yet: no trigger, no notice.
+        - '<if:"<pf:hold-<id>> lt <setting:ability.min_hold>","exit">'
+        # Held long enough but on cooldown, and not yet noticed or used
+        # this sneak: tell them the wait once, then mark the sneak handled.
+        - '<lf:cdleft,<pcooldown.get:<p>,cd-<id>,<setting:ability.cooldown>>>'
+        # Cooldown left, rounded to one decimal: the read hoists first
+        # because math tags split their args blind to nesting.
+        - '<lf:rem1dp,<clamp:<sum:<round:<lf:cdleft>*10>/10>,0,<setting:ability.cooldown>>>'
+        - '<lf:waiting,<if:"<pf:noticed-<id>> != true and <lf:cdleft> gt 0",true,false>>'
+        - '<if:"<lf:waiting> == true","<pmsg:<p>,[<setting:messages.wait_message>,Wait \<white\><lf:rem1dp>\</white\> seconds to use this ability!]>">'
+        - '<if:"<lf:waiting> == true","<psound:<p>,<setting:messages.wait_sound>>">'
+        - '<if:"<lf:waiting> == true","<pf:noticed-<id>,true>">'
+        # Cooldown gate: stamps and yields true only when ready.
+        - '<if:"<pcooldown:<p>,cd-<id>,<setting:ability.cooldown>> != true","exit">'
+        # Triggered: restart the hold timer and mark this sneak as used
+        # (no wait notice for it), then apply the feedback.
+        - "<pf:hold-<id>,0>"
+        - "<pf:noticed-<id>,true>"
+        - '<if:"<setting:ability.effects> == true","<give_effects:<p>>">'
+        - '<psound:<p>,<setting:messages.sound>>'
+        - '<pmsg:<p>,[<setting:messages.message>,Sneak away!]>'

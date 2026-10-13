@@ -1,0 +1,19 @@
+# Bundled JManhunt modifier: start-with-luckyblocks-requires-challenges-addon
+# Install the Challenges addon to use this modifier.
+enabled: false
+meta:
+  name: "Lucky Blocks Start"
+  description: "Lucky block and hoe starter for the Challenges addon"
+  icon: SPONGE
+  author: JManhunt
+  visibility:
+    icon: SPONGE
+    broadcast: true
+behavior:
+  main:
+    runs-on:
+      - ON_START
+    commands:
+      player:
+        - "give <p> sponge 24"
+        - "give <p> golden_hoe 1"

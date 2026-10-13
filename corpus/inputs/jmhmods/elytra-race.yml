@@ -1,0 +1,242 @@
+# Elytra Race ✈: everyone gets an elytra at start and on respawn, plus rockets on a cooldown.
+# Main gives the elytra, block 2 hands out rockets on an interval; the engine announces the mod at start.
+enabled: false
+meta:
+  name: "Elytra Race ✈"
+  description: "Elytra for all, rockets on a cooldown (v1.0)"
+  icon: ELYTRA
+  author: DaVeltto
+  visibility:
+    icon: ELYTRA
+    color: 796b85
+    broadcast: true
+config:
+  settings:
+    elytra:
+      def:
+        meta:
+          name: Elytra
+          desc: Elytra handout and rocket reset on respawn.
+          icon: ELYTRA
+        folder:
+          - give_elytra:
+              value: true
+              def:
+                meta:
+                  name: Give Elytra
+                  desc: Hand out the elytra at start and on respawn.
+                  icon: ELYTRA
+                value:
+                  type: BOOLEAN
+                  default: true
+          - elytra_name:
+              value: Flappy Bird
+              def:
+                meta:
+                  name: Elytra Name
+                  desc: Custom name stamped on the elytra.
+                  icon: NAME_TAG
+                value:
+                  type: STRING
+                  default: Flappy Bird
+          - reset_rockets_on_respawn:
+              value: false
+              def:
+                meta:
+                  name: Reset Rockets On Respawn
+                  desc: True resets the rocket cooldown on respawn, so respawned players get rockets at the next interval.
+                  icon: FIREWORK_ROCKET
+                value:
+                  type: BOOLEAN
+                  default: false
+    rockets:
+      def:
+        meta:
+          name: Rockets
+          desc: Handout cadence, stock bounds, and flight duration.
+          icon: FIREWORK_ROCKET
+        folder:
+          - cooldown:
+              value: 150
+              def:
+                meta:
+                  name: Cooldown
+                  desc: Seconds between rocket handouts, with a random plus or minus spread per player.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 150
+                  allowed:
+                    min: 5
+                    max: 3600
+          - deviation:
+              value: 15
+              def:
+                meta:
+                  name: Deviation
+                  desc: Random spread in seconds around the cooldown per player.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 15
+                  allowed:
+                    min: 0
+                    max: 600
+          - min_rockets:
+              value: 3
+              def:
+                meta:
+                  name: Min Rockets
+                  desc: Rockets only go to players holding fewer than this; the amount given rolls from here.
+                  icon: FIREWORK_ROCKET
+                value:
+                  type: INTEGER
+                  default: 3
+                  allowed:
+                    min: 0
+                    max: 64
+          - max_rockets:
+              value: 4
+              def:
+                meta:
+                  name: Max Rockets
+                  desc: Upper end of the rolled handout amount and the stock skip bound.
+                  icon: FIREWORK_ROCKET
+                value:
+                  type: INTEGER
+                  default: 4
+                  allowed:
+                    min: 0
+                    max: 64
+          - flight:
+              value: 2
+              def:
+                meta:
+                  name: Flight
+                  desc: Rocket flight duration.
+                  icon: FEATHER
+                value:
+                  type: INTEGER
+                  default: 2
+                  allowed:
+                    min: 1
+                    max: 3
+    messages:
+      def:
+        meta:
+          name: Messages
+          desc: Message toggles, sounds, and warning window.
+          icon: BELL
+        folder:
+          - message:
+              value: true
+              def:
+                meta:
+                  name: Message
+                  desc: Handout message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - sound:
+              value: [true, entity.firework_rocket.large_blast_far, 0.8, 1.0]
+              def:
+                meta:
+                  name: Sound
+                  desc: Handout sound.
+                  icon: FIREWORK_ROCKET
+                value:
+                  type: SOUND
+                  default: [true, entity.firework_rocket.large_blast_far, 0.8, 1.0]
+          - warn_time:
+              value: 20
+              def:
+                meta:
+                  name: Warn Time
+                  desc: Refill heads-up seconds before a handout; the message shows this number.
+                  icon: BELL
+                value:
+                  type: INTEGER
+                  default: 20
+                  allowed:
+                    min: 0
+                    max: 600
+          - warn_message:
+              value: true
+              def:
+                meta:
+                  name: Warn Message
+                  desc: Refill heads-up message, once per cooldown.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - warn_sound:
+              value: [true, entity.firework_rocket.blast_far, 1.4, 0.8]
+              def:
+                meta:
+                  name: Warn Sound
+                  desc: Refill heads-up sound.
+                  icon: NOTE_BLOCK
+                value:
+                  type: SOUND
+                  default: [true, entity.firework_rocket.blast_far, 1.4, 0.8]
+behavior:
+  main:
+    runs-on:
+      - ON_START
+      - ON_RESPAWN
+    on-start:
+      # BEFORE runs at /manhunt start; AFTER waits until the speedrunner
+      # first hits a hunter (or the match force-starts). Defaults to BEFORE.
+      pre-start-order: BEFORE
+    commands:
+      player:
+        # Elytra tunables live in config.settings above.
+        # true: a respawn also resets the rocket cooldown, so a respawned
+        # player gets rockets at the next interval instead of waiting.
+        # ---- Logic ----
+        - '<if:"<setting:elytra.reset_rockets_on_respawn> == true","<lf:ignored,<pcooldown.reset:<p>,rockets-<id>>>">'
+        - '<if:"<setting:elytra.give_elytra> != true","exit">'
+        - 'give <p> elytra[unbreakable={},custom_name={"italic":false,"text":"<setting:elytra.elytra_name>"},enchantments={"unbreaking":10,"vanishing_curse":1}] 1'
+  2:
+    # Rockets: one shared poll, each player has their own cooldown.
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 2.5
+        behavior: PER_INVOKE
+    commands:
+      player:
+        # Rocket tunables live in config.settings above. Messages are
+        # on/off. Sounds are [enabled, id, pitch, volume].
+        # ---- Cooldown state ----
+        # This player's own wait: drawn after each handout, base cooldown the first time.
+        - '<lf:wait,<default:<pf:wait-<id>>,<setting:rockets.cooldown>>>'
+        # Seconds left on the cooldown (0 when ready or never stamped).
+        - '<lf:left,<pcooldown.get:<p>,rockets-<id>,<lf:wait>>>'
+        # ---- Refill heads-up ----
+        # One attempt per cooldown, once the wait is inside the warning window.
+        - '<lf:attempt,<if:"<lf:left> gt 0 and <lf:left> le <setting:messages.warn_time> and <pf:warned-<id>> != true",true,false>>'
+        # Mark it done even if nothing plays below (the player is already stocked).
+        - '<if:"<lf:attempt> == true","<pf:warned-<id>,true>">'
+        # Only a player who would actually get rockets is told.
+        - '<lf:notify,<if:"<lf:attempt> == true and <phasitem:<p>,firework_rocket,<setting:rockets.min_rockets>> != true",true,false>>'
+        - '<if:"<lf:notify> == true","<pmsg:<p>,[<setting:messages.warn_message>,Your rockets \<bold\>refill\</bold\> in the next \<white\><round:<setting:messages.warn_time>>\</white\> seconds.]>">'
+        - '<if:"<lf:notify> == true","<psound:<p>,<setting:messages.warn_sound>>">'
+        # ---- Handout ----
+        # Already holding enough rockets: skip without touching the cooldown.
+        - '<if:"<phasitem:<p>,firework_rocket,<setting:rockets.max_rockets>> == true","exit">'
+        # Cooldown gate: yields true (and stamps) when ready. A player with no stamp yet is ready right away.
+        - '<if:"<pcooldown:<p>,rockets-<id>,<lf:wait>> != true","exit">'
+        # New cycle: the next heads-up may fire again.
+        - '<pf:warned-<id>,false>'
+        # Draw this player's next wait (cooldown +/- deviation, never below 0).
+        - '<lf:lo,<ceil:<max:<setting:rockets.cooldown>-<setting:rockets.deviation>,0>>>'
+        - '<lf:hi,<ceil:<setting:rockets.cooldown>+<setting:rockets.deviation>>>'
+        - '<pf:wait-<id>,<random-num:<lf:lo>,<lf:hi>>>'
+        # Give the rockets, then the feedback.
+        - 'give <p> firework_rocket[fireworks={flight_duration:<setting:rockets.flight>}] <random-num:<setting:rockets.min_rockets>,<setting:rockets.max_rockets>>'
+        - '<psound:<p>,<setting:messages.sound>>'
+        - '<pmsg:<p>,[<setting:messages.message>,Fly like a bird!]>'

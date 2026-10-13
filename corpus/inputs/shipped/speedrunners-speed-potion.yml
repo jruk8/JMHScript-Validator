@@ -1,0 +1,19 @@
+# Bundled JManhunt modifier: speedrunners-speed-potion
+enabled: false
+meta:
+  name: "Speedrunner Swiftness"
+  description: "Speedrunners start with a strong swiftness potion"
+  icon: POTION
+  author: JManhunt
+  visibility:
+    icon: POTION
+    broadcast: true
+behavior:
+  main:
+    runs-on:
+      - ON_START
+    commands:
+      speedrunner:
+        # Runs only once for each Speedrunner, with <p> replaced by their name.
+        # Note the single quotes used to escape the double quotes inside the JSON.
+        - 'give <p> potion[potion_contents={potion:"minecraft:strong_swiftness"}] 1'

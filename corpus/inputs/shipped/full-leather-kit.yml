@@ -1,0 +1,27 @@
+# Bundled JManhunt modifier: full-leather-kit
+# A semi-op kit for speedrunners to start with.
+enabled: false
+meta:
+  name: "Speedrunners Starter Kit"
+  description: "Full leather armor and a few other items"
+  icon: LEATHER_HELMET
+  author: JManhunt
+  visibility:
+    icon: LEATHER_HELMET
+    broadcast: true
+behavior:
+  main:
+    runs-on:
+      - ON_START
+    commands:
+      speedrunner:
+        # Runs only once for each Speedrunner, with <p> replaced by their name.
+        - "give <p> wooden_sword 1"
+        - "give <p> iron_pickaxe 1"
+        - "give <p> cooked_chicken 8"
+        - "give <p> lava_bucket 1"
+        - "give <p> shield 1"
+        - "give <p> leather_boots 1"
+        - "give <p> leather_leggings 1"
+        - "give <p> leather_chestplate 1"
+        - "give <p> leather_helmet 1"

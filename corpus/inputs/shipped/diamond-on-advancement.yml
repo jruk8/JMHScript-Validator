@@ -1,0 +1,17 @@
+# Bundled JManhunt modifier: diamond-on-advancement
+enabled: false
+meta:
+  name: "Diamond On Advancement"
+  description: "A diamond for every advancement earned"
+  icon: DIAMOND
+  author: JManhunt
+  visibility:
+    icon: DIAMOND
+    broadcast: true
+behavior:
+  main:
+    runs-on:
+      - ON_EVERY_ADVANCEMENT
+    commands:
+      player:
+        - "give <p> minecraft:diamond 1"

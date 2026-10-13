@@ -1,0 +1,263 @@
+# Lava Floor 🪣: an overworld lava cuboid under every participant, rising from y20.
+# One shared INTERVAL polls everyone; the lava level is global (match clock).
+# Works with Vanilla, but highly recommended to use
+# WorldEdit or FAWE for performance and to avoid internal volume clamping of 32768.
+enabled: false
+meta:
+  name: "Lava Floor 🪣"
+  description: "A lava floor under every overworld player, rising on an interval (v1.0)"
+  icon: LAVA_BUCKET
+  author: DaVeltto
+  visibility:
+    icon: LAVA_BUCKET
+    color: d94b27
+    broadcast: true
+config:
+  advanced:
+    exclusive-group: rising-hazard
+  settings:
+    level:
+      def:
+        meta:
+          name: Level
+          desc: Lava height, rise timing, and cuboid size.
+          icon: LAVA_BUCKET
+        folder:
+          - base_y:
+              value: 20
+              def:
+                meta:
+                  name: Starting Level
+                  desc: Lava level at match start.
+                  icon: LAVA_BUCKET
+                value:
+                  type: INTEGER
+                  default: 20
+                  allowed:
+                    min: -64
+                    max: 320
+          - rise_interval:
+              value: 8
+              def:
+                meta:
+                  name: Rise Interval
+                  desc: Average seconds between rises.
+                  icon: CLOCK
+                value:
+                  type: INTEGER
+                  default: 8
+                  allowed:
+                    min: 1
+                    max: 3600
+          - max_height:
+              value: 316
+              def:
+                meta:
+                  name: Max Height
+                  desc: Highest the lava goes, capped at the 320 sky limit.
+                  icon: ARROW
+                value:
+                  type: INTEGER
+                  default: 316
+                  allowed:
+                    min: -64
+                    max: 320
+          - width:
+              value: 130
+              def:
+                meta:
+                  name: Width
+                  desc: Cuboid width; oversized volumes shrink evenly inside the engine.
+                  icon: NETHERRACK
+                value:
+                  type: INTEGER
+                  default: 130
+                  allowed:
+                    min: 10
+                    max: 500
+          - height:
+              value: 2
+              def:
+                meta:
+                  name: Height
+                  desc: Cuboid height.
+                  icon: BRICKS
+                value:
+                  type: INTEGER
+                  default: 2
+                  allowed:
+                    min: 1
+                    max: 60
+          - max_y_dist:
+              value: 50
+              def:
+                meta:
+                  name: Max Y Distance
+                  desc: Skips the fill when the player stands this far above the lava.
+                  icon: FEATHER
+                value:
+                  type: INTEGER
+                  default: 50
+                  allowed:
+                    min: 0
+                    max: 500
+    announce:
+      def:
+        meta:
+          name: Announcements
+          desc: Message toggles and sounds.
+          icon: BELL
+        folder:
+          - info_message:
+              value: true
+              def:
+                meta:
+                  name: Info Message
+                  desc: First poll info line.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - info_sound:
+              value: [true, entity.ender_eye.launch, 0.7, 0.9]
+              def:
+                meta:
+                  name: Info Sound
+                  desc: First poll info sound.
+                  icon: ENDER_EYE
+                value:
+                  type: SOUND
+                  default: [true, entity.ender_eye.launch, 0.7, 0.9]
+          - rise_message:
+              value: true
+              def:
+                meta:
+                  name: Rise Message
+                  desc: Message every 5th average step.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - rise_sound:
+              value: [true, entity.zombie_nautilus.ambient, 0.8, 0.75]
+              def:
+                meta:
+                  name: Rise Sound
+                  desc: Sound every 5th average step.
+                  icon: NAUTILUS_SHELL
+                value:
+                  type: SOUND
+                  default: [true, entity.zombie_nautilus.ambient, 0.8, 0.75]
+          - peak_message:
+              value: true
+              def:
+                meta:
+                  name: Peak Message
+                  desc: Peak reached message.
+                  icon: PAPER
+                value:
+                  type: BOOLEAN
+                  default: true
+          - peak_sound:
+              value: [true, entity.zombie_villager.cure, 1.3, 0.35]
+              def:
+                meta:
+                  name: Peak Sound
+                  desc: Peak reached sound.
+                  icon: EMERALD
+                value:
+                  type: SOUND
+                  default: [true, entity.zombie_villager.cure, 1.3, 0.35]
+behavior:
+  main:
+    # One shared poll; the console math runs inside every dispatch, so the
+    # player verts always read a freshly published level.
+    runs-on:
+      - INTERVAL
+    options:
+      interval-settings:
+        interval: 1.5
+        behavior: PER_INVOKE
+    commands:
+      console:
+        # Tunables live in config.settings above; the flags below are
+        # per-run scratch. Messages are on/off. Sounds are
+        # [enabled, id, pitch, volume].
+        # ---- Level ----
+        # Peaked already: stay quiet.
+        - '<if:"<default:<gf:lava-done>,false> == true","exit">'
+        # Anchor the clock on the first poll; mid-match enables start fresh.
+        - '<if:"<default:<gf:lava-anchor>,none> == none","<gf:lava-anchor,<gstat:duration>>">'
+        - '<lf:anchor,<gf:lava-anchor>>'
+        - '<lf:elapsed,<min:<gstat:duration>-<lf:anchor>,999999>>'
+        - '<lf:max_capped,<max:<min:<setting:level.max_height>,320>,<setting:level.base_y>>>'
+        # Accelerating climb: slow at the start, faster ever
+        # after, peaking exactly at span. The full climb still
+        # spans total*rise_interval seconds, so the average step
+        # stays one level per rise_interval. Broadcasts follow
+        # the average step below, never this curve.
+        - '<lf:total,<max:<lf:max_capped>-<setting:level.base_y>,0>>'
+        - '<lf:span,<max:<lf:total>*<setting:level.rise_interval>,0.000001>>'
+        - '<lf:ratio,<min:<lf:elapsed>/<lf:span>,1>>'
+        - '<lf:increment,<floor:((<lf:ratio>**2)*<lf:total>)>>'
+        - '<lf:avg_step,<floor:<lf:elapsed>/<max:<setting:level.rise_interval>,0.000001>>>'
+        - '<lf:level,<min:<setting:level.base_y>+<lf:increment>,<lf:max_capped>>>'
+        - '<gf:lava-level,<lf:level>>'
+        # ---- First poll info ----
+        - '<lf:info_go,<if:"<default:<gf:lava-info>,none> == none",true,false>>'
+        - '<if:"<lf:info_go> == true","<gmsg:[<setting:announce.info_message>,The floor is \<bold\>lava\</bold\>! It rises every \<white\><setting:level.rise_interval>s\</white\>.]>">'
+        - '<if:"<lf:info_go> == true","<gsound:<setting:announce.info_sound>>">'
+        - '<if:"<lf:info_go> == true","<gf:lava-info,true>">'
+        # ---- Peak ----
+        - '<lf:peaked,<if:"<lf:level> ge <lf:max_capped>",true,false>>'
+        - '<if:"<lf:peaked> == true","<gmsg:[<setting:announce.peak_message>,\<bold\>Lava 🌋\</bold\> has reached its peak!]>">'
+        - '<if:"<lf:peaked> == true","<gsound:<setting:announce.peak_sound>>">'
+        - '<if:"<lf:peaked> == true","<gf:lava-done,true>">'
+        - '<if:"<lf:peaked> == true","exit">'
+        # ---- Every 5th average step (ignores the easing curve) ----
+        - '<lf:rem,<min:<lf:avg_step>%5,999999>>'
+        - '<lf:rise_go,<if:"<lf:avg_step> gt 0 and <lf:rem> == 0 and <lf:avg_step> != <default:<gf:lava-announced>,-1>",true,false>>'
+        - '<if:"<lf:rise_go> == true","<gmsg:[<setting:announce.rise_message>,\<bold\>Lava 🌋\</bold\> is rising...]>">'
+        - '<if:"<lf:rise_go> == true","<gsound:<setting:announce.rise_sound>>">'
+        - '<if:"<lf:rise_go> == true","<gf:lava-announced,<lf:avg_step>>">'
+      player:
+        # Cuboid tunables come from the shared config.settings above.
+        # ---- Cuboid ----
+        # Peaked already: stay quiet.
+        - '<if:"<default:<gf:lava-done>,false> == true","exit">'
+        # Overworld only: nether and end sitters sit this one out.
+        - '<if:"<pworld:<p>> == nether","exit">'
+        - '<if:"<pworld:<p>> == end","exit">'
+        - '<lf:level,<default:<gf:lava-level>,<setting:level.base_y>>>'
+        - '<lf:w,<setting:level.width>>'
+        - '<lf:h,<min:<max:<setting:level.height>,1>,60>>'
+        - '<lf:half,<floor:<lf:w>/2>>'
+        - '<lf:half_h,<floor:<lf:h>/2>>'
+        - '<lf:cx,<floor:<px:<p>>>>'
+        - '<lf:cz,<floor:<pz:<p>>>>'
+        - '<lf:feet,<floor:<py:<p>>>>'
+        # Sky-high: the lava is too far below to matter, spare the fill.
+        - '<if:"<lf:feet>-<lf:level> gt <setting:level.max_y_dist>","exit">'
+        # ---- Move gate: refills on real movement, a fresh rise, or
+        # vertical drift under the lava ----
+        - '<lf:gate,<floor:((<lf:w>*0.2)**2)>>'
+        # First sighting seeds a stale level so the rise check fills once.
+        - '<lf:gen,<default:<gf:lava-gen-<p>>,[<lf:cx>,<lf:cz>,<lf:level>-1,<lf:feet>]>>'
+        - '<lf:moved,<if:"<vec.sqrdist2d:[<lf:cx>,<lf:cz>],[<list.get:<lf:gen>,0>,<list.get:<lf:gen>,1>]> ge <lf:gate>",true,false>>'
+        - '<lf:risen,<if:"<lf:level> gt <list.get:<lf:gen>,2>",true,false>>'
+        # Under the lava with real vertical drift since the last
+        # fill: the XZ gate misses pure climbs and digs, so pass.
+        - '<lf:ygen,<default:<list.get:<lf:gen>,3>,<lf:feet>>>'
+        - '<lf:ydiff,<abs:<lf:feet>-<lf:ygen>>>'
+        - '<lf:ythresh,<max:<lf:h>*0.5,0>>'
+        - '<lf:ypass,<if:"<lf:feet> lt <lf:level> and <lf:ydiff> gt <lf:ythresh>",true,false>>'
+        - '<if:"<lf:moved> != true and <lf:risen> != true and <lf:ypass> != true","exit">'
+        - '<lf:x1,<min:<lf:cx>-<lf:half>,999999>>'
+        - '<lf:z1,<min:<lf:cz>-<lf:half>,999999>>'
+        - '<lf:x2,<min:<lf:x1>+<lf:w>-1,999999>>'
+        - '<lf:z2,<min:<lf:z1>+<lf:w>-1,999999>>'
+        - '<lf:cap,<min:<lf:feet>+<lf:half_h>-1,999999>>'
+        - '<lf:upper,<max:<min:<lf:level>,<lf:cap>>,-64>>'
+        - '<lf:lower,<max:<lf:upper>-<lf:h>+1,-64>>'
+        - '<gf:lava-gen-<p>,[<lf:cx>,<lf:cz>,<lf:level>,<lf:feet>]>'
+        - '<fill:<pworld:<p>>,[<lf:x1>,<lf:upper>,<lf:z1>],[<lf:x2>,<lf:lower>,<lf:z2>],lava,replace_non_block>'
