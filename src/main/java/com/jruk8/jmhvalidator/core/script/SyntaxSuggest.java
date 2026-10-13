@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /** Root token checks and typo suggestions behind {@link CommandSyntax}. */
-final class SyntaxSuggest {
+public final class SyntaxSuggest {
     private SyntaxSuggest() {
     }
 
