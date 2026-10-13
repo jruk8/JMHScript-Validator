@@ -1,0 +1,97 @@
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'checkstyle'
+    id 'com.gradleup.shadow' version '9.6.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.21.3'
+    id 'maven-publish'
+}
+
+group = 'com.github.jruk8'
+
+// Tag-based versions (v1.2.3), same convention as JManhunt: the
+// validator tags first, then JManhunt bumps, then JMH-Mods bumps
+// its CLI pin. JMH-Mods asserts this version on every run.
+scmVersion {
+    repository {
+        pushTagsOnly = true
+    }
+    tag {
+        prefix = 'v'
+        versionSeparator = ''
+    }
+}
+
+project.version = scmVersion.version
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // File adapter only: modifier YAML plus registry JSON (JSON is
+    // valid YAML, so no second parser). Core stays dependency-free.
+    implementation 'org.yaml:snakeyaml:2.3'
+
+    // Same JUnit pair JManhunt tests run, so ported tests behave
+    // identically on both sides.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+}
+
+application {
+    mainClass = 'com.jruk8.jmhvalidator.adapters.cli.Main'
+}
+
+checkstyle {
+    toolVersion = '10.17.0'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+test {
+    useJUnitPlatform()
+}
+
+check {
+    dependsOn 'checkstyleMain', 'checkstyleTest'
+}
+
+// Fat CLI jar for the JMH-Mods fetch: one asset, no classpath
+// assembly on the tester machine.
+tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar).configure {
+    archiveBaseName = 'JMHScript-Validator'
+    archiveClassifier = 'cli'
+    manifest {
+        attributes 'Main-Class': 'com.jruk8.jmhvalidator.adapters.cli.Main'
+    }
+}
+
+tasks.named('jar').configure {
+    manifest {
+        attributes(
+                'Implementation-Title': 'JMHScript-Validator',
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+// Local consumption (publishToMavenLocal) plus the coordinate shape
+// JitPack serves (com.github.jruk8:JMHScript-Validator:<tag>).
+publishing {
+    publications {
+        validator(MavenPublication) {
+            from components.java
+        }
+    }
+}
