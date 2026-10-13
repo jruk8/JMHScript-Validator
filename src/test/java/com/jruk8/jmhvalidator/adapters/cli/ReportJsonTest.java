@@ -4,6 +4,9 @@ import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
 import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class ReportJsonTest {
     @Test
-    void reportRendersExactBytes() {
+    void reportRendersExactBytes() throws Exception {
         Diagnostic fatal = new Diagnostic(new Provenance("swap", "main", "all", 1),
                 15, Severity.ERROR, DiagnosticCode.E_SYNTAX, "Tag <min> needs two numbers.");
         Diagnostic warning = new Diagnostic(new Provenance("swap", "main", "all", 0),
@@ -26,46 +29,12 @@ class ReportJsonTest {
         String rendered = ReportJson.report("dev-test", "JManhunt", "rev-abc",
                 List.of(new ReportJson.FileReport("mods/swap.yml", List.of(fatal, warning))));
 
-        assertEquals("""
-                {
-                  "reportVersion": 1,
-                  "validatorVersion": "dev-test",
-                  "registry": {
-                    "engine": "JManhunt",
-                    "engineVersion": "rev-abc"
-                  },
-                  "files": [
-                    {
-                      "file": "mods/swap.yml",
-                      "diagnostics": [
-                        {
-                          "behavior": "main",
-                          "list": "all",
-                          "line": 2,
-                          "char": 15,
-                          "severity": "error",
-                          "code": "E_SYNTAX",
-                          "message": "Tag <min> needs two numbers."
-                        },
-                        {
-                          "behavior": "main",
-                          "list": "all",
-                          "line": 1,
-                          "char": null,
-                          "severity": "warning",
-                          "code": "W_UNKNOWN_TAG",
-                          "message": "Unknown tag '<bogus>', left untouched at runtime."
-                        }
-                      ]
-                    }
-                  ],
-                  "summary": {
-                    "files": 1,
-                    "errors": 1,
-                    "warnings": 1
-                  }
-                }
-                """, rendered);
+        assertEquals(expectedReport(), rendered);
+    }
+
+    private String expectedReport() throws Exception {
+        return Files.readString(Paths.get("src/test/resources/expected-report.json"),
+                StandardCharsets.UTF_8);
     }
 
     @Test

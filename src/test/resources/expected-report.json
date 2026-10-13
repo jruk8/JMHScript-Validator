@@ -1,0 +1,38 @@
+{
+  "reportVersion": 1,
+  "validatorVersion": "dev-test",
+  "registry": {
+    "engine": "JManhunt",
+    "engineVersion": "rev-abc"
+  },
+  "files": [
+    {
+      "file": "mods/swap.yml",
+      "diagnostics": [
+        {
+          "behavior": "main",
+          "list": "all",
+          "line": 2,
+          "char": 15,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <min> needs two numbers."
+        },
+        {
+          "behavior": "main",
+          "list": "all",
+          "line": 1,
+          "char": null,
+          "severity": "warning",
+          "code": "W_UNKNOWN_TAG",
+          "message": "Unknown tag '<bogus>', left untouched at runtime."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "files": 1,
+    "errors": 1,
+    "warnings": 1
+  }
+}

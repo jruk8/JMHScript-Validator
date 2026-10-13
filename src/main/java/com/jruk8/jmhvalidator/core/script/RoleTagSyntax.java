@@ -1,0 +1,138 @@
+package com.jruk8.jmhvalidator.core.script;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+
+/**
+ * Edit-time validation for the role tags ({@code <rflag>},
+ * {@code <rmessage>}, {@code <rsound>}): arity, quote hygiene, plus
+ * the HUNTER/SPEEDRUNNER/ALL head. Mirrors the runtime warns. No
+ * Bukkit types.
+ */
+final class RoleTagSyntax {
+
+    private RoleTagSyntax() {
+    }
+
+    /**
+     * Role message shape: a role plus literal preset text, quotes
+     * parsed, or a role plus an {@code [enabled,text]} array.
+     */
+    static Optional<String> messageError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a role and a text.");
+        }
+        Optional<TagSinks.AudienceArray> array = TagSinks.audienceArray(args);
+        if (array.isPresent()) {
+            Optional<String> elements = TagSinks.messageArrayError(name,
+                    array.get().elements());
+            if (elements.isPresent()) {
+                return elements;
+            }
+            return headError(name, array.get().audience());
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() != 2) {
+            return Optional.of("Tag <" + name + "> needs a role and a text.");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        return headError(name, parts.get(0));
+    }
+
+    /**
+     * Role sound shape: a role plus an id, pitch, and volume, quotes
+     * parsed, or a role plus an {@code [enabled,id,pitch,volume]}
+     * array.
+     */
+    static Optional<String> soundError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a role plus an id, pitch, and volume.");
+        }
+        Optional<TagSinks.AudienceArray> array = TagSinks.audienceArray(args);
+        if (array.isPresent()) {
+            Optional<String> elements = TagSinks.soundArrayError(name,
+                    array.get().elements());
+            if (elements.isPresent()) {
+                return elements;
+            }
+            return headError(name, array.get().audience());
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() < 2 || parts.size() > 4) {
+            return Optional.of("Tag <" + name + "> needs a role plus an id, pitch, and volume.");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        return headError(name, parts.get(0));
+    }
+
+    /**
+     * Role teleport shape: a role plus one location
+     * {@code [x, y, z, world]} or
+     * {@code [x, y, z, world, pitch, yaw]}.
+     */
+    static Optional<String> teleportError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a role and a location "
+                    + "[x, y, z, world, pitch, yaw].");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() != 2) {
+            return Optional.of("Tag <" + name + "> needs a role and a location "
+                    + "[x, y, z, world, pitch, yaw].");
+        }
+        Optional<String> loc = TagSinks.teleportLocationError(name, parts.get(1));
+        if (loc.isPresent()) {
+            return loc;
+        }
+        return headError(name, parts.get(0));
+    }
+
+    /** Role flag shape: a role, a name, plus an optional value, quotes parsed. */
+    static Optional<String> flagError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a role, a name, plus an optional value.");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() < 2 || parts.size() > 3) {
+            return Optional.of("Tag <" + name + "> needs a role, a name, plus an optional value.");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        Optional<String> role = headError(name, parts.get(0));
+        if (role.isPresent()) {
+            return role;
+        }
+        if (FlagStore.parseName(parts.get(1)).isEmpty()) {
+            return Optional.of("Tag <" + name + "> needs a name.");
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Role head value: HUNTER, SPEEDRUNNER, or ALL. A masked nested
+     * tag abstains (runtime resolves it); literals must parse.
+     */
+    private static Optional<String> headError(String name, String head) {
+        String role = TagHeads.parsePickItem(head).orElse("").strip()
+                .toUpperCase(Locale.ROOT);
+        if (role.contains("?")) {
+            return Optional.empty();
+        }
+        if (!role.equals("HUNTER") && !role.equals("SPEEDRUNNER") && !role.equals("ALL")) {
+            return Optional.of("Tag <" + name + "> needs HUNTER, SPEEDRUNNER, or ALL.");
+        }
+        return Optional.empty();
+    }
+}

@@ -3,7 +3,7 @@
   "validatorVersion": "unversioned",
   "registry": {
     "engine": "JManhunt",
-    "engineVersion": "dev"
+    "engineVersion": "rev-10e2b55"
   },
   "files": [
     {

@@ -28,6 +28,8 @@ public enum DiagnosticCode {
     E_FILE_READ("Unreadable file"),
     /** File is not parseable YAML. */
     E_YAML_PARSE("Unparseable YAML"),
+    /** Behavior section has the wrong shape (map/list expected). */
+    E_YAML_SHAPE("Unexpected YAML shape"),
     /** Behavior command entry is not a string line. */
     E_YAML_LINE_TYPE("Non-string command line");
 
