@@ -13,7 +13,7 @@ public final class TagComparison {
      * index, or a negative value under a non-odd-integer index.
      * Indexes 2 and 3 use sqrt/cbrt directly for exact results.
      */
-    static Optional<Double> rootOf(double value, double index) {
+    public static Optional<Double> rootOf(double value, double index) {
         if (index == 0.0 || Double.isNaN(index) || Double.isInfinite(index)) {
             return Optional.empty();
         }
@@ -39,7 +39,7 @@ public final class TagComparison {
     public record Comparison(String operator, String left, String right) {
     }
 
-    static Comparison findComparison(String part) throws TagExpressions.ExprException {
+    public static Comparison findComparison(String part) throws TagExpressions.ExprException {
         int depth = 0;
         char quote = 0;
         for (int index = 0; index < part.length(); index++) {
@@ -76,7 +76,7 @@ public final class TagComparison {
         return null;
     }
 
-    static String matchOperator(String part, int index) {
+    public static String matchOperator(String part, int index) {
         for (String operator : List.of("==", "!=")) {
             if (part.startsWith(operator, index)) {
                 return operator;
@@ -92,7 +92,7 @@ public final class TagComparison {
      * brackets are deliberately not operators: they would be
      * ambiguous with tag brackets.
      */
-    static String matchWordOperator(String part, int index) {
+    public static String matchWordOperator(String part, int index) {
         for (String word : List.of("lt", "le", "gt", "ge")) {
             int end = index + word.length();
             if (end > part.length()
@@ -108,7 +108,7 @@ public final class TagComparison {
         return null;
     }
 
-    static int findOperator(String part) {
+    public static int findOperator(String part) {
         int depth = 0;
         char quote = 0;
         for (int index = 0; index < part.length(); index++) {
@@ -137,7 +137,7 @@ public final class TagComparison {
         return -1;
     }
 
-    static boolean equalsValue(TagMath.Value left, TagMath.Value right) {
+    public static boolean equalsValue(TagMath.Value left, TagMath.Value right) {
         if (left instanceof TagMath.Value.Null && right instanceof TagMath.Value.Null) {
             return true;
         }
@@ -150,7 +150,7 @@ public final class TagComparison {
         return displayValue(left).equals(displayValue(right));
     }
 
-    static String displayValue(TagMath.Value value) {
+    public static String displayValue(TagMath.Value value) {
         if (value instanceof TagMath.Value.Num number) {
             return TagMath.formatNumber(number.number());
         }

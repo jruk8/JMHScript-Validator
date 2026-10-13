@@ -51,7 +51,7 @@ public final class TagFunctions {
     }
 
     /** True when the lowercase name is a builtin a def must not shadow. */
-    static boolean isBuiltin(String lowerName) {
+    public static boolean isBuiltin(String lowerName) {
         return BUILTINS.contains(lowerName);
     }
 

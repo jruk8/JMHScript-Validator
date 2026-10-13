@@ -25,7 +25,7 @@ public final class TagRaycast {
      * hygiene, plus literal shape checks (literals only; dynamic
      * values validate at runtime). Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <raycast> needs 3 or 4 args like " + example() + ".");
         }

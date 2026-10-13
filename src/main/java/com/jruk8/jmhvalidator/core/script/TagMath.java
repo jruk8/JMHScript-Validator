@@ -47,7 +47,7 @@ public final class TagMath {
      * else literal text. Math that parses but cannot run warns and
      * yields 0.
      */
-    static Value evalValue(String raw, Consumer<String> warn, String where) {
+    public static Value evalValue(String raw, Consumer<String> warn, String where) {
         String text = unquote(raw.strip());
         try {
             Double number = TagMath.evaluate(text);

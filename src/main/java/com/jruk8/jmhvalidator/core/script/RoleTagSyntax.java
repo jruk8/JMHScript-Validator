@@ -19,7 +19,7 @@ final class RoleTagSyntax {
      * Role message shape: a role plus literal preset text, quotes
      * parsed, or a role plus an {@code [enabled,text]} array.
      */
-    static Optional<String> messageError(String name, String args) {
+    public static Optional<String> messageError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a role and a text.");
         }
@@ -49,7 +49,7 @@ final class RoleTagSyntax {
      * parsed, or a role plus an {@code [enabled,id,pitch,volume]}
      * array.
      */
-    static Optional<String> soundError(String name, String args) {
+    public static Optional<String> soundError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a role plus an id, pitch, and volume.");
         }
@@ -79,7 +79,7 @@ final class RoleTagSyntax {
      * {@code [x, y, z, world]} or
      * {@code [x, y, z, world, pitch, yaw]}.
      */
-    static Optional<String> teleportError(String name, String args) {
+    public static Optional<String> teleportError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a role and a location "
                     + "[x, y, z, world, pitch, yaw].");
@@ -97,7 +97,7 @@ final class RoleTagSyntax {
     }
 
     /** Role flag shape: a role, a name, plus an optional value, quotes parsed. */
-    static Optional<String> flagError(String name, String args) {
+    public static Optional<String> flagError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a role, a name, plus an optional value.");
         }

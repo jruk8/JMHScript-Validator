@@ -23,7 +23,7 @@ public final class TagItems {
      * Edit-time shape for {@code <phasitem>}: a player, an item, plus
      * an optional count, quotes parsed. Mirrors the runtime warns.
      */
-    static Optional<String> syntaxError(String name, String args) {
+    public static Optional<String> syntaxError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player, an item, "
                     + "and an optional count.");
@@ -45,7 +45,7 @@ public final class TagItems {
      * Edit-time shape for {@code <pcountitem>}: a player plus an
      * item, quotes parsed. Mirrors the runtime warns.
      */
-    static Optional<String> countSyntaxError(String name, String args) {
+    public static Optional<String> countSyntaxError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player and an item.");
         }

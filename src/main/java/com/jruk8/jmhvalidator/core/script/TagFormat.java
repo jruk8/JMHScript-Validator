@@ -20,7 +20,7 @@ final class TagFormat {
 
 
     /** Syntax check mirroring the runtime shape rules. */
-    static Optional<String> syntaxError(String name, String args) {
+    public static Optional<String> syntaxError(String name, String args) {
         List<String> parts = TagLists.splitTopLevel(args);
         if (parts.size() != 2) {
             return Optional.of("Tag <format> needs a string plus params like "

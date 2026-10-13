@@ -45,7 +45,7 @@ public final class TagMaps {
      * Edit-time arity for the map tags: top-level split, quote
      * hygiene, plus the per-verb shape. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         int arity = arity(verb(name));
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + arity + " args like "

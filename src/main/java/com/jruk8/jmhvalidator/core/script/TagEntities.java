@@ -21,7 +21,7 @@ public final class TagEntities {
      * Edit-time shape for {@code <ismobhostile>}: one entity type,
      * quotes parsed. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs an entity type like "
                     + "<ismobhostile:ZOMBIE>.");

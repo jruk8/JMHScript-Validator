@@ -20,7 +20,7 @@ public final class TagReplace {
      * Edit-time shape for {@code <replace>}: world, pos1, pos2,
      * source, and target. Mirrors the runtime warns.
      */
-    static Optional<String> replaceError(String name, String args) {
+    public static Optional<String> replaceError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of(
                     "Tag <" + name + "> needs world, pos1, pos2, source, and target.");

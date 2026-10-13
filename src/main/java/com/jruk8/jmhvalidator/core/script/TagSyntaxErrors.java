@@ -14,7 +14,7 @@ final class TagSyntaxErrors {
     private TagSyntaxErrors() {
     }
 
-    static Optional<String> tagError(String body) {
+    public static Optional<String> tagError(String body) {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
@@ -53,7 +53,7 @@ final class TagSyntaxErrors {
     }
 
     /** Collection, text, and cooldown tags behind {@link #tagError}. */
-    static Optional<String> collectionsError(String name, String args) {
+    public static Optional<String> collectionsError(String name, String args) {
         return switch (name) {
             case "range" -> rangeError(name, args);
             case "weighted-pick", "weighted-picks" -> TagWeighted.opError(name, args);
@@ -96,7 +96,7 @@ final class TagSyntaxErrors {
     }
 
     /** Trailing tag names behind {@link #tagError}: sinks, proximity, math, loops, defs. */
-    static Optional<String> tailError(String name, String args) {
+    public static Optional<String> tailError(String name, String args) {
         return switch (name) {
             case "gmessage", "gmsg" -> TagSinks.messageError(name, args);
             case "pmessage", "pmsg" -> TagSinks.playerMessageError(name, args);
@@ -137,7 +137,7 @@ final class TagSyntaxErrors {
         };
     }
 
-    static Optional<String> defError(String name, String args) {
+    public static Optional<String> defError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <def> needs a name and a body like <def:double,x+x,x>.");
         }
@@ -148,7 +148,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static void collectWarnings(String body, List<String> found,
+    public static void collectWarnings(String body, List<String> found,
             Collection<String> knownFunctions, TagRegistry registry) {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
@@ -170,7 +170,7 @@ final class TagSyntaxErrors {
         }
     }
 
-    static Optional<String> randomNumberError(String args) {
+    public static Optional<String> randomNumberError(String args) {
         if (args == null) {
             return Optional.of("Tag <random-num> needs two numbers like <random-num:1,6>.");
         }
@@ -205,7 +205,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static Optional<String> randomPickError(String args) {
+    public static Optional<String> randomPickError(String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <random-pick> needs at least one item.");
         }
@@ -217,7 +217,7 @@ final class TagSyntaxErrors {
         return Optional.of("Tag <random-pick:" + args.trim() + "> has no valid item.");
     }
 
-    static Optional<String> noArgsError(String name, String args) {
+    public static Optional<String> noArgsError(String name, String args) {
         if (args != null && !args.isBlank()) {
             return Optional.of("Tag <" + name + "> takes no arguments.");
         }
@@ -228,7 +228,7 @@ final class TagSyntaxErrors {
      * Loop shape: a condition or list plus a body. Split top-level
      * so list args survive, mirroring the runtime split.
      */
-    static Optional<String> loopError(String name, String args) {
+    public static Optional<String> loopError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a condition or list plus a body.");
         }
@@ -248,7 +248,7 @@ final class TagSyntaxErrors {
      * Loseplayer tag shape: a required head player plus an optional
      * reason after the first comma.
      */
-    static Optional<String> loseplayerError(String name, String args) {
+    public static Optional<String> loseplayerError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <loseplayer> needs a player like <loseplayer:Steve>.");
         }
@@ -263,7 +263,7 @@ final class TagSyntaxErrors {
      * Win tag shape: a head role, HUNTER or SPEEDRUNNER, plus an
      * optional reason after the first comma.
      */
-    static Optional<String> winError(String name, String args) {
+    public static Optional<String> winError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <win> needs HUNTER or SPEEDRUNNER.");
         }
@@ -286,7 +286,7 @@ final class TagSyntaxErrors {
      * Pswitch tag shape: a required head player plus a required
      * role after the first comma.
      */
-    static Optional<String> pswitchError(String name, String args) {
+    public static Optional<String> pswitchError(String name, String args) {
         String usage = "Tag <pswitch> needs a player and a role like <pswitch:Steve,HUNTER>.";
         if (args == null || args.isBlank()) {
             return Optional.of(usage);
@@ -310,7 +310,7 @@ final class TagSyntaxErrors {
      * Args tag shape: bare or one whole index. A masked nested
      * tag abstains (runtime resolves it); literals must parse.
      */
-    static Optional<String> argsError(String name, String args) {
+    public static Optional<String> argsError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.empty();
         }
@@ -330,7 +330,7 @@ final class TagSyntaxErrors {
      * whole), each quote-clean unless blank, mirroring the runtime
      * splitter. Serves every tag whose args may hold lists.
      */
-    static Optional<String> topLevelArityError(String name, String args, int arity, String example) {
+    public static Optional<String> topLevelArityError(String name, String args, int arity, String example) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + arity + " args like " + example + ".");
         }
@@ -347,7 +347,7 @@ final class TagSyntaxErrors {
     }
 
     /** Single-number math tags share one example shape. */
-    static Optional<String> mathUnaryError(String name, String args) {
+    public static Optional<String> mathUnaryError(String name, String args) {
         return topLevelArityError(name, args, 1, "<" + name + ":x>");
     }
 
@@ -359,7 +359,7 @@ final class TagSyntaxErrors {
      * Range shape: one to three quote-clean bounds; values are
      * checked at runtime since they may be math or nested tags.
      */
-    static Optional<String> rangeError(String name, String args) {
+    public static Optional<String> rangeError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <range> needs stop like <range:5>.");
         }
@@ -379,7 +379,7 @@ final class TagSyntaxErrors {
      * Proximity shape: an origin or player, a role, a radius, and
      * a max. A masked nested role abstains (runtime resolves it).
      */
-    static Optional<String> proximityError(String name, String args) {
+    public static Optional<String> proximityError(String name, String args) {
         String shape = name.equals("overlap-players") ? "an origin" : "a player";
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + shape
@@ -406,7 +406,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static Optional<String> activePlayersError(String name, String args) {
+    public static Optional<String> activePlayersError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <active-players> needs HUNTER, SPEEDRUNNER, or ALL.");
         }
@@ -433,7 +433,7 @@ final class TagSyntaxErrors {
      * quote-clean role. Literal roles must parse; nested tags
      * resolve at runtime, so the editor cannot see through them.
      */
-    static Optional<String> rcolorError(String name, String args) {
+    public static Optional<String> rcolorError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <rcolor> needs a role like <rcolor:HUNTER>.");
         }
@@ -458,7 +458,7 @@ final class TagSyntaxErrors {
      * one present, quote-clean name. Like {@code <loseplayer>} the
      * name may resolve from a nested tag at runtime.
      */
-    static Optional<String> playerNameError(String name, String args) {
+    public static Optional<String> playerNameError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player like <" + name + ":Steve>.");
         }
@@ -469,7 +469,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static Optional<String> arityError(String name, String args, int arity, String what) {
+    public static Optional<String> arityError(String name, String args, int arity, String what) {
         if (args == null || args.isBlank()
                 || TagLists.splitTopLevel(args).size() != arity) {
             return Optional.of("Tag <" + name + "> needs " + what + ".");
@@ -482,7 +482,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static Optional<String> arityAtLeastError(String name, String args, int minimum,
+    public static Optional<String> arityAtLeastError(String name, String args, int minimum,
             String what) {
         if (args == null || args.isBlank()
                 || TagLists.splitTopLevel(args).size() < minimum) {
@@ -500,7 +500,7 @@ final class TagSyntaxErrors {
      * Stat tag shape: arity, quote hygiene, plus the key. A masked
      * nested key abstains (runtime resolves it); literals must parse.
      */
-    static Optional<String> statError(String name, String args, int keyIndex,
+    public static Optional<String> statError(String name, String args, int keyIndex,
             List<String> validKeys) {
         int arity = keyIndex + 1;
         String what = arity == 1 ? "one key" : "a player plus a key";
@@ -526,7 +526,7 @@ final class TagSyntaxErrors {
     }
 
     /** Flag tag shape: a name plus an optional value, quotes parsed. */
-    static Optional<String> flagError(String name, String args) {
+    public static Optional<String> flagError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a name plus an optional value.");
         }
@@ -545,7 +545,7 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    static Optional<String> ifError(String args) {
+    public static Optional<String> ifError(String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <if> needs a condition plus one or two branches.");
         }

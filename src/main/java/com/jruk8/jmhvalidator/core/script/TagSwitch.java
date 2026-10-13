@@ -22,7 +22,7 @@ final class TagSwitch {
     }
 
 
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         if (args == null) {
             return Optional.of("Tag <" + name + "> needs a value plus at least one result "
                     + "or default: <switch:value,case,result,...[,default]>");

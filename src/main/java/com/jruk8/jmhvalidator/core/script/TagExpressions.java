@@ -67,7 +67,7 @@ public final class TagExpressions {
      * after {@code <} qualifies for the skip; anything else is a
      * stray bracket that validation reports.
      */
-    static Integer nestedTagClose(String part, int index) {
+    public static Integer nestedTagClose(String part, int index) {
         if (part.charAt(index) != '<' || index + 1 >= part.length()
                 || Character.isWhitespace(part.charAt(index + 1))) {
             return null;
@@ -83,7 +83,7 @@ public final class TagExpressions {
      * nested tags. Shared by runtime evaluation and static
      * validation.
      */
-    static boolean hasComparison(String part) {
+    public static boolean hasComparison(String part) {
         for (final String orPart : splitWords(part, "or")) {
             for (final String andPart : splitWords(orPart, "and")) {
                 String stripped = andPart.strip();
@@ -105,7 +105,7 @@ public final class TagExpressions {
      * tags: they are not comparisons anymore. Shared by runtime
      * evaluation and static validation.
      */
-    static void validateConditionBrackets(String part) throws ExprException {
+    public static void validateConditionBrackets(String part) throws ExprException {
         int depth = 0;
         char quote = 0;
         for (int index = 0; index < part.length(); index++) {
@@ -200,13 +200,13 @@ public final class TagExpressions {
     }
 
 
-    static boolean isRootChar(char letter) {
+    public static boolean isRootChar(char letter) {
         return letter == '_' || letter == '-' || letter == '.'
                 || Character.isLetterOrDigit(letter);
     }
 
     /** Inclusive index of the balancing {@code >}, or null when unclosed. Shared with loops. */
-    static Integer spanEnd(String line, int open) {
+    public static Integer spanEnd(String line, int open) {
         int depth = 0;
         StringBuilder quotes = new StringBuilder();
         for (int index = open; index < line.length(); index++) {

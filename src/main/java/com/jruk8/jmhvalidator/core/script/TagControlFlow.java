@@ -40,7 +40,7 @@ public final class TagControlFlow {
         return spans;
     }
 
-    static IfSpan ifSpanAt(String line, int open) {
+    public static IfSpan ifSpanAt(String line, int open) {
         int cursor = open + 1;
         while (cursor < line.length() && Character.isWhitespace(line.charAt(cursor))) {
             cursor++;
@@ -117,7 +117,7 @@ public final class TagControlFlow {
         return first.equals("exit");
     }
 
-    static String stripSlash(String line) {
+    public static String stripSlash(String line) {
         String stripped = line.strip();
         return stripped.startsWith("/") ? stripped.substring(1) : stripped;
     }

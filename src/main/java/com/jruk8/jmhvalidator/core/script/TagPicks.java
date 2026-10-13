@@ -18,7 +18,7 @@ public final class TagPicks {
      * Candidate items for a pick: a bracketed list literal parses with the
      * shared list splitter, anything else with the quote-aware comma split.
      */
-    static List<String> pickItems(String args) {
+    public static List<String> pickItems(String args) {
         if (TagLists.isList(args)) {
             return TagLists.parse(args);
         }

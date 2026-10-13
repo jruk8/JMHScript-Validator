@@ -24,7 +24,7 @@ final class TagSinks {
      * Array elements when the whole args are one list literal (global
      * forms), else empty so callers keep the individual-arg path.
      */
-    static Optional<List<String>> globalArray(String args) {
+    public static Optional<List<String>> globalArray(String args) {
         List<String> parts = TagLists.splitTopLevel(args);
         if (parts.size() != 1 || !TagLists.isList(parts.get(0))) {
             return Optional.empty();
@@ -37,7 +37,7 @@ final class TagSinks {
      * one list literal (player and role forms), else empty so
      * callers keep the individual-arg path.
      */
-    static Optional<AudienceArray> audienceArray(String args) {
+    public static Optional<AudienceArray> audienceArray(String args) {
         List<String> parts = TagLists.splitTopLevel(args);
         if (parts.size() != 2 || !TagLists.isList(parts.get(1))) {
             return Optional.empty();
@@ -68,7 +68,7 @@ final class TagSinks {
      * Edit-time shape for {@code <gmessage>}: one text, or an
      * {@code [enabled,text]} array. Mirrors the runtime warns.
      */
-    static Optional<String> messageError(String name, String args) {
+    public static Optional<String> messageError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs one text.");
         }
@@ -93,7 +93,7 @@ final class TagSinks {
      * or a player plus an {@code [enabled,text]} array. Mirrors the
      * runtime warns.
      */
-    static Optional<String> playerMessageError(String name, String args) {
+    public static Optional<String> playerMessageError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player and a text.");
         }
@@ -123,7 +123,7 @@ final class TagSinks {
      * {@code [enabled,id,pitch,volume]} array. Mirrors the runtime
      * warns.
      */
-    static Optional<String> playerSoundError(String name, String args) {
+    public static Optional<String> playerSoundError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player plus a sound id.");
         }
@@ -152,7 +152,7 @@ final class TagSinks {
      * quotes parsed, or an {@code [enabled,id,pitch,volume]} array.
      * Mirrors the runtime warns.
      */
-    static Optional<String> soundError(String name, String args) {
+    public static Optional<String> soundError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a sound id.");
         }
@@ -173,7 +173,7 @@ final class TagSinks {
     }
 
     /** Edit-time shape for message arrays: enabled plus a text. */
-    static Optional<String> messageArrayError(String name, List<String> elements) {
+    public static Optional<String> messageArrayError(String name, List<String> elements) {
         if (elements.size() != 2) {
             return Optional.of("Tag <" + name + "> array needs enabled plus a text.");
         }
@@ -181,7 +181,7 @@ final class TagSinks {
     }
 
     /** Edit-time shape for sound arrays: enabled plus id, pitch, volume. */
-    static Optional<String> soundArrayError(String name, List<String> elements) {
+    public static Optional<String> soundArrayError(String name, List<String> elements) {
         if (elements.size() < 2 || elements.size() > 4) {
             return Optional.of("Tag <" + name + "> array needs enabled plus an id, pitch, "
                     + "and volume.");
@@ -205,7 +205,7 @@ final class TagSinks {
      * {@code [x, y, z, world, pitch, yaw]}. Mirrors the runtime
      * warns.
      */
-    static Optional<String> teleportError(String name, String args) {
+    public static Optional<String> teleportError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a location "
                     + "[x, y, z, world, pitch, yaw].");
@@ -226,7 +226,7 @@ final class TagSinks {
      * Edit-time shape for {@code <pteleport>}: a player plus one
      * location. Mirrors the runtime warns.
      */
-    static Optional<String> playerTeleportError(String name, String args) {
+    public static Optional<String> playerTeleportError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a player and a location "
                     + "[x, y, z, world, pitch, yaw].");
@@ -248,7 +248,7 @@ final class TagSinks {
      * list, or a collapsed nested tag the editor cannot see through
      * (runtime validates it).
      */
-    static Optional<String> teleportLocationError(String name, String loc) {
+    public static Optional<String> teleportLocationError(String name, String loc) {
         if (loc.strip().equals("?")) {
             return Optional.empty();
         }

@@ -52,7 +52,7 @@ public final class ErrorLocate {
      * expand both alias forms, otherwise the first bracketed root
      * in the message. Lowercased for span matching.
      */
-    static List<String> headsFromMessage(String message) {
+    public static List<String> headsFromMessage(String message) {
         Matcher maps = MAP_OP.matcher(message);
         if (maps.find()) {
             String op = maps.group(1).toLowerCase(Locale.ROOT);

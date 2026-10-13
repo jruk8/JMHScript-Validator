@@ -27,7 +27,7 @@ public final class TagVectors {
      * Edit-time arity for the vector ops: top-level split, quote
      * hygiene, plus the per-op shape. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         int count = arity(name);
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + count + " args like "

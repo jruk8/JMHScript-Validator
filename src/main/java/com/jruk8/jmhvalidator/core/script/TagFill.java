@@ -20,7 +20,7 @@ public final class TagFill {
      * Edit-time shape for {@code <fill>}: world, pos1, pos2,
      * material, and mode. Mirrors the runtime warns.
      */
-    static Optional<String> fillError(String name, String args) {
+    public static Optional<String> fillError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of(
                     "Tag <" + name + "> needs world, pos1, pos2, material, and mode.");

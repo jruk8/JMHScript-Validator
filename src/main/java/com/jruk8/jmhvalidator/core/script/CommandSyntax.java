@@ -71,7 +71,7 @@ public final class CommandSyntax {
      * {@code < > <= >=}. Pass cap mirrors dispatch; anything deeper
      * stays for runtime to report.
      */
-    static List<String> tagBodies(String command) {
+    public static List<String> tagBodies(String command) {
         List<String> bodies = new ArrayList<>();
         String current = command;
         for (int pass = 0; pass < 25; pass++) {

@@ -34,7 +34,7 @@ public final class TagWeighted {
      * Edit-time arity for the weighted tags: top-level split, quote
      * hygiene, plus the per-head shape. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         int minArity = name.equals("weighted-picks") ? 2 : 1;
         int maxArity = name.equals("weighted-picks") ? 3 : 1;
         if (args == null || args.isBlank()) {

@@ -25,7 +25,7 @@ public final class TagCooldowns {
      * Edit-time arity for the cooldown ops: top-level split, quote
      * hygiene, plus the per-op shape. Mirrors the runtime warns.
      */
-    static Optional<String> syntaxError(String name, String args) {
+    public static Optional<String> syntaxError(String name, String args) {
         int count = arity(name);
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + count + " args like "

@@ -25,7 +25,7 @@ public final class TagStrings {
      * Edit-time arity for the string ops: top-level split, quote
      * hygiene, plus the per-op shape. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + arityText(name) + " like "
                     + example(name) + ".");

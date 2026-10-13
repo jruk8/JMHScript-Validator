@@ -66,11 +66,11 @@ public final class TagLists {
      * hygiene, plus the per-op shape. Mirrors the runtime warns.
      */
     /** The {@code l.*} shorthand reads as its {@code list.*} twin. */
-    static String canonicalOp(String op) {
+    public static String canonicalOp(String op) {
         return op.startsWith("l.") ? "list." + op.substring(2) : op;
     }
 
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         name = canonicalOp(name);
         int arity = name.equals("list.set") || name.equals("list.slice") ? 3
                 : name.equals("list.append") || name.equals("list.get") || name.equals("list.remove")

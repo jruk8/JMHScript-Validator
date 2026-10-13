@@ -24,7 +24,7 @@ public final class TagEffects {
      * Edit-time arity for the effect tags: top-level split, quote
      * hygiene, plus the per-tag shape. Mirrors the runtime warns.
      */
-    static Optional<String> effectError(String name, String args) {
+    public static Optional<String> effectError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs " + arityText(name) + " like "
                     + example(name) + ".");

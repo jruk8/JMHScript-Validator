@@ -18,7 +18,7 @@ final class SyntaxSuggest {
      * fails unknown commands naming the token. Placeholder-built roots
      * resolve at runtime, so they always pass. Pure for tests.
      */
-    static Optional<String> unknownRoot(String command, Set<String> knownRoots) {
+    public static Optional<String> unknownRoot(String command, Set<String> knownRoots) {
         if (TagControlFlow.isExit(command)) {
             return Optional.empty();
         }
@@ -42,7 +42,7 @@ final class SyntaxSuggest {
      * items fail, with a did-you-mean hint when exactly one candidate
      * is close. Pure for tests.
      */
-    static Optional<String> giveItemCheck(String command, Predicate<String> knownMaterial,
+    public static Optional<String> giveItemCheck(String command, Predicate<String> knownMaterial,
             Collection<String> materialNames) {
         List<String> tokens = tokens(command);
         if (tokens.isEmpty() || !"give".equals(rootName(tokens.get(0)))) {
@@ -63,12 +63,12 @@ final class SyntaxSuggest {
     }
 
     /** First whitespace token with leading slashes stripped. */
-    static String firstToken(String command) {
+    public static String firstToken(String command) {
         List<String> tokens = tokens(command);
         return tokens.isEmpty() ? "" : tokens.get(0);
     }
 
-    static List<String> tokens(String command) {
+    public static List<String> tokens(String command) {
         if (command == null || command.isBlank()) {
             return List.of();
         }
@@ -80,7 +80,7 @@ final class SyntaxSuggest {
     }
 
     /** Dispatch-style root: namespace prefix stripped, lowercased. */
-    static String rootName(String token) {
+    public static String rootName(String token) {
         int colon = token.indexOf(':');
         String bare = colon < 0 ? token : token.substring(colon + 1);
         return bare.toLowerCase(Locale.ROOT);
@@ -91,7 +91,7 @@ final class SyntaxSuggest {
      * with slashes and any namespace prefix stripped, lowercased.
      * Blank lines have no root. Pure for tests.
      */
-    static String commandRoot(String command) {
+    public static String commandRoot(String command) {
         return rootName(firstToken(command));
     }
 
@@ -101,7 +101,7 @@ final class SyntaxSuggest {
      * {@code /Op} or {@code minecraft:stop} still match. Blank lines
      * and null lists never match. Pure for tests.
      */
-    static boolean isBlockedCommand(String command, Collection<String> blocked) {
+    public static boolean isBlockedCommand(String command, Collection<String> blocked) {
         String root = commandRoot(command);
         if (root.isEmpty() || blocked == null) {
             return false;
@@ -119,7 +119,7 @@ final class SyntaxSuggest {
      * or the best distance ties. Exact matches are skipped: they are
      * the item itself under a predicate the caller already rejected.
      */
-    static String closestMaterial(String item, Collection<String> materialNames) {
+    public static String closestMaterial(String item, Collection<String> materialNames) {
         String want = item.toLowerCase(Locale.ROOT);
         String best = null;
         int bestDistance = Integer.MAX_VALUE;
@@ -139,7 +139,7 @@ final class SyntaxSuggest {
     }
 
     /** Plain Levenshtein distance over two short names. */
-    static int editDistance(String first, String second) {
+    public static int editDistance(String first, String second) {
         int[] row = new int[second.length() + 1];
         for (int column = 0; column <= second.length(); column++) {
             row[column] = column;

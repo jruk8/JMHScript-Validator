@@ -28,7 +28,7 @@ public final class TagRunBlock {
      * Edit-time shape for {@code <runblock>}: one behavior id plus
      * optional args, quotes parsed. Mirrors the runtime warns.
      */
-    static Optional<String> opError(String name, String args) {
+    public static Optional<String> opError(String name, String args) {
         if (args == null || args.isBlank()) {
             return Optional.of("Tag <" + name + "> needs a behavior id like "
                     + "<runblock:broadcast>.");
