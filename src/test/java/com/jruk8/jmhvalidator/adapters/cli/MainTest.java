@@ -524,6 +524,20 @@ class MainTest {
     }
 
     @Test
+    void unknownBehaviorWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say <runblock:nope>\n  side:\n    commands:\n"
+                + "      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_BEHAVIOR"), output);
+        assertTrue(output.contains(
+                "Tag <runblock> hit unknown behavior 'nope'; skipping."), output);
+    }
+
+    @Test
     void materialDefaultWarns(@TempDir Path tmp) throws Exception {
         String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
                 + "        - say hi\nconfig:\n  settings:\n    blade:\n"

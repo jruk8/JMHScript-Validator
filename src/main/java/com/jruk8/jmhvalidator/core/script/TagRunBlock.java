@@ -43,6 +43,10 @@ public final class TagRunBlock {
                 return Optional.of("Tag <" + name + "> mixes quotes.");
             }
         }
+        if (TagHeads.parsePickItem(parts.get(0)).map(String::isBlank).orElse(true)) {
+            return Optional.of("Tag <" + name + "> needs a behavior id like "
+                    + "<runblock:broadcast>.");
+        }
         return Optional.empty();
     }
 

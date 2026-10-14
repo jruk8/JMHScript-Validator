@@ -63,7 +63,7 @@ public final class SettingRefs {
                 || CommandSyntax.error(line).isPresent()) {
             return;
         }
-        for (Span ref : settingSpans(line, 0)) {
+        for (Span ref : settingSpans(line)) {
             if (!isLeaf(settings, ref.path())) {
                 found.add(new Diagnostic(
                         new Provenance(modifierId, blockId, listName, index),
@@ -84,19 +84,16 @@ public final class SettingRefs {
      * included. Heads match case-insensitively; blank and
      * dynamic (tag-holding) paths stay silent.
      */
-    private static List<Span> settingSpans(String line, int base) {
+    private static List<Span> settingSpans(String line) {
         List<Span> refs = new ArrayList<>();
-        for (int[] span : TagHeads.topLevelTagSpans(line)) {
+        for (int[] span : TagHeads.allTagSpans(line)) {
             String body = line.substring(span[0] + 1, span[1] - 1);
             String head = TagHeads.tagName(body);
             if (head.equals("setting") || head.equals("s")) {
                 String path = args(body).trim();
                 if (!path.isEmpty() && !holdsTag(path)) {
-                    refs.add(new Span(base + span[0] + 1, path));
+                    refs.add(new Span(span[0] + 1, path));
                 }
-            }
-            if (span[1] - span[0] > 2) {
-                refs.addAll(settingSpans(body, base + span[0] + 1));
             }
         }
         return refs;

@@ -12,6 +12,7 @@ import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.NaturalOrder;
 import com.jruk8.jmhvalidator.core.RunTriggers;
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
+import com.jruk8.jmhvalidator.core.script.BehaviorRefs;
 import com.jruk8.jmhvalidator.core.script.SettingRefs;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
@@ -235,6 +236,7 @@ public final class Main {
         SettingsTree refTree =
                 normalized.dropped() ? SettingsTree.empty() : read.settings();
         found.addAll(SettingRefs.check(stem, read.behavior(), refTree));
+        found.addAll(BehaviorRefs.check(stem, read.behavior()));
         for (Map.Entry<String, BehaviorFile.BehaviorBlock> block
                 : read.behavior().blocks().entrySet()) {
             List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
