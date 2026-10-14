@@ -318,9 +318,10 @@ public final class ModifierYaml {
             }
         }
         boolean isFolder = !valuePresent && folderRaw instanceof List<?>;
+        boolean ambiguous = valuePresent && folderRaw instanceof List<?>;
         List<SettingsNode> children =
                 isFolder ? buildChildren((List<?>) folderRaw) : List.of();
-        return new SettingsNode(name, isFolder, children, isFolder ? null : spec);
+        return new SettingsNode(name, isFolder, children, isFolder ? null : spec, ambiguous);
     }
 
     private static List<SettingsNode> buildChildren(List<?> folder) {

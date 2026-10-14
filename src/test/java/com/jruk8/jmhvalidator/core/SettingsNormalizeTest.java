@@ -252,8 +252,36 @@ class SettingsNormalizeTest {
                 result.findings().get(0).code());
     }
 
+    @Test
+    void ambiguousWarnsFirstThenContinues() {
+        SettingsTree settings = tree(ambiguous("thing",
+                new SettingsTree.SettingSpec("INTEGER", 500, Map.of("min", 0, "max", 100), 50)));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(2, result.findings().size());
+        assertEquals(DiagnosticCode.W_AMBIGUOUS_SETTING,
+                result.findings().get(0).code());
+        assertEquals("Modifier 'fog' setting 'thing' defines both value and folder; "
+                + "using the value.", result.findings().get(0).message());
+        assertEquals(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                result.findings().get(1).code());
+    }
+
+    @Test
+    void ambiguousWithoutSpecWarnsOnce() {
+        SettingsTree settings = tree(ambiguous("thing", null));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertEquals(1, result.findings().size());
+        assertEquals(DiagnosticCode.W_AMBIGUOUS_SETTING,
+                result.findings().get(0).code());
+    }
+
     private static SettingsNode leaf(String name) {
-        return new SettingsNode(name, false, List.of(), null);
+        return new SettingsNode(name, false, List.of(), null, false);
     }
 
     private static SettingsNode leafSpec(String name, String type, Object def, Object allowed) {
@@ -263,11 +291,15 @@ class SettingsNormalizeTest {
     private static SettingsNode leafSpec(String name, String type, Object def, Object allowed,
             Object live) {
         return new SettingsNode(name, false, List.of(),
-                new SettingsTree.SettingSpec(type, def, allowed, live));
+                new SettingsTree.SettingSpec(type, def, allowed, live), false);
+    }
+
+    private static SettingsNode ambiguous(String name, SettingsTree.SettingSpec spec) {
+        return new SettingsNode(name, false, List.of(), spec, true);
     }
 
     private static SettingsNode folder(String name, SettingsNode... children) {
-        return new SettingsNode(name, true, List.of(children), null);
+        return new SettingsNode(name, true, List.of(children), null, false);
     }
 
     private static SettingsTree tree(SettingsNode... roots) {

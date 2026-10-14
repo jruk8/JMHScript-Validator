@@ -84,6 +84,15 @@ public final class SettingsNormalize {
     }
 
     /**
+     * Message for a setting defining both value and folder.
+     * Byte-identical to the engine normalize warning.
+     */
+    public static String ambiguousMessage(String modifierId, String path) {
+        return "Modifier '" + modifierId + "' setting '" + path
+                + "' defines both value and folder; using the value.";
+    }
+
+    /**
      * Sweep every level of one modifier's settings tree. A
      * null materials port leaves material names unfiltered
      * instead of guessing.
@@ -115,7 +124,7 @@ public final class SettingsNormalize {
     private static boolean visit(String modifierId, SettingsNode node, String path,
             KnownMaterials known, List<Diagnostic> found) {
         if (!node.folder()) {
-            checkLeaf(modifierId, path, node.spec(), known, found);
+            checkLeaf(modifierId, path, node, known, found);
             return false;
         }
         List<SettingsNode> children =
@@ -134,8 +143,14 @@ public final class SettingsNormalize {
         return false;
     }
 
-    private static void checkLeaf(String modifierId, String path, SettingSpec spec,
+    private static void checkLeaf(String modifierId, String path, SettingsNode node,
             KnownMaterials known, List<Diagnostic> found) {
+        if (node.ambiguous()) {
+            found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_AMBIGUOUS_SETTING,
+                    ambiguousMessage(modifierId, path)));
+        }
+        SettingSpec spec = node.spec();
         if (spec == null) {
             return;
         }
