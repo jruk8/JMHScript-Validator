@@ -10,33 +10,6 @@
       "file": "jmhmods/spyglass-sniper.yml",
       "diagnostics": [
         {
-          "behavior": "tick",
-          "list": "player",
-          "line": 2,
-          "char": 12,
-          "severity": "warning",
-          "code": "W_UNKNOWN_TAG",
-          "message": "Unknown tag '<pisusinghanditem:?,spyglass>', left untouched at runtime."
-        },
-        {
-          "behavior": "hold",
-          "list": "player",
-          "line": 7,
-          "char": 6,
-          "severity": "warning",
-          "code": "W_UNKNOWN_TAG",
-          "message": "Unknown tag '<pisusinghanditem:?,spyglass>', left untouched at runtime."
-        },
-        {
-          "behavior": "hold",
-          "list": "player",
-          "line": 8,
-          "char": 6,
-          "severity": "warning",
-          "code": "W_UNKNOWN_TAG",
-          "message": "Unknown tag '<pisusinghanditem:?,spyglass>', left untouched at runtime."
-        },
-        {
           "behavior": "",
           "list": "sniper",
           "line": 0,
@@ -51,6 +24,6 @@
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 4
+    "warnings": 1
   }
 }

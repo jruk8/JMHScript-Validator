@@ -34,8 +34,8 @@ capture time (pre-existing, not caused by the move):
 - `jmhmods/bounty`: 1 error (`Tag <if> mixes quotes.`).
 - `jmhmods/cursed-aqua`: style findings only (`phaseffect`
   became an engine tag after the split).
-- `jmhmods/spyglass-sniper`: 3 unknown-tag warnings
-  (`pisusinghanditem`, not an engine tag).
+- `jmhmods/spyglass-sniper`: style findings only (`pisusinghanditem`
+  became an engine tag after the split).
 
 ## Refresh procedure (deliberate behavior changes only)
 
