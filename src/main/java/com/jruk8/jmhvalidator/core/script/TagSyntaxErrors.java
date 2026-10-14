@@ -122,7 +122,7 @@ final class TagSyntaxErrors {
             case "replace" -> TagReplace.replaceError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
                     "pslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
-                    "pisusinghanditem" ->
+                    "pisusinghanditem", "pdamage" ->
                     TagPlayers.opError(name, args);
             case "plos" -> TagPlos.opError(name, args);
             case "overlap-players", "nearby-players" -> proximityError(name, args);

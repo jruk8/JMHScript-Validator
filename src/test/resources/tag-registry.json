@@ -225,6 +225,7 @@
     "pblock",
     "pismoving",
     "premoveitem",
+    "pdamage",
     "ptitle",
     "pslot",
     "puuid",
