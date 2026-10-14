@@ -149,6 +149,17 @@ Message text stays byte-identical to the engine.
   silent here for the shape checks. Example: `Chance 99.0
   in behavior 'main' options.success-chance is outside
   0.0-1.0; clamped to 1.0.`.
+- `W_SHAPE`: Shape tolerated. A node shape the engine
+  loads past instead of failing the file: ignored scalar
+  commands, a list read as one synthetic list, skipped
+  lists, stringified scalar lines, dropped null blocks
+  and entries, empty lists, defaulted `advanced` blocks,
+  and skipped misshapen settings nodes. The commands
+  shapes report the identical text at engine load;
+  nulls and settings shapes are validator-only (the
+  engine YAML layer drops nulls unseen). Example:
+  `commands list 'player' in behavior 'main' must be a
+  list; ignoring it.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

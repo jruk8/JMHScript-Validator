@@ -105,7 +105,8 @@ public final class DefaultsFetch {
             if (!(doc instanceof Map<?, ?> map)) {
                 throw new IOException("preset '" + id + "' must hold one mapping document");
             }
-            presets.add(new EngineDefaults.Preset(id, ModifierYaml.presetMembers(map)));
+            presets.add(new EngineDefaults.Preset(id, ModifierYaml.presetMembers(
+                    id, map, new ArrayList<>(), new ArrayList<>())));
         }
         return presets;
     }

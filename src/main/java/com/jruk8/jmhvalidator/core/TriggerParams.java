@@ -220,7 +220,7 @@ public final class TriggerParams {
      * strings parse strictly, anything else fails the bind
      * (owned by the shape checks).
      */
-    private static Double asDouble(Object raw) {
+    public static Double asDouble(Object raw) {
         if (raw instanceof Number number) {
             return number.doubleValue();
         }
@@ -240,7 +240,7 @@ public final class TriggerParams {
      * anything else (including fractional numbers) fails the
      * bind (owned by the shape checks).
      */
-    private static Long asLong(Object raw) {
+    public static Long asLong(Object raw) {
         if (raw instanceof Integer || raw instanceof Long
                 || raw instanceof Short || raw instanceof Byte) {
             return ((Number) raw).longValue();

@@ -617,6 +617,47 @@ class MainTest {
     }
 
     @Test
+    void scalarCommandsWarnEndToEnd(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player: say hi\n      console: [5]\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_SHAPE"), output);
+        assertTrue(output.contains(
+                "commands list 'player' in behavior 'main' must be a list;"
+                        + " ignoring it."),
+                output);
+        assertTrue(output.contains("reading it as '5'"), output);
+    }
+
+    @Test
+    void stringifiedTriggerFlagsUnknown(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - 5\n"
+                + "    commands:\n      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_TRIGGER"), output);
+        assertTrue(output.contains("Unknown trigger '5', it never fires."), output);
+    }
+
+    @Test
+    void ambiguousFileErrorsEndToEnd(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say hi\nmodifiers: [gear-dice]\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("E_YAML_SHAPE"), output);
+        assertTrue(output.contains(
+                "ambiguous file: has both modifier and preset content"), output);
+    }
+
+    @Test
     void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
         Path root = tmp.resolve("mods");
         Files.createDirectories(root.resolve("deep"));
