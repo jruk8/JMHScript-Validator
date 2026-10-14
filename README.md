@@ -39,6 +39,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
 - **Dangling runblocks** » `<runblock:>` calls naming no defined block, plus call cycles, both skipped at runtime.
+- **Uncalled definitions** » Leaf settings never read and blocks never called, which usually flag a typo'd call site.
 - **Duplicate settings** » Repeated sibling setting names, which drop the whole `config.settings` block.
 - **Ambiguous settings** » Settings defining both value and folder, where the value wins and the folder drops.
 - **Bad defaults and values** » Setting defaults and live values outside their allowed range (clamped or reset at load) and unknown spec types.

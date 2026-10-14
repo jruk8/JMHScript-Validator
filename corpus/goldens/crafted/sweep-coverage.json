@@ -287,6 +287,15 @@
           "severity": "error",
           "code": "E_SYNTAX",
           "message": "Tag <loseplayer> needs a player like <loseplayer:Steve>."
+        },
+        {
+          "behavior": "second",
+          "list": "",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_UNCALLED_BEHAVIOR",
+          "message": "Behavior 'second' is never called."
         }
       ]
     }
@@ -294,6 +303,6 @@
   "summary": {
     "files": 1,
     "errors": 28,
-    "warnings": 3
+    "warnings": 4
   }
 }

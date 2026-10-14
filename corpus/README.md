@@ -30,9 +30,13 @@ The line-sweep codes appear at least once: `E_SYNTAX`,
 `CommandValidationTest` instead. The file-set codes
 (`W_DUPLICATE_ID`, `W_DUPLICATE_SETTING`, `W_UNKNOWN_SETTING`,
 `W_UNKNOWN_TRIGGER`, `W_UNKNOWN_KEY`,
-`W_UNKNOWN_SETTING_TYPE`, `W_DEFAULT_OUTSIDE_ALLOWED`) stay
-silent on every corpus input by design; their pins live in
-the core unit tests and the CLI tests.
+`W_UNKNOWN_SETTING_TYPE`, `W_DEFAULT_OUTSIDE_ALLOWED`,
+`W_VALUE_INVALID`, `W_DUPLICATE_KEY`, `W_SHADOWED_ID`,
+`W_UNKNOWN_BEHAVIOR`, `W_BEHAVIOR_CYCLE`,
+`W_AMBIGUOUS_SETTING`, `W_UNCALLED_SETTING`) stay silent on
+every corpus input by design; their pins live in the core
+unit tests and the CLI tests. `W_UNCALLED_BEHAVIOR` fires
+once, on the crafted input's intentionally dead block.
 
 ## Refresh procedure (deliberate behavior changes only)
 

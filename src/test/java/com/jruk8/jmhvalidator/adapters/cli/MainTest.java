@@ -149,7 +149,8 @@ class MainTest {
         Path mods = tmp.resolve("mods");
         Files.createDirectories(mods);
         Files.writeString(mods.resolve("gear-dice.yml"),
-                "behavior:\n  main:\n    commands:\n      player:\n        - say custom\n",
+                "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                        + "    commands:\n      player:\n        - say custom\n",
                 StandardCharsets.UTF_8);
 
         String output = run(1, "--registry", "src/test/resources/tag-registry.json",
@@ -163,7 +164,8 @@ class MainTest {
 
     @Test
     void pristineCopyPasses(@TempDir Path tmp) throws Exception {
-        String body = "behavior:\n  main:\n    commands:\n      player:\n        - say hi\n";
+        String body = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n        - say hi\n";
         Path defaults = shadowDefaults(tmp, "gear-dice", body);
         Path mods = tmp.resolve("mods");
         Files.createDirectories(mods);
@@ -180,7 +182,8 @@ class MainTest {
         Path mods = tmp.resolve("mods");
         Files.createDirectories(mods);
         Files.writeString(mods.resolve("gear-dice.yml"),
-                "behavior:\n  main:\n    commands:\n      player:\n        - say custom\n",
+                "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                        + "    commands:\n      player:\n        - say custom\n",
                 StandardCharsets.UTF_8);
 
         String output = run(0, "--registry", "src/test/resources/tag-registry.json",
@@ -562,6 +565,25 @@ class MainTest {
     }
 
     @Test
+    void uncalledDefinitionsWarn(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n        - say <setting:rate>\n"
+                + "  side:\n    commands:\n      player:\n        - say hi\n"
+                + "config:\n  settings:\n    rate:\n      value: 1\n"
+                + "      def:\n        value:\n          type: INTEGER\n"
+                + "          default: 1\n    lonely:\n      value: 2\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNCALLED_SETTING"), output);
+        assertTrue(output.contains("Setting 'lonely' is never read."), output);
+        assertTrue(output.contains("W_UNCALLED_BEHAVIOR"), output);
+        assertTrue(output.contains("Behavior 'side' is never called."), output);
+        assertFalse(output.contains("rate' is never read"), output);
+    }
+
+    @Test
     void materialDefaultWarns(@TempDir Path tmp) throws Exception {
         String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
                 + "        - say hi\nconfig:\n  settings:\n    blade:\n"
@@ -589,7 +611,8 @@ class MainTest {
 
 
     private static void writeBehavior(Path file, String line) throws Exception {
-        Files.writeString(file, "behavior:\n  main:\n    commands:\n      player:\n        - "
+        Files.writeString(file, "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n        - "
                 + line + "\n", StandardCharsets.UTF_8);
     }
 
@@ -603,7 +626,8 @@ class MainTest {
             mods = tmp.resolve("mods");
             Files.createDirectories(mods);
             Files.writeString(mods.resolve("fog-of-war.yml"),
-                    "behavior:\n  main:\n    commands:\n      player:\n        - say spooky\n",
+                    "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                            + "    commands:\n      player:\n        - say spooky\n",
                     StandardCharsets.UTF_8);
             preset = tmp.resolve("horror.yml");
             StringBuilder yaml = new StringBuilder("meta:\n  name: Horror\nmodifiers:\n");

@@ -65,7 +65,11 @@ public enum DiagnosticCode {
     /** Runblock chain recurses into its own call path. */
     W_BEHAVIOR_CYCLE("Behavior cycle"),
     /** Setting defines both value and folder; the value wins. */
-    W_AMBIGUOUS_SETTING("Ambiguous setting");
+    W_AMBIGUOUS_SETTING("Ambiguous setting"),
+    /** Leaf setting no behavior line reads. */
+    W_UNCALLED_SETTING("Uncalled setting"),
+    /** Behavior block no trigger fires and no runblock calls. */
+    W_UNCALLED_BEHAVIOR("Uncalled behavior");
 
     private final String title;
 
