@@ -89,6 +89,27 @@ class SettingRefsTest {
         assertTrue(found.isEmpty());
     }
 
+    @Test
+    void paddedPathResolvesLikeTheEngine() {
+        SettingsTree settings = tree(leaf("rate"));
+
+        List<Diagnostic> found = SettingRefs.check("fog",
+                file("say <setting: rate >"), settings);
+
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void secondColonRoutesToUnknownSetting() {
+        SettingsTree settings = tree(leaf("rate"));
+
+        List<Diagnostic> found = SettingRefs.check("fog",
+                file("say <setting:rate:foo>"), settings);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_SETTING, found.get(0).code());
+    }
+
     private static BehaviorFile file(String... lines) {
         return new BehaviorFile(Map.of("main", new BehaviorFile.BehaviorBlock(
                 Map.of("player", List.of(lines)), List.of("ON_START"))));
