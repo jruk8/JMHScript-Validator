@@ -18,8 +18,13 @@ public record SettingsTree(List<SettingsNode> roots) {
             SettingSpec spec) {
     }
 
-    /** One leaf's `def.value` block: raw type, default, and allowed. */
-    public record SettingSpec(String type, Object defaultValue, Object allowed) {
+    /**
+     * One leaf's spec: raw type, default, and allowed from the
+     * `def.value` block, plus the live `value:` beside the def
+     * (null when the key is absent).
+     */
+    public record SettingSpec(String type, Object defaultValue, Object allowed,
+            Object liveValue) {
     }
 
     /** Empty model for files with no settings. */

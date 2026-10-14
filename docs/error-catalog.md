@@ -89,6 +89,11 @@ Message text stays byte-identical to the engine.
   it at load. Material names validate only when the registry
   carries the materials array. Example: `Modifier 'fog'
   setting 'rate' default is outside allowed; clamped.`.
+- `W_VALUE_INVALID`: Value invalid. A live setting value
+  falls outside its type or allowed range, so the engine
+  resets it at load. Absent values fill from the default
+  silently. Example: `Modifier 'fog' setting 'rate' value
+  is invalid; reset to default.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

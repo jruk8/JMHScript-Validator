@@ -307,7 +307,8 @@ public final class ModifierYaml {
                 Object type = valueMap.get("type");
                 spec = new SettingsTree.SettingSpec(
                         type == null ? null : String.valueOf(type),
-                        valueMap.get("default"), valueMap.get("allowed"));
+                        valueMap.get("default"), valueMap.get("allowed"),
+                        valuePresent ? map.get("value") : null);
             }
         }
         boolean isFolder = !valuePresent && folderRaw instanceof List<?>;

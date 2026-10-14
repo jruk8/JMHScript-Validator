@@ -38,7 +38,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
 - **Duplicate settings** » Repeated sibling setting names, which drop the whole `config.settings` block.
-- **Bad defaults** » Setting defaults outside their allowed range (clamped at load) and unknown spec types.
+- **Bad defaults and values** » Setting defaults and live values outside their allowed range (clamped or reset at load) and unknown spec types.
 - **Settings style** » Overstuffed or misplaced `config.settings` blocks (too many folders or leafs, stray leafs beside folders).
 - **Bad files** » Unreadable paths, unparseable YAML, wrong section shapes, and non-string command lines.
 

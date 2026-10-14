@@ -53,7 +53,9 @@ public enum DiagnosticCode {
     /** Setting spec type names no known setting type. */
     W_UNKNOWN_SETTING_TYPE("Unknown setting type"),
     /** Setting default falls outside its allowed range. */
-    W_DEFAULT_OUTSIDE_ALLOWED("Default outside allowed");
+    W_DEFAULT_OUTSIDE_ALLOWED("Default outside allowed"),
+    /** Live setting value falls outside its type or allowed range. */
+    W_VALUE_INVALID("Value invalid");
 
     private final String title;
 
