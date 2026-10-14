@@ -1,0 +1,53 @@
+package com.jruk8.jmhvalidator.core;
+
+import com.jruk8.jmhvalidator.core.model.Diagnostic;
+import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
+import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.ports.KnownTriggers;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * Runs-on pins: unknown triggers warn in list order, known
+ * triggers match trimmed and case-insensitively, and a
+ * missing trigger port stays silent.
+ */
+class RunTriggersTest {
+
+    private static final KnownTriggers KNOWN = KnownTriggers.of(
+            List.of("ON_START", "INTERVAL", "ON_DEATH"));
+
+    @Test
+    void unknownTriggerWarns() {
+        List<Diagnostic> found = RunTriggers.check("fog", "main",
+                List.of("ON_START", "ULTIMATE_INTERVAL"), KNOWN);
+
+        assertEquals(1, found.size());
+        Diagnostic only = found.get(0);
+        assertEquals(DiagnosticCode.W_UNKNOWN_TRIGGER, only.code());
+        assertEquals(Severity.WARNING, only.severity());
+        assertEquals("main", only.provenance().behaviorId());
+        assertEquals("", only.provenance().listName());
+        assertEquals(-1, only.provenance().lineIndex());
+        assertEquals(-1, only.charOneBased());
+        assertEquals("Unknown trigger 'ULTIMATE_INTERVAL', it never fires.",
+                only.message());
+    }
+
+    @Test
+    void knownMatchesTrimmedAndCaseBlind() {
+        List<Diagnostic> found = RunTriggers.check("fog", "main",
+                List.of("on_start", "  INTERVAL ", "On_Death"), KNOWN);
+
+        assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void nullPortAndNullListStaySilent() {
+        assertTrue(RunTriggers.check("fog", "main", List.of("NOPE"), null).isEmpty());
+        assertTrue(RunTriggers.check("fog", "main", null, KNOWN).isEmpty());
+    }
+}

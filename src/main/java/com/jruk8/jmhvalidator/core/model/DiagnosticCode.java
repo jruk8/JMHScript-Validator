@@ -39,7 +39,21 @@ public enum DiagnosticCode {
     /** Settings level holds more than 7 leafs. */
     W_SETTINGS_LEAFS("Too many leafs"),
     /** Preset member names no known modifier id. */
-    W_UNKNOWN_MODIFIER("Unknown modifier");
+    W_UNKNOWN_MODIFIER("Unknown modifier"),
+    /** Later same-id file skipped; first in load order wins. */
+    W_DUPLICATE_ID("Duplicate id"),
+    /** Duplicate sibling setting names; the block drops. */
+    W_DUPLICATE_SETTING("Duplicate setting names"),
+    /** Setting reference names no defined leaf setting. */
+    W_UNKNOWN_SETTING("Unknown setting"),
+    /** Runs-on trigger names no engine-dispatched event. */
+    W_UNKNOWN_TRIGGER("Unknown trigger"),
+    /** YAML key names nothing the engine reads. */
+    W_UNKNOWN_KEY("Unknown key"),
+    /** Setting spec type names no known setting type. */
+    W_UNKNOWN_SETTING_TYPE("Unknown setting type"),
+    /** Setting default falls outside its allowed range. */
+    W_DEFAULT_OUTSIDE_ALLOWED("Default outside allowed");
 
     private final String title;
 

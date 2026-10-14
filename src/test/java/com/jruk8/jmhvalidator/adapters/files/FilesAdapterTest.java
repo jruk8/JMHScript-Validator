@@ -4,6 +4,7 @@ import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -63,6 +64,55 @@ class FilesAdapterTest {
         Files.writeString(file, "behavior:\n  main: 42\n", StandardCharsets.UTF_8);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
         assertEquals(DiagnosticCode.E_YAML_SHAPE, read.early().get(0).code());
+    }
+
+    @Test
+    void runsOnReadsTriggerNames(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("mod.yml");
+        Files.writeString(file,
+                "behavior:\n  main:\n    runs-on:\n      - ON_START\n      - INTERVAL\n",
+                StandardCharsets.UTF_8);
+        ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
+        assertTrue(read.early().isEmpty());
+        assertEquals(List.of("ON_START", "INTERVAL"),
+                read.behavior().blocks().get("main").runsOn());
+    }
+
+    @Test
+    void scalarRunsOnIsShapeDiagnostic(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("mod.yml");
+        Files.writeString(file,
+                "behavior:\n  main:\n    runs-on: ON_START\n",
+                StandardCharsets.UTF_8);
+        ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
+        assertEquals(1, read.early().size());
+        assertEquals(DiagnosticCode.E_YAML_SHAPE, read.early().get(0).code());
+        assertEquals("'behavior.main.runs-on' must be a list",
+                read.early().get(0).message());
+    }
+
+    @Test
+    void typoKeysFlaggedAtRootAndBlock(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("mod.yml");
+        Files.writeString(file,
+                "conflg:\n  settings: {}\nbehavior:\n  main:\n    runs-onn:\n      - ON_START\n",
+                StandardCharsets.UTF_8);
+        ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
+        assertEquals(2, read.keys().size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_KEY, read.keys().get(0).code());
+        assertEquals("Unknown key 'conflg' in the file root; ignoring it.",
+                read.keys().get(0).message());
+        assertEquals("Unknown key 'runs-onn' in behavior 'main'; ignoring it.",
+                read.keys().get(1).message());
+    }
+
+    @Test
+    void registryWithoutTriggersReadsNull(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("registry.json");
+        Files.writeString(file, "{\"format\": 1, \"tags\": [\"p\"]}", StandardCharsets.UTF_8);
+        TagRegistryFiles.LoadedRegistry loaded = TagRegistryFiles.read(file);
+        assertEquals(null, loaded.triggers());
+        assertTrue(loaded.registry().isKnown("p"));
     }
 
     @Test

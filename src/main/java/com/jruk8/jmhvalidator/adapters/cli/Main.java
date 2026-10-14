@@ -6,10 +6,19 @@ import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYamlException;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
+import com.jruk8.jmhvalidator.core.DuplicateIds;
 import com.jruk8.jmhvalidator.core.JmhValidator;
+import com.jruk8.jmhvalidator.core.NaturalOrder;
+import com.jruk8.jmhvalidator.core.RunTriggers;
+import com.jruk8.jmhvalidator.core.SettingsNormalize;
+import com.jruk8.jmhvalidator.core.script.SettingRefs;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.model.BehaviorFile;
+import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
+import com.jruk8.jmhvalidator.core.model.Provenance;
+import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.ports.KnownModifiers;
 import com.jruk8.jmhvalidator.core.ports.ShareMaterials;
 import com.jruk8.jmhvalidator.core.share.ShareCodec;
@@ -17,12 +26,14 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,9 +110,10 @@ public final class Main {
                 return 2;
             }
         }
+        Map<Path, Diagnostic> duplicates = duplicateIds(files);
         List<ReportJson.FileReport> reports = new ArrayList<>();
         for (Path file : files) {
-            reports.add(checkFile(file, registry, known));
+            reports.add(checkFile(file, registry, known, duplicates.get(file)));
         }
         if (options.format.equals("json")) {
             System.out.print(ReportJson.report(version(), registry.engine(),
@@ -151,10 +163,15 @@ public final class Main {
     }
 
     private static ReportJson.FileReport checkFile(Path file,
-            TagRegistryFiles.LoadedRegistry registry, KnownModifiers known) {
+            TagRegistryFiles.LoadedRegistry registry, KnownModifiers known,
+            Diagnostic duplicate) {
         String stem = stemOf(file);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, stem);
-        List<Diagnostic> found = new ArrayList<>(read.early());
+        List<Diagnostic> found = new ArrayList<>();
+        if (duplicate != null) {
+            found.add(duplicate);
+        }
+        found.addAll(read.early());
         if (known != null && read.behavior().blocks().isEmpty()
                 && !read.presetMembers().isEmpty()) {
             found.addAll(JmhValidator.validatePreset(stem, read.presetMembers(), known));
@@ -162,7 +179,22 @@ public final class Main {
             found.addAll(JmhValidator.validateBehavior(
                     stem, read.behavior(), registry.registry()));
         }
-        found.addAll(SettingsStyle.check(stem, read.settings()));
+        SettingsNormalize.Result normalized =
+                SettingsNormalize.check(stem, read.settings(), registry.materials());
+        found.addAll(normalized.findings());
+        SettingsTree refTree =
+                normalized.dropped() ? SettingsTree.empty() : read.settings();
+        found.addAll(SettingRefs.check(stem, read.behavior(), refTree));
+        for (Map.Entry<String, BehaviorFile.BehaviorBlock> block
+                : read.behavior().blocks().entrySet()) {
+            List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
+            found.addAll(RunTriggers.check(stem, block.getKey(), runsOn,
+                    registry.triggers()));
+        }
+        found.addAll(read.keys());
+        if (!normalized.dropped()) {
+            found.addAll(SettingsStyle.check(stem, read.settings()));
+        }
         return new ReportJson.FileReport(file.toString(), found);
     }
 
@@ -170,21 +202,106 @@ public final class Main {
         return file.getFileName().toString().replaceFirst("\\.[^.]*$", "");
     }
 
+    /**
+     * Duplicate-id pass over the discovered files, in engine load
+     * order: within each modifier/preset namespace the first file
+     * wins and later same-id files warn. Only {@code .yml} files
+     * take part (the engine reports any other suffix as an
+     * unknown file instead), and unreadable, unparseable, or
+     * misshapen files never occupy an id, mirroring the engine.
+     */
+    private static Map<Path, Diagnostic> duplicateIds(List<Path> files) {
+        Map<String, Path> winners = new HashMap<>();
+        Map<Path, Diagnostic> skipped = new HashMap<>();
+        for (Path file : files) {
+            String name = file.getFileName().toString();
+            if (!isEngineYaml(name)) {
+                continue;
+            }
+            String id = name.substring(0, name.length() - ".yml".length());
+            ModifierYaml.ReadResult read = ModifierYaml.read(file, id);
+            if (!occupiesId(read)) {
+                continue;
+            }
+            String kind = isPreset(read) ? "preset" : "modifier";
+            Path winner = winners.get(kind + "\0" + id);
+            if (winner == null) {
+                winners.put(kind + "\0" + id, file);
+            } else {
+                skipped.put(file, new Diagnostic(new Provenance(id, "", "", -1), -1,
+                        Severity.WARNING, DiagnosticCode.W_DUPLICATE_ID,
+                        DuplicateIds.message(kind, id,
+                                winner.toString(), file.toString())));
+            }
+        }
+        return skipped;
+    }
+
+    private static boolean occupiesId(ModifierYaml.ReadResult read) {
+        for (Diagnostic early : read.early()) {
+            if (early.code() == DiagnosticCode.E_FILE_READ
+                    || early.code() == DiagnosticCode.E_YAML_PARSE
+                    || early.code() == DiagnosticCode.E_YAML_SHAPE) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isPreset(ModifierYaml.ReadResult read) {
+        return read.behavior().blocks().isEmpty() && !read.presetMembers().isEmpty();
+    }
+
+    private static boolean isEngineYaml(String name) {
+        return name.toLowerCase(java.util.Locale.ROOT).endsWith(".yml");
+    }
+
+    /**
+     * Discovery in engine load order: explicit files in argument
+     * order, directories walked subdirs-first with natural-sorted
+     * names at every level, so duplicate-id winners match the
+     * engine. Roots concatenate in argument order.
+     */
     private static List<Path> discover(List<Path> paths) {
         List<Path> files = new ArrayList<>();
         for (Path path : paths) {
             if (Files.isRegularFile(path) && isYaml(path)) {
                 files.add(path);
             } else if (Files.isDirectory(path)) {
-                try (Stream<Path> walk = Files.walk(path)) {
-                    walk.filter(Files::isRegularFile).filter(Main::isYaml).forEach(files::add);
-                } catch (IOException ignored) {
-                    // Unreadable dirs contribute nothing; files still report.
-                }
+                collect(path, files);
             }
         }
-        files.sort(Comparator.comparing(Path::toString));
         return files;
+    }
+
+    private static void collect(Path dir, List<Path> files) {
+        List<Path> children;
+        try (Stream<Path> stream = Files.list(dir)) {
+            children = stream.toList();
+        } catch (IOException ignored) {
+            // Unreadable dirs contribute nothing; files still report.
+            return;
+        }
+        List<Path> subdirs = new ArrayList<>();
+        List<Path> own = new ArrayList<>();
+        for (Path child : children) {
+            if (Files.isDirectory(child, LinkOption.NOFOLLOW_LINKS)) {
+                subdirs.add(child);
+            } else if (Files.isRegularFile(child) && isYaml(child)) {
+                own.add(child);
+            }
+        }
+        subdirs.sort(byName());
+        own.sort(byName());
+        for (Path subdir : subdirs) {
+            collect(subdir, files);
+        }
+        files.addAll(own);
+    }
+
+    private static Comparator<Path> byName() {
+        return Comparator.comparing(
+                path -> path.getFileName().toString(), NaturalOrder.comparator());
     }
 
     private static boolean isYaml(Path path) {

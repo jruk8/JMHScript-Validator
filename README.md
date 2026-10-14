@@ -33,6 +33,12 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Unknown tags** » Tags outside your engine version's table, which the engine leaves untouched at runtime.
 - **Skipped picks** » Random-pick entries the runtime skips, and weak all-players filters.
 - **Unknown preset members** » Preset entries naming no known modifier (needs `--defaults`, see below).
+- **Duplicate ids** » Later same-id files the engine skips unparsed, in engine load order.
+- **Key typos** » YAML keys the engine never reads (`conflg`, `behavio`), at every level.
+- **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
+- **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
+- **Duplicate settings** » Repeated sibling setting names, which drop the whole `config.settings` block.
+- **Bad defaults** » Setting defaults outside their allowed range (clamped at load) and unknown spec types.
 - **Settings style** » Overstuffed or misplaced `config.settings` blocks (too many folders or leafs, stray leafs beside folders).
 - **Bad files** » Unreadable paths, unparseable YAML, wrong section shapes, and non-string command lines.
 
@@ -81,7 +87,7 @@ Exports land in `export/YYYY-MM-DD-N-export/`, imports in `imports/YYYY-MM-DD-N-
 # Requirements
 
 - Java Version » **Java 25**
-- Tag table » **`tag-registry.json` from your JManhunt version** (refresh it from the engine with `./gradlew exportTagRegistry` in a JManhunt checkout when the tag table changed)
+- Tag table » **`tag-registry.json` from your JManhunt version** (refresh it from the engine with `./gradlew exportTagRegistry` in a JManhunt checkout when the tag, trigger, or material tables change; registries without the newer arrays skip those checks silently)
 
 ### Links
 

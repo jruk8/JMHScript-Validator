@@ -4,14 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Minimal behavior model for validation: block id to command
- * lists to lines. Plain maps only, so the file adapter (YAML)
- * and the engine adapter (config objects) both map into it
- * without dragging their frameworks along.
+ * Minimal behavior model for validation: block id to runs-on
+ * triggers and command lists to lines. Plain maps only, so
+ * the file adapter (YAML) and the engine adapter (config
+ * objects) both map into it without dragging their
+ * frameworks along.
  */
 public record BehaviorFile(Map<String, BehaviorBlock> blocks) {
-    /** One behavior block: list name to command lines. */
-    public record BehaviorBlock(Map<String, List<String>> lists) {
+    /** One behavior block: runs-on triggers plus command lines. */
+    public record BehaviorBlock(Map<String, List<String>> lists, List<String> runsOn) {
     }
 
     /** Empty model for files with no behaviors. */

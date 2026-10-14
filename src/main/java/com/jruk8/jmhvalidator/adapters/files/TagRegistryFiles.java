@@ -1,5 +1,7 @@
 package com.jruk8.jmhvalidator.adapters.files;
 
+import com.jruk8.jmhvalidator.core.ports.KnownMaterials;
+import com.jruk8.jmhvalidator.core.ports.KnownTriggers;
 import com.jruk8.jmhvalidator.core.ports.TagRegistry;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,8 +23,13 @@ public final class TagRegistryFiles {
     /** Registry format version this CLI reads. */
     public static final int FORMAT_VERSION = 1;
 
-    /** One loaded registry: the port plus its provenance. */
-    public record LoadedRegistry(TagRegistry registry, String engine, String engineVersion) {
+    /**
+     * One loaded registry: the ports plus provenance. Triggers
+     * and materials stay null when the file predates their
+     * arrays, and those checks stay silent then.
+     */
+    public record LoadedRegistry(TagRegistry registry, KnownTriggers triggers,
+            KnownMaterials materials, String engine, String engineVersion) {
     }
 
     private TagRegistryFiles() {
@@ -56,9 +63,46 @@ public final class TagRegistryFiles {
             }
             names.add(name);
         }
-        return new LoadedRegistry(TagRegistry.of(names),
+        return new LoadedRegistry(TagRegistry.of(names), readTriggers(map),
+                readMaterials(map),
                 stringOr(map.get("engine"), "unknown"),
                 stringOr(map.get("engineVersion"), "unknown"));
+    }
+
+    private static KnownTriggers readTriggers(Map<?, ?> map) throws IOException {
+        Object triggers = map.get("triggers");
+        if (triggers == null) {
+            return null;
+        }
+        if (!(triggers instanceof List<?> items)) {
+            throw new IOException("registry 'triggers' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry triggers must be strings");
+            }
+            names.add(name);
+        }
+        return KnownTriggers.of(names);
+    }
+
+    private static KnownMaterials readMaterials(Map<?, ?> map) throws IOException {
+        Object materials = map.get("materials");
+        if (materials == null) {
+            return null;
+        }
+        if (!(materials instanceof List<?> items)) {
+            throw new IOException("registry 'materials' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry materials must be strings");
+            }
+            names.add(name);
+        }
+        return KnownMaterials.of(names);
     }
 
     private static String stringOr(Object value, String fallback) {

@@ -43,6 +43,52 @@ Message text stays byte-identical to the engine.
 - `W_SETTINGS_LEAFS`: Too many leafs. A settings level
   holds more than 7 leafs. Example: `9 leafs (max 7):
   message, sound, ...`.
+- `W_DUPLICATE_ID`: Duplicate id. A later same-id file in the
+  validated set; the first in engine load order wins and the
+  engine skips the rest unparsed. The CLI still sweeps skipped
+  files and reports their own findings too. Modifiers and
+  presets are separate namespaces; only `.yml` files take part
+  and unreadable, unparseable, and misshapen files never occupy
+  an id. Example: `Duplicate modifier id 'fog': 'mods/fog.yml'
+  wins, skipping 'mods/deep/fog.yml'.`.
+- `W_DUPLICATE_SETTING`: Duplicate setting names. Two sibling
+  settings share one name, so the engine drops the whole
+  `config.settings` block. The level warning names the dotted
+  folder path and the drop warning follows; later levels stay
+  silent, and style findings are suppressed for the dropped
+  block. Example: `Modifier 'fog' has duplicate setting names
+  at 'targeting'.`.
+- `W_UNKNOWN_SETTING`: Unknown setting. A `<setting:path>` (or
+  `<s:path>`) reference names no defined leaf setting; missing
+  paths and folder paths both read null at runtime. Blank,
+  dynamic (tag-holding), and fatally broken lines stay silent
+  for other checks to own. References in a duplicate-dropped
+  block warn, since the drop empties the settings. Example:
+  `Unknown setting 'base-y', resolves to null at runtime.`.
+- `W_UNKNOWN_TRIGGER`: Unknown trigger. A `runs-on` entry names
+  no engine-dispatched event; it never matches, so the block
+  never fires on it. Matching trims and ignores case. The
+  check stays silent when the registry predates the triggers
+  array. Example: `Unknown trigger 'ULTIMATE_INTERVAL', it
+  never fires.`.
+- `W_UNKNOWN_KEY`: Unknown key. A YAML key names nothing the
+  engine reads, so it is silently ignored. Checked at the
+  file root, `meta`, `config`, behavior blocks with their
+  option subtrees, and the settings node shape. Command list
+  names, behavior ids, and setting entry names stay open and
+  are never flagged. Levels that fail their shape stay silent
+  here. Example: `Unknown key 'conflg' in the file root;
+  ignoring it.`.
+- `W_UNKNOWN_SETTING_TYPE`: Unknown setting type. A setting
+  spec names no known setting type; the engine skips clamping
+  for it. The type reads upper-cased. Example: `Modifier
+  'fog' setting 'rate' has unknown type 'INTEGERR'.`.
+- `W_DEFAULT_OUTSIDE_ALLOWED`: Default outside allowed. A
+  setting default falls outside its allowed range (or is
+  missing, which fills the zero value), so the engine clamps
+  it at load. Material names validate only when the registry
+  carries the materials array. Example: `Modifier 'fog'
+  setting 'rate' default is outside allowed; clamped.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

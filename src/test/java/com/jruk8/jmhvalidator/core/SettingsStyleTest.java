@@ -251,11 +251,11 @@ class SettingsStyleTest {
     }
 
     private static SettingsNode leaf(String name) {
-        return new SettingsNode(name, false, List.of());
+        return new SettingsNode(name, false, List.of(), null);
     }
 
     private static SettingsNode folder(String name, SettingsNode... children) {
-        return new SettingsNode(name, true, List.of(children));
+        return new SettingsNode(name, true, List.of(children), null);
     }
 
     private static SettingsTree tree(SettingsNode... roots) {

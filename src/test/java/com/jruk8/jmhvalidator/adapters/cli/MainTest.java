@@ -279,6 +279,171 @@ class MainTest {
                 Main.nextStampedDir(base, day, "export"));
     }
 
+    @Test
+    void nestedDuplicateModifierWarnsOnSkipped(@TempDir Path tmp) throws Exception {
+        Path root = tmp.resolve("mods");
+        Files.createDirectories(root.resolve("deep"));
+        writeBehavior(root.resolve("fog.yml"), "say one");
+        writeBehavior(root.resolve("deep/fog.yml"), "say two");
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                root.toString());
+        assertTrue(output.contains("W_DUPLICATE_ID"), output);
+        assertTrue(output.contains(
+                "Duplicate modifier id 'fog': '" + root.resolve("deep/fog.yml")
+                        + "' wins, skipping '" + root.resolve("fog.yml") + "'."),
+                output);
+    }
+
+    @Test
+    void naturalOrderPicksDuplicateWinner(@TempDir Path tmp) throws Exception {
+        Path root = tmp.resolve("mods");
+        Files.createDirectories(root.resolve("mod10"));
+        Files.createDirectories(root.resolve("mod2"));
+        writeBehavior(root.resolve("mod10/dup.yml"), "say ten");
+        writeBehavior(root.resolve("mod2/dup.yml"), "say two");
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                root.toString());
+        assertTrue(output.contains(
+                "' wins, skipping '" + root.resolve("mod10/dup.yml") + "'."),
+                output);
+    }
+
+    @Test
+    void modifierAndPresetShareIdSilently(@TempDir Path tmp) throws Exception {
+        Path root = tmp.resolve("mods");
+        Files.createDirectories(root.resolve("deep"));
+        writeBehavior(root.resolve("fog.yml"), "say one");
+        Files.writeString(root.resolve("deep/fog.yml"), "meta:\n  name: Fog\nmodifiers:\n  - fog\n",
+                StandardCharsets.UTF_8);
+        String output = run(0, "--registry", "src/test/resources/tag-registry.json",
+                root.toString());
+        assertTrue(output.contains("2 clean"), output);
+    }
+
+    @Test
+    void yamlSuffixNeverDuplicatesYml(@TempDir Path tmp) throws Exception {
+        Path root = tmp.resolve("mods");
+        Files.createDirectories(root);
+        writeBehavior(root.resolve("fog.yml"), "say one");
+        writeBehavior(root.resolve("fog.yaml"), "say two");
+        String output = run(0, "--registry", "src/test/resources/tag-registry.json",
+                root.toString());
+        assertFalse(output.contains("W_DUPLICATE_ID"), output);
+    }
+
+    @Test
+    void duplicateSettingNamesDropStyle(@TempDir Path tmp) throws Exception {
+        StringBuilder yaml = new StringBuilder("behavior:\n  main:\n    commands:\n"
+                + "      player:\n        - say hi\nconfig:\n  settings:\n");
+        for (int index = 0; index < 6; index++) {
+            yaml.append("    folder").append(index).append(":\n      def:\n        folder:\n");
+            yaml.append("          - leaf:\n              value: 1\n");
+            if (index == 0) {
+                yaml.append("          - leaf:\n              value: 2\n");
+            }
+        }
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml.toString(), StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_DUPLICATE_SETTING"), output);
+        assertTrue(output.contains(
+                "Modifier 'fog' has duplicate setting names at 'folder0'."), output);
+        assertTrue(output.contains("dropping its config.settings block."), output);
+        assertFalse(output.contains("W_SETTINGS_FOLDERS"), output);
+    }
+
+    @Test
+    void undefinedSettingRefWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say <setting:rate>\n        - say <setting:nope>\n"
+                + "config:\n  settings:\n    rate:\n      value: 1\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_SETTING"), output);
+        assertTrue(output.contains(
+                "Unknown setting 'nope', resolves to null at runtime."), output);
+        assertFalse(output.contains("Unknown setting 'rate'"), output);
+    }
+
+    @Test
+    void unknownTriggerWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "      - ULTIMATE_INTERVAL\n    commands:\n      player:\n"
+                + "        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_TRIGGER"), output);
+        assertTrue(output.contains(
+                "Unknown trigger 'ULTIMATE_INTERVAL', it never fires."), output);
+    }
+
+    @Test
+    void typoKeysWarn(@TempDir Path tmp) throws Exception {
+        String yaml = "behavio:\n  main: {}\nbehavior:\n  main:\n    commands:\n"
+                + "      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_KEY"), output);
+        assertTrue(output.contains(
+                "Unknown key 'behavio' in the file root; ignoring it."), output);
+    }
+
+    @Test
+    void defaultOutsideAllowedWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say hi\nconfig:\n  settings:\n    rate:\n"
+                + "      value: 1\n      def:\n        value:\n"
+                + "          type: INTEGER\n          default: 500\n"
+                + "          allowed:\n            min: 0\n            max: 100\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_DEFAULT_OUTSIDE_ALLOWED"), output);
+        assertTrue(output.contains(
+                "Modifier 'fog' setting 'rate' default is outside allowed; clamped."),
+                output);
+    }
+
+    @Test
+    void materialDefaultWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say hi\nconfig:\n  settings:\n    blade:\n"
+                + "      value: STONE\n      def:\n        value:\n"
+                + "          type: MATERIAL\n          default: NOT_A_MATERIAL\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_DEFAULT_OUTSIDE_ALLOWED"), output);
+    }
+
+    @Test
+    void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
+        Path root = tmp.resolve("mods");
+        Files.createDirectories(root.resolve("deep"));
+        writeBehavior(root.resolve("fog.yml"), "say one");
+        Files.writeString(root.resolve("deep/fog.yml"), "behavior: [oops\n",
+                StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                root.toString());
+        assertTrue(output.contains("E_YAML_PARSE"), output);
+        assertFalse(output.contains("W_DUPLICATE_ID"), output);
+    }
+
+
+    private static void writeBehavior(Path file, String line) throws Exception {
+        Files.writeString(file, "behavior:\n  main:\n    commands:\n      player:\n        - "
+                + line + "\n", StandardCharsets.UTF_8);
+    }
+
     /** One local modifier plus one preset plus a defaults manifest. */
     private static final class Fixture {
         private final Path mods;

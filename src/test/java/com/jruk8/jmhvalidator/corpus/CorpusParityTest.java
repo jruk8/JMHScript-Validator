@@ -7,8 +7,13 @@ import com.jruk8.jmhvalidator.adapters.cli.ReportJson;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.JmhValidator;
+import com.jruk8.jmhvalidator.core.RunTriggers;
+import com.jruk8.jmhvalidator.core.SettingsNormalize;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
+import com.jruk8.jmhvalidator.core.script.SettingRefs;
+import com.jruk8.jmhvalidator.core.model.BehaviorFile;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
+import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +67,21 @@ class CorpusParityTest {
         ModifierYaml.ReadResult read = ModifierYaml.read(input, stem);
         List<Diagnostic> found = new ArrayList<>(read.early());
         found.addAll(JmhValidator.validateBehavior(stem, read.behavior(), registry.registry()));
-        found.addAll(SettingsStyle.check(stem, read.settings()));
+        SettingsNormalize.Result normalized =
+                SettingsNormalize.check(stem, read.settings(), registry.materials());
+        found.addAll(normalized.findings());
+        SettingsTree refTree = normalized.dropped() ? SettingsTree.empty() : read.settings();
+        found.addAll(SettingRefs.check(stem, read.behavior(), refTree));
+        for (Map.Entry<String, BehaviorFile.BehaviorBlock> block
+                : read.behavior().blocks().entrySet()) {
+            List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
+            found.addAll(RunTriggers.check(stem, block.getKey(), runsOn,
+                    registry.triggers()));
+        }
+        found.addAll(read.keys());
+        if (!normalized.dropped()) {
+            found.addAll(SettingsStyle.check(stem, read.settings()));
+        }
         String actual = ReportJson.report("test", registry.engine(),
                 registry.engineVersion(),
                 List.of(new ReportJson.FileReport(label + ".yml", found)));

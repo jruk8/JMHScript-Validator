@@ -7,6 +7,8 @@ import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.UnknownKeys;
+import com.jruk8.jmhvalidator.core.UnknownKeys.Level;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,9 +31,13 @@ import org.yaml.snakeyaml.error.YAMLException;
  * provenance matches the engine's load order.
  */
 public final class ModifierYaml {
-    /** One read: both models, preset members, file diagnostics. */
+    /**
+     * One read: both models, preset members, file diagnostics,
+     * and unknown-key findings (kept separate so callers order
+     * them after the behavior sweeps, like the engine).
+     */
     public record ReadResult(BehaviorFile behavior, SettingsTree settings,
-            List<String> presetMembers, List<Diagnostic> early) {
+            List<String> presetMembers, List<Diagnostic> early, List<Diagnostic> keys) {
     }
 
     private ModifierYaml() {
@@ -64,13 +70,14 @@ public final class ModifierYaml {
         Object behavior = doc.get("behavior");
         if (behavior == null) {
             return new ReadResult(BehaviorFile.empty(), readSettings(doc),
-                    presetMembers(doc), List.of());
+                    presetMembers(doc), List.of(), readKeys(modifierId, doc));
         }
         if (!(behavior instanceof Map<?, ?> blocks)) {
             return new ReadResult(BehaviorFile.empty(), readSettings(doc),
                     presetMembers(doc),
                     List.of(fileDiagnostic(modifierId,
-                            DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map")));
+                            DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map")),
+                    readKeys(modifierId, doc));
         }
         Map<String, BehaviorFile.BehaviorBlock> out = new LinkedHashMap<>();
         List<Diagnostic> early = new ArrayList<>();
@@ -79,7 +86,166 @@ public final class ModifierYaml {
                     readBlock(modifierId, String.valueOf(block.getKey()), block.getValue(), early));
         }
         return new ReadResult(new BehaviorFile(out), readSettings(doc),
-                presetMembers(doc), early);
+                presetMembers(doc), early, readKeys(modifierId, doc));
+    }
+
+    /**
+     * Unknown-key pass over the raw document, in file order:
+     * the file root, meta, config with the settings subtree,
+     * then behavior blocks with their option subtrees. Levels
+     * that fail their shape stay silent here for the shape
+     * suite to own. Never throws.
+     */
+    static List<Diagnostic> readKeys(String modifierId, Map<?, ?> doc) {
+        List<Diagnostic> keys = new ArrayList<>();
+        keys.addAll(UnknownKeys.check(modifierId, rootLevel(doc), "", "", names(doc)));
+        keys.addAll(readMetaKeys(modifierId, doc.get("meta")));
+        keys.addAll(readConfigKeys(modifierId, doc.get("config")));
+        Object behavior = doc.get("behavior");
+        if (behavior instanceof Map<?, ?> blocks) {
+            for (Map.Entry<?, ?> block : blocks.entrySet()) {
+                keys.addAll(readBlockKeys(modifierId,
+                        String.valueOf(block.getKey()), block.getValue()));
+            }
+        }
+        return keys;
+    }
+
+    private static UnknownKeys.Level rootLevel(Map<?, ?> doc) {
+        boolean modifierLike = doc.containsKey("behavior")
+                || doc.containsKey("enabled") || doc.containsKey("config");
+        boolean presetLike =
+                doc.containsKey("modifiers") || doc.containsKey("presets");
+        if (modifierLike && !presetLike) {
+            return Level.MODIFIER_ROOT;
+        }
+        if (presetLike && !modifierLike) {
+            return Level.PRESET_ROOT;
+        }
+        return Level.ANY_ROOT;
+    }
+
+    private static List<Diagnostic> readMetaKeys(String modifierId, Object raw) {
+        List<Diagnostic> keys = new ArrayList<>();
+        if (!(raw instanceof Map<?, ?> meta)) {
+            return keys;
+        }
+        keys.addAll(UnknownKeys.check(modifierId, Level.MODIFIER_META, "", "", names(meta)));
+        if (meta.get("visibility") instanceof Map<?, ?> visibility) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.VISIBILITY, "", "",
+                    names(visibility)));
+        }
+        return keys;
+    }
+
+    private static List<Diagnostic> readConfigKeys(String modifierId, Object raw) {
+        List<Diagnostic> keys = new ArrayList<>();
+        if (!(raw instanceof Map<?, ?> config)) {
+            return keys;
+        }
+        keys.addAll(UnknownKeys.check(modifierId, Level.CONFIG, "", "", names(config)));
+        if (config.get("advanced") instanceof Map<?, ?> advanced) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.ADVANCED, "", "",
+                    names(advanced)));
+        }
+        if (config.get("settings") instanceof Map<?, ?> settings) {
+            keys.addAll(readSettingsKeys(modifierId, settings, ""));
+        }
+        return keys;
+    }
+
+    private static List<Diagnostic> readSettingsKeys(String modifierId,
+            Map<?, ?> level, String parent) {
+        List<Diagnostic> keys = new ArrayList<>();
+        for (Map.Entry<?, ?> entry : level.entrySet()) {
+            String path = parent.isEmpty()
+                    ? String.valueOf(entry.getKey()) : parent + "." + entry.getKey();
+            if (!(entry.getValue() instanceof Map<?, ?> node)) {
+                continue;
+            }
+            keys.addAll(UnknownKeys.check(modifierId, Level.NODE, "", path, names(node)));
+            if (node.get("def") instanceof Map<?, ?> def) {
+                keys.addAll(readDefKeys(modifierId, path, def));
+            }
+        }
+        return keys;
+    }
+
+    private static List<Diagnostic> readDefKeys(String modifierId, String path, Map<?, ?> def) {
+        List<Diagnostic> keys = new ArrayList<>();
+        keys.addAll(UnknownKeys.check(modifierId, Level.DEF, "", path, names(def)));
+        if (def.get("meta") instanceof Map<?, ?> meta) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.SETTING_META, "", path,
+                    names(meta)));
+        }
+        if (def.get("value") instanceof Map<?, ?> spec) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.SPEC, "", path, names(spec)));
+        }
+        if (def.get("folder") instanceof List<?> folder) {
+            for (Object item : folder) {
+                if (!(item instanceof Map<?, ?> entry) || entry.size() != 1) {
+                    continue;
+                }
+                Map.Entry<?, ?> single = entry.entrySet().iterator().next();
+                if (single.getValue() instanceof Map<?, ?> node) {
+                    String child = path + "." + single.getKey();
+                    keys.addAll(UnknownKeys.check(modifierId, Level.NODE, "", child,
+                            names(node)));
+                    if (node.get("def") instanceof Map<?, ?> childDef) {
+                        keys.addAll(readDefKeys(modifierId, child, childDef));
+                    }
+                }
+            }
+        }
+        return keys;
+    }
+
+    private static List<Diagnostic> readBlockKeys(String modifierId, String blockId, Object raw) {
+        List<Diagnostic> keys = new ArrayList<>();
+        if (!(raw instanceof Map<?, ?> block)) {
+            return keys;
+        }
+        keys.addAll(UnknownKeys.check(modifierId, Level.BLOCK, blockId, "", names(block)));
+        if (block.get("on-start") instanceof Map<?, ?> onStart) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.ON_START, blockId, "",
+                    names(onStart)));
+        }
+        if (block.get("options") instanceof Map<?, ?> options) {
+            keys.addAll(readOptionsKeys(modifierId, blockId, options));
+        }
+        return keys;
+    }
+
+    private static List<Diagnostic> readOptionsKeys(String modifierId, String blockId,
+            Map<?, ?> options) {
+        List<Diagnostic> keys = new ArrayList<>();
+        keys.addAll(UnknownKeys.check(modifierId, Level.OPTIONS, blockId, "",
+                names(options)));
+        if (options.get("interval-settings") instanceof Map<?, ?> interval) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.INTERVAL_SETTINGS, blockId, "",
+                    names(interval)));
+        }
+        if (options.get("success-chance") instanceof Map<?, ?> chance) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.SUCCESS_CHANCE, blockId, "",
+                    names(chance)));
+        }
+        if (options.get("execution") instanceof Map<?, ?> execution) {
+            keys.addAll(UnknownKeys.check(modifierId, Level.EXECUTION, blockId, "",
+                    names(execution)));
+            if (execution.get("pick-random") instanceof Map<?, ?> pick) {
+                keys.addAll(UnknownKeys.check(modifierId, Level.PICK_RANDOM, blockId, "",
+                        names(pick)));
+            }
+        }
+        return keys;
+    }
+
+    private static List<String> names(Map<?, ?> map) {
+        List<String> names = new ArrayList<>();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            names.add(String.valueOf(entry.getKey()));
+        }
+        return names;
     }
 
     /**
@@ -133,14 +299,21 @@ public final class ModifierYaml {
         }
         boolean valuePresent = map.containsKey("value");
         Object folderRaw = null;
+        SettingsTree.SettingSpec spec = null;
         Object nodeDef = map.get("def");
         if (nodeDef instanceof Map<?, ?> defMap) {
             folderRaw = defMap.get("folder");
+            if (defMap.get("value") instanceof Map<?, ?> valueMap) {
+                Object type = valueMap.get("type");
+                spec = new SettingsTree.SettingSpec(
+                        type == null ? null : String.valueOf(type),
+                        valueMap.get("default"), valueMap.get("allowed"));
+            }
         }
         boolean isFolder = !valuePresent && folderRaw instanceof List<?>;
         List<SettingsNode> children =
                 isFolder ? buildChildren((List<?>) folderRaw) : List.of();
-        return new SettingsNode(name, isFolder, children);
+        return new SettingsNode(name, isFolder, children, isFolder ? null : spec);
     }
 
     private static List<SettingsNode> buildChildren(List<?> folder) {
@@ -168,23 +341,51 @@ public final class ModifierYaml {
         if (!(raw instanceof Map<?, ?> block)) {
             early.add(shaped(modifierId, blockId,
                     "'behavior." + blockId + "' must be a map"));
-            return new BehaviorFile.BehaviorBlock(lists);
+            return new BehaviorFile.BehaviorBlock(lists, List.of());
         }
+        List<String> runsOn = readRunsOn(modifierId, blockId, block, early);
         Object commands = block.get("commands");
         if (commands == null) {
-            return new BehaviorFile.BehaviorBlock(lists);
+            return new BehaviorFile.BehaviorBlock(lists, runsOn);
         }
         if (!(commands instanceof Map<?, ?> groups)) {
             early.add(shaped(modifierId, blockId,
                     "'behavior." + blockId + ".commands' must be a map"));
-            return new BehaviorFile.BehaviorBlock(lists);
+            return new BehaviorFile.BehaviorBlock(lists, runsOn);
         }
         for (Map.Entry<?, ?> list : groups.entrySet()) {
             lists.put(String.valueOf(list.getKey()),
                     readLines(modifierId, blockId, String.valueOf(list.getKey()),
                             list.getValue(), early));
         }
-        return new BehaviorFile.BehaviorBlock(lists);
+        return new BehaviorFile.BehaviorBlock(lists, runsOn);
+    }
+
+    /**
+     * Read one block's {@code runs-on} trigger names. A missing
+     * list reads empty (called-only blocks omit it); a
+     * non-list shape is a file diagnostic, mirroring the engine
+     * load failure. Non-string entries stay silent for the
+     * broader shape suite to own.
+     */
+    private static List<String> readRunsOn(String modifierId, String blockId,
+            Map<?, ?> block, List<Diagnostic> early) {
+        Object runsOn = block.get("runs-on");
+        if (runsOn == null) {
+            return List.of();
+        }
+        if (!(runsOn instanceof List<?> items)) {
+            early.add(shaped(modifierId, blockId,
+                    "'behavior." + blockId + ".runs-on' must be a list"));
+            return List.of();
+        }
+        List<String> triggers = new ArrayList<>();
+        for (Object entry : items) {
+            if (entry instanceof String trigger) {
+                triggers.add(trigger);
+            }
+        }
+        return triggers;
     }
 
     private static List<String> readLines(String modifierId, String blockId,
@@ -222,7 +423,8 @@ public final class ModifierYaml {
     }
 
     private static ReadResult resultWith(BehaviorFile behavior, Diagnostic early) {
-        return new ReadResult(behavior, SettingsTree.empty(), List.of(), List.of(early));
+        return new ReadResult(behavior, SettingsTree.empty(), List.of(), List.of(early),
+                List.of());
     }
 
     private static String oneLine(Exception failed) {
