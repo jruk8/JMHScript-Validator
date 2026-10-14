@@ -71,6 +71,9 @@ public final class TagEffects {
         if (isRole(name)) {
             return "<reffect:role,effects>";
         }
+        if (name.equals("phaseffect")) {
+            return "<phaseffect:player,effect>";
+        }
         return "<geffect:effects>";
     }
 }

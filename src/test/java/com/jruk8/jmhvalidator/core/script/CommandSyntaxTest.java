@@ -580,4 +580,14 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.warnings("say \\\\<yellow\\\\>",
                 TestRegistries.pinned()).get(0).contains("Unknown tag"));
     }
+
+    @Test
+    void phaseffectEditTimeShapeMirrorsRuntime() {
+        assertTrue(CommandSyntax.error("say <phaseffect:Steve,speed>").isEmpty());
+        assertTrue(CommandSyntax.error("say <phaseffect:Steve,speed,1>").isEmpty());
+        assertTrue(CommandSyntax.error("say <phaseffect:Steve>").isPresent());
+        assertTrue(CommandSyntax.error("say <phaseffect:Steve,speed,1,extra>").isPresent());
+        assertTrue(CommandSyntax.error("say <phaseffect:Steve,'speed>").isPresent());
+        assertTrue(CommandSyntax.error("say <phaseffect:>").isPresent());
+    }
 }

@@ -107,7 +107,7 @@ final class TagSyntaxErrors {
             case "gsound" -> TagSinks.soundError(name, args);
             case "psound" -> TagSinks.playerSoundError(name, args);
             case "rsound" -> RoleTagSyntax.soundError(name, args);
-            case "peffect", "peff", "geffect", "geff", "reffect", "reff" ->
+            case "peffect", "peff", "geffect", "geff", "reffect", "reff", "phaseffect" ->
                     TagEffects.effectError(name, args);
             case "gteleport" -> TagSinks.teleportError(name, args);
             case "pteleport" -> TagSinks.playerTeleportError(name, args);
