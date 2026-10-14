@@ -2,9 +2,9 @@
 
 ![JMHScript-Validator banner](docs/assets/validator-banner-1280x640.png)
 
-<h3>The same JMHScript checks as the engine, runnable from your terminal before match day.</h3>
+<h3>Lightweight CLI validator for JMHScript syntax.</h3>
 
-### [Releases](https://github.com/jruk8/JMHScript-Validator/releases) · [JMHScript DSL](https://jruk8.github.io/JManhunt/configuration/modifiers/) · [Community Mods](https://discord.com/invite/hkWmCVmWDC) · [Wiki](https://jruk8.github.io/JManhunt/)
+### [Releases](https://github.com/jruk8/JMHScript-Validator/releases) · [JMHScript DSL](https://jruk8.github.io/JManhunt/configuration/modifiers/) · [Community Mods](https://discord.com/invite/hkWmCVmWDC)
 
 <br>
 
@@ -15,7 +15,7 @@
 1. Download the validator CLI jar from [GitHub releases](https://github.com/jruk8/JMHScript-Validator/releases), plus the `tag-registry.json` that matches your JManhunt version (it lives at the root of the [JManhunt repo](https://github.com/jruk8/JManhunt); each copy carries the engine version its tags came from).
 2. Point it at your mods folder (single files work too):
 
-```sh
+```sh 
 java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json mods/
 ```
 
