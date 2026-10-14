@@ -7,6 +7,7 @@ import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.DupKeys;
 import com.jruk8.jmhvalidator.core.UnknownKeys;
 import com.jruk8.jmhvalidator.core.UnknownKeys.Level;
 import java.io.IOException;
@@ -63,7 +64,12 @@ public final class ModifierYaml {
             return resultWith(BehaviorFile.empty(), fileDiagnostic(modifierId,
                     DiagnosticCode.E_YAML_PARSE, "expected one mapping document"));
         }
-        return readDocument(modifierId, map);
+        ReadResult inner = readDocument(modifierId, map);
+        List<Diagnostic> keys = new ArrayList<>(
+                DupKeys.diagnostics(modifierId, DupKeyScan.scan(text)));
+        keys.addAll(inner.keys());
+        return new ReadResult(inner.behavior(), inner.settings(), inner.presetMembers(),
+                inner.early(), keys);
     }
 
     private static ReadResult readDocument(String modifierId, Map<?, ?> doc) {
