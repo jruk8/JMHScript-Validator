@@ -52,4 +52,15 @@ class TagItemOpsValidationTest {
         assertTrue(TagItemOps.opError("give", "Steve,[dirt, 1, [tag, <setting:x>]]")
                 .isEmpty());
     }
+
+    @Test
+    void quotedCommasSurvivePayloads() {
+        assertTrue(TagItemOps.opError("give", "Steve,[dirt, 64, 'a={},b={}']").isEmpty());
+        assertTrue(TagItemOps.opError("dropitem", "[0,64,0,world,0,0],[dirt, 64, 'a={},b={}']")
+                .isEmpty());
+        assertEquals("Tag <give> mixes quotes.",
+                TagItemOps.opError("give", "\"Ste\"ve,[dirt, 1]").orElseThrow());
+        assertEquals("Tag <itemtag> mixes quotes.",
+                TagItemOps.opError("itemtag", "\"Ste\"ve,mainhand").orElseThrow());
+    }
 }

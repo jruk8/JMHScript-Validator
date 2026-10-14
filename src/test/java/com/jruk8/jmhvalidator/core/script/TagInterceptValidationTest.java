@@ -31,4 +31,13 @@ class TagInterceptValidationTest {
         assertTrue(TagIntercept.opError("intercept", "[dirt, 1, [tag, <setting:x>]]")
                 .isEmpty());
     }
+
+    @Test
+    void quotedCommasSurviveThePayload() {
+        assertTrue(TagIntercept.opError("intercept", "[dirt, 64, 'a={},b={}']").isEmpty());
+        String overlong = "[dirt, 1, [tag, \"" + "x".repeat(60) + "," + "y".repeat(60)
+                + "\"]]";
+        assertEquals("Tag <intercept> tag value allows 100 chars at most.",
+                TagIntercept.opError("intercept", overlong).orElseThrow());
+    }
 }

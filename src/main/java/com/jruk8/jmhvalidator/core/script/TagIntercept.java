@@ -8,6 +8,9 @@ import java.util.Optional;
  * item payload (a single item or a nested list) to the event's drop
  * collector. Shape only; whether the enclosing block may intercept
  * is the context rule in {@code InterceptCheck}.
+ * The single payload arg skips quote hygiene: quotes are
+ * structural content there (native data, JMH strings), and the
+ * runtime degrades gracefully on unbalanced ones.
  * Validation carve: evaluation stays engine-side.
  */
 public final class TagIntercept {
@@ -27,11 +30,6 @@ public final class TagIntercept {
         List<String> parts = TagLists.splitTopLevel(args);
         if (parts.size() != 1) {
             return Optional.of("Tag <intercept> needs 1 arg like " + example() + ".");
-        }
-        for (String part : parts) {
-            if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
-                return Optional.of("Tag <intercept> mixes quotes.");
-            }
         }
         return TagItemOps.tagLengthError("intercept", parts.get(0));
     }

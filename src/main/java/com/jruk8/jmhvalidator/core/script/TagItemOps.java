@@ -1,5 +1,6 @@
 package com.jruk8.jmhvalidator.core.script;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,8 +47,12 @@ public final class TagItemOps {
             return Optional.of("Tag <" + name + "> needs " + arity + " args like "
                     + example(name) + ".");
         }
-        for (String part : parts) {
-            if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
+        for (int index = 0; index < parts.size(); index++) {
+            if (isPayload(name, index)) {
+                continue;
+            }
+            if (TagHeads.parsePickItem(parts.get(index)).isEmpty()
+                    && !parts.get(index).isBlank()) {
                 return Optional.of("Tag <" + name + "> mixes quotes.");
             }
         }
@@ -55,6 +60,11 @@ public final class TagItemOps {
             return tagLengthError(name, parts.get(1));
         }
         return Optional.empty();
+    }
+
+    /** Item payload segments carry quotes structurally, so hygiene skips them. */
+    private static boolean isPayload(String name, int index) {
+        return ("give".equals(name) || "dropitem".equals(name)) && index == 1;
     }
 
     /** Dropitem: location, payload, plus an optional cooldown. */
@@ -69,8 +79,12 @@ public final class TagItemOps {
             return Optional.of("Tag <dropitem> needs 2 or 3 args like " + example(name)
                     + ".");
         }
-        for (String part : parts) {
-            if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
+        for (int index = 0; index < parts.size(); index++) {
+            if (isPayload(name, index)) {
+                continue;
+            }
+            if (TagHeads.parsePickItem(parts.get(index)).isEmpty()
+                    && !parts.get(index).isBlank()) {
                 return Optional.of("Tag <dropitem> mixes quotes.");
             }
         }
@@ -95,12 +109,9 @@ public final class TagItemOps {
 
     /** True when any literal [tag, value] pair runs over the limit. */
     private static boolean overlongTag(String payload) {
-        if (!TagLists.isList(payload)) {
-            return false;
-        }
-        for (String item : TagLists.parse(payload)) {
+        for (String item : splitItems(payload)) {
             if (isTagPair(item)) {
-                String value = unquoted(TagLists.parse(item).get(1));
+                String value = unquoted(splitItems(item).get(1));
                 if (value.length() > MAX_TAG_CHARS) {
                     return true;
                 }
@@ -116,8 +127,25 @@ public final class TagItemOps {
         if (!TagLists.isList(item)) {
             return false;
         }
-        List<String> pair = TagLists.parse(item);
+        List<String> pair = splitItems(item);
         return pair.size() == 2 && "tag".equalsIgnoreCase(unquoted(pair.get(0)).strip());
+    }
+
+    /** Quote-aware inner split: commas inside quotes never split. */
+    private static List<String> splitItems(String text) {
+        if (!TagLists.isList(text)) {
+            return List.of();
+        }
+        String inner = text.strip();
+        inner = inner.substring(1, inner.length() - 1);
+        if (inner.isBlank()) {
+            return List.of();
+        }
+        List<String> items = new ArrayList<>();
+        for (String part : TagLists.splitTopLevel(inner)) {
+            items.add(part.strip());
+        }
+        return items;
     }
 
     /** Strips one pair of surrounding single or double quotes. */
