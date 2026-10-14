@@ -30,7 +30,9 @@ final class TagSyntaxErrors {
             case "sum", "average", "avg", "median" ->
                     arityAtLeastError(name, args, 1, "one or more numbers");
             case "if" -> ifError(args); case "switch" -> TagSwitch.opError(name, args);
-            case "pstat", "gstat" -> statError(name, args);
+            case "pstat" -> playerStatError(name, args);
+            case "gstat" -> statError(name, args, 0, TagStats.GSTAT_KEYS);
+            case "rstat" -> roleStatError(name, args);
             case "phasitem", "pcountitem" -> itemError(name, args);
             case "gflag", "gf", "pflag", "pf", "lflag", "lf" -> flagError(name, args);
             case "rflag" -> RoleTagSyntax.flagError(name, args);
@@ -90,10 +92,112 @@ final class TagSyntaxErrors {
         };
     }
 
-    private static Optional<String> statError(String name, String args) {
-        return name.equals("pstat")
-                ? statError(name, args, 1, TagStats.PSTAT_KEYS)
-                : statError(name, args, 0, TagStats.GSTAT_KEYS);
+    /**
+     * Player stat shape: a player plus a key plus an optional
+     * qualifier. The player is strictly first, never defaulted.
+     */
+    private static Optional<String> playerStatError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs player,key[,qualifier].");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() < 2 || parts.size() > 3) {
+            return Optional.of("Tag <" + name + "> needs player,key[,qualifier].");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        return statKeyError(name, parts.get(1), parts.size() == 3 ? parts.get(2) : null);
+    }
+
+    /** Role stat shape: a role plus a key plus an optional qualifier. */
+    private static Optional<String> roleStatError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs role,key[,qualifier].");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() < 2 || parts.size() > 3) {
+            return Optional.of("Tag <" + name + "> needs role,key[,qualifier].");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        Optional<String> role = RoleTagSyntax.headError(name, parts.get(0));
+        if (role.isPresent()) {
+            return role;
+        }
+        return statKeyError(name, parts.get(1), parts.size() == 3 ? parts.get(2) : null);
+    }
+
+    /**
+     * Player-universe key plus qualifier check shared by pstat and
+     * rstat: existing keys take no qualifier, typed vanilla stats
+     * require one, and anything else is an unknown key. A masked key
+     * abstains; qualifier values stay runtime-checked.
+     */
+    private static Optional<String> statKeyError(String name, String keyPart,
+            String qualifierPart) {
+        String key = TagHeads.parsePickItem(keyPart).orElse("");
+        if (key.contains("?")) {
+            return Optional.empty();
+        }
+        String normalized = TagStats.normalizeKey(key);
+        if (TagStats.isPlayerKey(normalized)) {
+            if (qualifierPart != null) {
+                return Optional.of("Tag <" + name + "> key '" + key.strip()
+                        + "' takes no qualifier.");
+            }
+            return Optional.empty();
+        }
+        Optional<TagStats.BukkitStatType> type = TagStats.bukkitType(normalized);
+        if (type.isEmpty()) {
+            return Optional.of("Unknown <" + name + "> key '" + key.strip() + "'. Valid keys: "
+                    + String.join(", ", TagStats.PSTAT_KEYS)
+                    + ", plus any vanilla statistic as bukkit.<name>, b.<name>, or bare.");
+        }
+        if (type.get() == TagStats.BukkitStatType.UNTYPED) {
+            if (qualifierPart != null) {
+                return Optional.of("Tag <" + name + "> key '" + key.strip()
+                        + "' takes no qualifier.");
+            }
+            return Optional.empty();
+        }
+        if (qualifierPart == null) {
+            String bare = TagStats.stripBukkitPrefix(normalized);
+            return Optional.of("Tag <" + name + "> stat '" + bare + "' needs "
+                    + qualifierNoun(type.get()) + " like <" + name + ":" + exampleWho(name)
+                    + "b." + bare + "," + qualifierSample(type.get()) + ">.");
+        }
+        return Optional.empty();
+    }
+
+    /** Qualifier noun behind the missing-qualifier error. */
+    private static String qualifierNoun(TagStats.BukkitStatType type) {
+        return switch (type) {
+            case BLOCK -> "a block";
+            case ITEM -> "an item";
+            case ENTITY -> "an entity";
+            case UNTYPED -> "a value";
+        };
+    }
+
+    /** Sample qualifier behind the missing-qualifier error. */
+    private static String qualifierSample(TagStats.BukkitStatType type) {
+        return switch (type) {
+            case BLOCK -> "stone";
+            case ITEM -> "torch";
+            case ENTITY -> "zombie";
+            case UNTYPED -> "value";
+        };
+    }
+
+    /** Example head behind the missing-qualifier error. */
+    private static String exampleWho(String name) {
+        return name.equals("rstat") ? "hunter," : "Steve,";
     }
 
     private static Optional<String> itemError(String name, String args) {

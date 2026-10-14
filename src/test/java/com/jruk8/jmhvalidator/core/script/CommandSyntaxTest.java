@@ -343,6 +343,16 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <pstat:\"<p>\",\"health\"> done").isEmpty());
         assertTrue(CommandSyntax.error("say <pstat:Steve,HUNGER> done").isEmpty());
         assertTrue(CommandSyntax.error("say <pstat:Steve,mobs-killed> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,bukkit.damage_taken> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.damage_taken> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,DAMAGE_TAKEN> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,DaMAge_tAkEn> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.mine_block,diamond_ore> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.kill_entity,zombie> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:hunter,health> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:ALL,b.damage_taken> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:speedrunner,b.kill_entity,zombie> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:HUNTER,DAMAGE_TAKEN> done").isEmpty());
         assertTrue(CommandSyntax.error("say <gstat:duration> done").isEmpty());
         assertTrue(CommandSyntax.error("say <gstat:\"daytime\"> done").isEmpty());
         assertTrue(CommandSyntax.error("say <gflag:phase> done").isEmpty());
@@ -360,6 +370,22 @@ class CommandSyntaxTest {
     void statAndFlagTagsFail() {
         assertTrue(CommandSyntax.error("say <pstat:Steve> done").isPresent());
         assertTrue(CommandSyntax.error("say <pstat:Steve,heath> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:health> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:b.mine_block,diamond_ore> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:<lf:key>> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:<lf:k>,diamond_ore> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,health,hunger,extra> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.foo> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,health,extra> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.damage_taken,extra> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.mine_block> done").isPresent());
+        assertTrue(CommandSyntax.error("say <pstat:Steve,b.kill_entity> done").isPresent());
+        assertTrue(CommandSyntax.error("say <rstat:hunter> done").isPresent());
+        assertTrue(CommandSyntax.error("say <rstat:banana,health> done").isPresent());
+        assertTrue(CommandSyntax.error("say <rstat:hunter,bogus> done").isPresent());
+        assertTrue(CommandSyntax.error("say <rstat:hunter,health,extra> done").isPresent());
+        assertTrue(CommandSyntax.error("say <rstat:hunter,b.mine_block> done").isPresent());
         assertTrue(CommandSyntax.error("say <gstat:> done").isPresent());
         assertTrue(CommandSyntax.error("say <gstat:uptime> done").isPresent());
         assertTrue(CommandSyntax.error("say <gstat:duration,daytime> done").isPresent());
@@ -368,6 +394,38 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <pflag:\"  \",1> done").isPresent());
         assertTrue(CommandSyntax.error("say <placeholder:a,b> done").isPresent());
         assertTrue(CommandSyntax.error("say <placeholder:> done").isPresent());
+    }
+
+    @Test
+    void statMessagesPinShape() {
+        assertEquals("Tag <pstat> needs player,key[,qualifier].",
+                CommandSyntax.error("say <pstat:> done").orElseThrow());
+        assertEquals("Tag <rstat> needs role,key[,qualifier].",
+                CommandSyntax.error("say <rstat:hunter> done").orElseThrow());
+        assertEquals("Tag <rstat> needs HUNTER, SPEEDRUNNER, or ALL.",
+                CommandSyntax.error("say <rstat:banana,health> done").orElseThrow());
+        assertEquals("Unknown <pstat> key 'heath'. Valid keys: health, hunger, max-health,"
+                + " mobs-killed, achievements-gained, exp-level, damage-dealt, crafts,"
+                + " blocks-broken, plus any vanilla statistic as bukkit.<name>, b.<name>, or bare.",
+                CommandSyntax.error("say <pstat:Steve,heath> done").orElseThrow());
+        assertEquals("Tag <pstat> stat 'mine_block' needs a block like"
+                + " <pstat:Steve,b.mine_block,stone>.",
+                CommandSyntax.error("say <pstat:Steve,b.mine_block> done").orElseThrow());
+        assertEquals("Tag <pstat> stat 'kill_entity' needs an entity like"
+                + " <pstat:Steve,b.kill_entity,zombie>.",
+                CommandSyntax.error("say <pstat:Steve,b.kill_entity> done").orElseThrow());
+        assertEquals("Tag <rstat> stat 'craft_item' needs an item like"
+                + " <rstat:hunter,b.craft_item,torch>.",
+                CommandSyntax.error("say <rstat:hunter,b.craft_item> done").orElseThrow());
+        assertEquals("Tag <pstat> key 'health' takes no qualifier.",
+                CommandSyntax.error("say <pstat:Steve,health,extra> done").orElseThrow());
+    }
+
+    @Test
+    void maskedStatKeysAbstain() {
+        assertTrue(CommandSyntax.error("say <pstat:Steve,<lf:key>> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:<lf:role>,health> done").isEmpty());
+        assertTrue(CommandSyntax.error("say <rstat:hunter,<lf:key>> done").isEmpty());
     }
 
     @Test
