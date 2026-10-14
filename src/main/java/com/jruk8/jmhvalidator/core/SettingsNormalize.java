@@ -18,8 +18,9 @@ import java.util.Set;
  * Load-mirror sweep over one modifier's settings tree:
  * duplicate sibling names drop the whole
  * {@code config.settings} block, unknown spec types warn,
- * and defaults outside allowed warn, exactly like the engine
- * normalize. Traversal is pre-order mirroring the engine
+ * defaults outside allowed warn, and iconless folders warn,
+ * exactly like the engine normalize. Traversal is pre-order
+ * mirroring the engine
  * loops: each sibling is duplicate-checked then visited in
  * order, and the first duplicate level aborts the sweep, so
  * later levels stay silent. Findings are warnings with the
@@ -75,6 +76,15 @@ public final class SettingsNormalize {
     }
 
     /**
+     * Message for a folder without a display icon.
+     * Byte-identical to the engine normalize warning.
+     */
+    public static String iconMessage(String modifierId, String path) {
+        return "Modifier '" + modifierId + "' folder '" + path
+                + "' has no icon; add meta.icon.";
+    }
+
+    /**
      * Message for a live value the engine cannot keep.
      * Byte-identical to the engine normalize warning.
      */
@@ -126,6 +136,11 @@ public final class SettingsNormalize {
         if (!node.folder()) {
             checkLeaf(modifierId, path, node, known, found);
             return false;
+        }
+        if (node.icon() == null || node.icon().isBlank()) {
+            found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_FOLDER_ICON,
+                    iconMessage(modifierId, path)));
         }
         List<SettingsNode> children =
                 node.children() == null ? List.of() : node.children();

@@ -419,6 +419,7 @@ public final class ModifierYaml {
         boolean valuePresent = map.containsKey("value");
         Object folderRaw = null;
         SettingsTree.SettingSpec spec = null;
+        String icon = null;
         Object nodeDef = map.get("def");
         if (nodeDef instanceof Map<?, ?> defMap) {
             folderRaw = defMap.get("folder");
@@ -429,12 +430,17 @@ public final class ModifierYaml {
                         valueMap.get("default"), valueMap.get("allowed"),
                         valuePresent ? map.get("value") : null);
             }
+            if (defMap.get("meta") instanceof Map<?, ?> metaMap) {
+                Object rawIcon = metaMap.get("icon");
+                icon = rawIcon == null ? null : String.valueOf(rawIcon);
+            }
         }
         boolean isFolder = !valuePresent && folderRaw instanceof List<?>;
         boolean ambiguous = valuePresent && folderRaw instanceof List<?>;
         List<SettingsNode> children =
                 isFolder ? buildChildren((List<?>) folderRaw) : List.of();
-        return new SettingsNode(name, isFolder, children, isFolder ? null : spec, ambiguous);
+        return new SettingsNode(name, isFolder, children, isFolder ? null : spec,
+                ambiguous, icon);
     }
 
     private static List<SettingsNode> buildChildren(List<?> folder) {
