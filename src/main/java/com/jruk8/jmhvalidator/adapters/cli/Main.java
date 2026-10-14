@@ -7,6 +7,7 @@ import com.jruk8.jmhvalidator.adapters.files.ShareYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYamlException;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.BundledShadow;
+import com.jruk8.jmhvalidator.core.CommandLists;
 import com.jruk8.jmhvalidator.core.DuplicateIds;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.NaturalOrder;
@@ -248,6 +249,10 @@ public final class Main {
             OptionsNode options =
                     block.getValue() == null ? null : block.getValue().options();
             found.addAll(TriggerParams.check(stem, block.getKey(), options));
+            Set<String> lists =
+                    block.getValue() == null || block.getValue().lists() == null
+                            ? null : block.getValue().lists().keySet();
+            found.addAll(CommandLists.check(stem, block.getKey(), lists));
         }
         found.addAll(read.keys());
         found.addAll(read.shapes());

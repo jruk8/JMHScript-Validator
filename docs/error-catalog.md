@@ -165,6 +165,12 @@ Message text stays byte-identical to the engine.
   also reports. Blank icons warn like missing ones.
   Example: `Modifier 'fog' folder 'targeting' has no
   icon; add meta.icon.`.
+- `W_UNKNOWN_LIST`: Unknown list. A commands list no
+  dispatch key reads and the GUI never shows, so its
+  lines never run. Matching is exact (case-sensitive),
+  like the dispatch lookup. The engine load reports the
+  identical text. Example: `Unknown commands list
+  'playre' in behavior 'main'; it never runs.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a
