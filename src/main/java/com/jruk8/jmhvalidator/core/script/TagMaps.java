@@ -20,12 +20,12 @@ public final class TagMaps {
 
 
     /** Verb behind either spelling: map.get and m.get both read get. */
-    private static String verb(String op) {
+    public static String verb(String op) {
         return op.substring(op.indexOf('.') + 1);
     }
 
 
-    private static int arity(String verb) {
+    public static int arity(String verb) {
         return switch (verb) {
             case "add", "set" -> 3;
             case "get", "remove", "contains" -> 2;
@@ -33,7 +33,7 @@ public final class TagMaps {
         };
     }
 
-    private static String example(String op) {
+    public static String example(String op) {
         return switch (verb(op)) {
             case "add", "set" -> "<" + op + ":[[k, v]],k,x>";
             case "get", "remove", "contains" -> "<" + op + ":[[k, v]],k>";

@@ -32,13 +32,13 @@ public final class TagMath {
 
     /** Evaluated operand: null, number, or literal text. */
     public sealed interface Value permits Value.Null, Value.Num, Value.Text {
-        record Null() implements Value {
+        public record Null() implements Value {
         }
 
-        record Num(double number) implements Value {
+        public record Num(double number) implements Value {
         }
 
-        record Text(String text) implements Value {
+        public record Text(String text) implements Value {
         }
     }
 

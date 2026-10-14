@@ -62,7 +62,7 @@ public final class TagPlos {
         }
     }
 
-    private static String example() {
+    public static String example() {
         return "<plos:player,target,maxdist,maxangle>";
     }
 }

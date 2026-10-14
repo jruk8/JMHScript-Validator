@@ -42,11 +42,11 @@ public final class TagEffects {
         return Optional.empty();
     }
 
-    private static boolean isPlayer(String name) {
+    public static boolean isPlayer(String name) {
         return name.equals("peffect") || name.equals("peff");
     }
 
-    private static boolean isRole(String name) {
+    public static boolean isRole(String name) {
         return name.equals("reffect") || name.equals("reff");
     }
 

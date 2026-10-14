@@ -18,14 +18,14 @@ public final class TagExpressions {
 
     /** Condition structure problem: callers warn and yield empty. */
     public static final class ExprException extends Exception {
-        ExprException(String message) {
+        public ExprException(String message) {
             super(message);
         }
     }
 
 
     /** A surrounding group, as opposed to parentheses around a math operand. */
-    private static boolean wrappedCondition(String text) {
+    public static boolean wrappedCondition(String text) {
         if (!text.startsWith("(") || !text.endsWith(")")) {
             return false;
         }
@@ -53,7 +53,7 @@ public final class TagExpressions {
         return false;
     }
 
-    private static boolean isNotWord(String text) {
+    public static boolean isNotWord(String text) {
         if (text.length() < 3 || !text.regionMatches(true, 0, "not", 0, 3)) {
             return false;
         }
@@ -145,7 +145,7 @@ public final class TagExpressions {
     }
 
 
-    private static List<String> splitWords(String text, String word) {
+    public static List<String> splitWords(String text, String word) {
         List<String> parts = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         int depth = 0;
@@ -190,7 +190,7 @@ public final class TagExpressions {
         return parts;
     }
 
-    private static boolean isWord(String text, int index, String word) {
+    public static boolean isWord(String text, int index, String word) {
         if (index == 0 || !Character.isWhitespace(text.charAt(index - 1))) {
             return false;
         }

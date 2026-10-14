@@ -47,7 +47,7 @@ public final class TagPlayers {
         return Optional.empty();
     }
 
-    private static boolean arityOk(String name, int count) {
+    public static boolean arityOk(String name, int count) {
         return switch (name) {
             case "pstate" -> count == 2;
             case "pstandingon" -> count == 1;
@@ -63,7 +63,7 @@ public final class TagPlayers {
         };
     }
 
-    private static String arityText(String name) {
+    public static String arityText(String name) {
         return switch (name) {
             case "pstate" -> "2 args";
             case "pstandingon" -> "1 arg";
@@ -79,7 +79,7 @@ public final class TagPlayers {
         };
     }
 
-    private static String example(String name) {
+    public static String example(String name) {
         return switch (name) {
             case "pstate" -> "<pstate:player,state>";
             case "pstandingon" -> "<pstandingon:player>";

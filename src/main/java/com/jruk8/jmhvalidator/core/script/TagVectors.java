@@ -46,7 +46,7 @@ public final class TagVectors {
         return Optional.empty();
     }
 
-    private static int arity(String name) {
+    public static int arity(String name) {
         return switch (name) {
             case "pdir", "vec.normalize" -> 1;
             case "loc.shift" -> 3;
@@ -54,7 +54,7 @@ public final class TagVectors {
         };
     }
 
-    private static String example(String name) {
+    public static String example(String name) {
         return switch (name) {
             case "pdir" -> "<pdir:player>";
             case "vec.add" -> "<vec.add:a,b>";

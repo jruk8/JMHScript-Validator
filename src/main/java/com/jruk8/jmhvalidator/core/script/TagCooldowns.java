@@ -45,7 +45,7 @@ public final class TagCooldowns {
     }
 
 
-    private static int arity(String name) {
+    public static int arity(String name) {
         return switch (name) {
             case "pcooldown", "pcooldown.get" -> 3;
             case "pcooldown.reset", "gcooldown", "gcooldown.get" -> 2;
@@ -53,7 +53,7 @@ public final class TagCooldowns {
         };
     }
 
-    private static String example(String name) {
+    public static String example(String name) {
         return switch (name) {
             case "pcooldown" -> "<pcooldown:player,key,seconds>";
             case "pcooldown.get" -> "<pcooldown.get:player,key,seconds>";

@@ -43,7 +43,7 @@ public final class TagStrings {
         return Optional.empty();
     }
 
-    private static boolean arityOk(String name, int count) {
+    public static boolean arityOk(String name, int count) {
         if (name.equals("str.slice")) {
             return count == 2 || count == 3;
         }
@@ -56,7 +56,7 @@ public final class TagStrings {
         };
     }
 
-    private static String arityText(String name) {
+    public static String arityText(String name) {
         if (name.equals("str.slice")) {
             return "2 to 3 args";
         }
@@ -74,7 +74,7 @@ public final class TagStrings {
                 || name.equals("s.listformat") || name.equals("s.lformat");
     }
 
-    private static String example(String name) {
+    public static String example(String name) {
         return switch (name) {
             case "string.listformat" -> "<string.listformat:list,itemcolor,sepcolor>";
             case "string.lformat" -> "<string.lformat:list,itemcolor,sepcolor>";

@@ -20,11 +20,11 @@ public final class TagWeighted {
     }
 
 
-    private static String arityText(String name) {
+    public static String arityText(String name) {
         return name.equals("weighted-picks") ? "2 to 3 args" : "1 arg";
     }
 
-    private static String example(String name) {
+    public static String example(String name) {
         return name.equals("weighted-picks")
                 ? "<weighted-picks:[[10.0, dirt], [2.0, diamond]],2,true>"
                 : "<weighted-pick:[[10.0, dirt], [2.0, diamond]]>";

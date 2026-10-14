@@ -18,19 +18,19 @@ public final class TagSets {
 
 
     /** Verb behind the head: set.add reads add. */
-    private static String verb(String op) {
+    public static String verb(String op) {
         return op.substring(op.indexOf('.') + 1);
     }
 
 
-    private static int arity(String verb) {
+    public static int arity(String verb) {
         return switch (verb) {
             case "add", "remove", "contains" -> 2;
             default -> 1;
         };
     }
 
-    private static String example(String op) {
+    public static String example(String op) {
         return switch (verb(op)) {
             case "add", "remove", "contains" -> "<" + op + ":[a, b],a>";
             default -> "<" + op + ":[a, b]>";

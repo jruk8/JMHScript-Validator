@@ -49,7 +49,7 @@ public final class TagRaycast {
         return Optional.empty();
     }
 
-    private static String example() {
+    public static String example() {
         return "<raycast:point,dir,reach,mask>";
     }
 }

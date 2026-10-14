@@ -10,14 +10,14 @@ import java.util.Optional;
  * sinks and returns empty. No Bukkit types.
   * Validation carve: evaluation stays engine-side.
 */
-final class TagSinks {
+public final class TagSinks {
 
     private TagSinks() {
     }
 
 
     /** Audience plus array elements behind the player and role forms. */
-    record AudienceArray(String audience, List<String> elements) {
+    public record AudienceArray(String audience, List<String> elements) {
     }
 
     /**
