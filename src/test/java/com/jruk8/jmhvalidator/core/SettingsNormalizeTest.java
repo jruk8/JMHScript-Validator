@@ -187,13 +187,83 @@ class SettingsNormalizeTest {
         assertTrue(lenient.findings().isEmpty());
     }
 
+    @Test
+    void valueInvalidWarns() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), 500));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        Diagnostic only = result.findings().get(0);
+        assertEquals(DiagnosticCode.W_VALUE_INVALID, only.code());
+        assertEquals(Severity.WARNING, only.severity());
+        assertEquals("rate", only.provenance().listName());
+        assertEquals("Modifier 'fog' setting 'rate' value is invalid; reset to default.",
+                only.message());
+    }
+
+    @Test
+    void validValuePasses() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), 60));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertTrue(result.findings().isEmpty());
+    }
+
+    @Test
+    void absentAndNullValuesPass() {
+        SettingsTree settings = tree(
+                leafSpec("absent", "INTEGER", 50, Map.of("min", 0, "max", 100)),
+                leafSpec("explicit", "INTEGER", 50, Map.of("min", 0, "max", 100), null));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertTrue(result.findings().isEmpty());
+    }
+
+    @Test
+    void bothBadWarnsInEngineOrder() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 500, Map.of("min", 0, "max", 100), 600));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertEquals(2, result.findings().size());
+        assertEquals(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                result.findings().get(0).code());
+        assertEquals(DiagnosticCode.W_VALUE_INVALID, result.findings().get(1).code());
+    }
+
+    @Test
+    void unknownTypeSkipsValueCheck() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "BOGUS", 500, Map.of("min", 0, "max", 100), 600));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertEquals(1, result.findings().size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_SETTING_TYPE,
+                result.findings().get(0).code());
+    }
+
     private static SettingsNode leaf(String name) {
         return new SettingsNode(name, false, List.of(), null);
     }
 
     private static SettingsNode leafSpec(String name, String type, Object def, Object allowed) {
+        return leafSpec(name, type, def, allowed, null);
+    }
+
+    private static SettingsNode leafSpec(String name, String type, Object def, Object allowed,
+            Object live) {
         return new SettingsNode(name, false, List.of(),
-                new SettingsTree.SettingSpec(type, def, allowed));
+                new SettingsTree.SettingSpec(type, def, allowed, live));
     }
 
     private static SettingsNode folder(String name, SettingsNode... children) {

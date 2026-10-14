@@ -75,6 +75,15 @@ public final class SettingsNormalize {
     }
 
     /**
+     * Message for a live value the engine cannot keep.
+     * Byte-identical to the engine normalize warning.
+     */
+    public static String valueMessage(String modifierId, String path) {
+        return "Modifier '" + modifierId + "' setting '" + path
+                + "' value is invalid; reset to default.";
+    }
+
+    /**
      * Sweep every level of one modifier's settings tree. A
      * null materials port leaves material names unfiltered
      * instead of guessing.
@@ -147,6 +156,13 @@ public final class SettingsNormalize {
             found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
                     Severity.WARNING, DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                     defaultMessage(modifierId, path)));
+        }
+        Object fixed =
+                SettingCoerce.coerce(type, spec.liveValue(), spec.allowed(), known);
+        if (!SettingCoerce.sameRaw(fixed, spec.liveValue())) {
+            found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_VALUE_INVALID,
+                    valueMessage(modifierId, path)));
         }
     }
 

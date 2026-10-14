@@ -413,6 +413,23 @@ class MainTest {
     }
 
     @Test
+    void valueInvalidWarns(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say hi\nconfig:\n  settings:\n    rate:\n"
+                + "      value: 500\n      def:\n        value:\n"
+                + "          type: INTEGER\n          default: 50\n"
+                + "          allowed:\n            min: 0\n            max: 100\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_VALUE_INVALID"), output);
+        assertTrue(output.contains(
+                "Modifier 'fog' setting 'rate' value is invalid; reset to default."),
+                output);
+    }
+
+    @Test
     void materialDefaultWarns(@TempDir Path tmp) throws Exception {
         String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
                 + "        - say hi\nconfig:\n  settings:\n    blade:\n"
