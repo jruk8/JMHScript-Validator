@@ -3,20 +3,29 @@ package com.jruk8.jmhvalidator.adapters.cli;
 import com.jruk8.jmhvalidator.adapters.files.DefaultsFetch;
 import com.jruk8.jmhvalidator.adapters.files.EngineDefaults;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
+import com.jruk8.jmhvalidator.adapters.files.ShareYaml;
+import com.jruk8.jmhvalidator.adapters.files.ShareYamlException;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import com.jruk8.jmhvalidator.core.ports.KnownModifiers;
+import com.jruk8.jmhvalidator.core.ports.ShareMaterials;
+import com.jruk8.jmhvalidator.core.share.ShareCodec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -39,6 +48,12 @@ public final class Main {
         }
         if (args.length > 0 && args[0].equals("fetch-defaults")) {
             return fetchDefaults(List.of(args).subList(1, args.length));
+        }
+        if (args.length > 0 && args[0].equals("export")) {
+            return exportCommand(List.of(args).subList(1, args.length), Paths.get("export"));
+        }
+        if (args.length > 0 && args[0].equals("import")) {
+            return importCommand(List.of(args).subList(1, args.length), Paths.get("imports"));
         }
         Options options;
         try {
@@ -259,6 +274,170 @@ public final class Main {
         return 0;
     }
 
+    /**
+     * Exports modifier and preset files to share strings, one
+     * {@code <id>.txt} per file under a stamped export folder.
+     * The base overload is for tests; the CLI always uses
+     * {@code export} under the working directory.
+     */
+    static int exportCommand(List<String> args, Path base) {
+        if (args.isEmpty()) {
+            System.err.println("error: export needs PATH...");
+            return 2;
+        }
+        for (String arg : args) {
+            if (arg.startsWith("--")) {
+                System.err.println("error: unknown option " + arg);
+                return 2;
+            }
+        }
+        List<Path> paths = new ArrayList<>();
+        for (String arg : args) {
+            paths.add(Paths.get(arg));
+        }
+        List<Path> files = discover(paths);
+        if (files.isEmpty()) {
+            System.err.println("error: no .yml/.yaml files found");
+            return 2;
+        }
+        Path dir;
+        try {
+            dir = nextStampedDir(base, LocalDate.now(), "export");
+        } catch (IOException failed) {
+            System.err.println("error: cannot create export folder: " + failed.getMessage());
+            return 2;
+        }
+        int failed = 0;
+        for (Path file : files) {
+            if (!exportFile(file, dir)) {
+                failed++;
+            }
+        }
+        System.out.println("exported %d, failed %d to %s"
+                .formatted(files.size() - failed, failed, dir));
+        return failed == 0 ? 0 : 1;
+    }
+
+    private static boolean exportFile(Path file, Path dir) {
+        ShareYaml.Parsed parsed;
+        try {
+            parsed = ShareYaml.parse(file);
+        } catch (ShareYamlException failed) {
+            System.err.println("error: " + file + ": " + failed.getMessage());
+            return false;
+        }
+        String payload;
+        try {
+            payload = parsed.kind() == ShareCodec.Kind.PRESET
+                    ? ShareCodec.exportPreset(parsed.id(), parsed.preset())
+                    : ShareCodec.exportModifier(parsed.id(), parsed.modifier());
+        } catch (IllegalArgumentException failed) {
+            System.err.println("error: " + file + ": " + failed.getMessage());
+            return false;
+        }
+        Path out = dir.resolve(parsed.id() + ".txt");
+        try {
+            Files.writeString(out, payload, StandardCharsets.UTF_8, StandardOpenOption.CREATE_NEW);
+        } catch (FileAlreadyExistsException exists) {
+            System.err.println("error: " + file + ": duplicate id '" + parsed.id() + "'");
+            return false;
+        } catch (IOException failed) {
+            System.err.println("error: " + file + ": cannot write " + out);
+            return false;
+        }
+        System.out.println("exported " + parsed.id() + " -> " + out);
+        return true;
+    }
+
+    /**
+     * Imports share strings to modifier and preset files, one
+     * {@code <id>.yml} per string under a stamped imports folder.
+     * Each input reads from its file when it names one, else it
+     * is taken as an inline string.
+     */
+    static int importCommand(List<String> args, Path base) {
+        if (args.isEmpty()) {
+            System.err.println("error: import needs INPUT...");
+            return 2;
+        }
+        Path dir;
+        try {
+            dir = nextStampedDir(base, LocalDate.now(), "import");
+        } catch (IOException failed) {
+            System.err.println("error: cannot create imports folder: " + failed.getMessage());
+            return 2;
+        }
+        int failed = 0;
+        for (String input : args) {
+            if (!importInput(input, dir)) {
+                failed++;
+            }
+        }
+        System.out.println("imported %d, failed %d to %s"
+                .formatted(args.size() - failed, failed, dir));
+        return failed == 0 ? 0 : 1;
+    }
+
+    private static boolean importInput(String input, Path dir) {
+        String text = input;
+        Path file = Paths.get(input);
+        boolean fromFile = Files.isRegularFile(file);
+        if (fromFile) {
+            try {
+                text = Files.readString(file, StandardCharsets.UTF_8).strip();
+            } catch (IOException failed) {
+                System.err.println("error: " + input + ": cannot read file");
+                return false;
+            }
+        }
+        String label = fromFile ? input : shortInput(input);
+        Optional<ShareCodec.Imported> decoded =
+                ShareCodec.decode(text, ShareMaterials.lenient());
+        if (decoded.isEmpty()) {
+            System.err.println("error: " + label + ": invalid share string");
+            return false;
+        }
+        ShareCodec.Imported imported = decoded.get();
+        Map<String, Object> yaml = imported.kind() == ShareCodec.Kind.PRESET
+                ? ShareYaml.writePreset(imported.preset())
+                : ShareYaml.writeModifier(imported.modifier());
+        Path out = dir.resolve(imported.id() + ".yml");
+        try {
+            Files.writeString(out, ShareYaml.dump(yaml), StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW);
+        } catch (FileAlreadyExistsException exists) {
+            System.err.println("error: " + label + ": duplicate id '" + imported.id() + "'");
+            return false;
+        } catch (IOException failed) {
+            System.err.println("error: " + label + ": cannot write " + out);
+            return false;
+        }
+        System.out.println("imported " + imported.id() + " -> " + out);
+        return true;
+    }
+
+    /** Truncates inline strings for error lines; paths print whole. */
+    private static String shortInput(String input) {
+        return input.length() > 64 ? input.substring(0, 64) + "..." : input;
+    }
+
+    /**
+     * Next free stamped folder: {@code base/YYYY-MM-DD-N-word/}
+     * with N from 1. Package-visible for tests.
+     */
+    static Path nextStampedDir(Path base, LocalDate date, String word) throws IOException {
+        Files.createDirectories(base);
+        for (int stamp = 1; ; stamp++) {
+            Path dir = base.resolve("%s-%d-%s".formatted(date, stamp, word));
+            try {
+                Files.createDirectory(dir);
+                return dir;
+            } catch (FileAlreadyExistsException taken) {
+                // Taken: try the next number.
+            }
+        }
+    }
+
     /** Tag-list markdown for the reference docs, from a registry file. */
     static int docs(List<String> args) {
         Path registry = null;
@@ -322,6 +501,8 @@ public final class Main {
                          [--expect-engine-version V] [--defaults FILE|DIR] PATH...
                        validator fetch-defaults --engine-rev REV --out DIR
                          [--repo OWNER/NAME]
+                       validator export PATH...
+                       validator import INPUT...
                        validator docs --registry REGISTRY [--out FILE]
                        validator [--version] [--help]
                 Exits 0 clean, 1 diagnostics found, 2 usage or setup error.
