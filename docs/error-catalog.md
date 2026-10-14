@@ -160,6 +160,11 @@ Message text stays byte-identical to the engine.
   engine YAML layer drops nulls unseen). Example:
   `commands list 'player' in behavior 'main' must be a
   list; ignoring it.`.
+- `W_FOLDER_ICON`: Folder icon. A settings folder without
+  a `def.meta.icon` display icon, which the engine load
+  also reports. Blank icons warn like missing ones.
+  Example: `Modifier 'fog' folder 'targeting' has no
+  icon; add meta.icon.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a
@@ -177,3 +182,30 @@ CLI runs with fetched engine defaults (see `--defaults`).
   with the wrong shape (map or list expected).
 - `E_YAML_LINE_TYPE`: Non-string command line. A behavior
   command entry that is not a string.
+
+## Absent-field defaults
+
+Absent keys fall back silently on both sides; nothing here
+warns. The engine and the CLI agree on every row.
+
+| Absent field | Fallback |
+|---|---|
+| modifier id | file stem |
+| `enabled` | `false` |
+| `meta` | stem and blank fallbacks at display |
+| `behavior` | no blocks (preset-style files) |
+| behavior block `runs-on` | called-only (fires on `<runblock>` only) |
+| behavior block `commands` | no lines |
+| `options`, `on-start` | `interval` 60, `deviation` 0, `behavior` `PER_INVOKE`, `chance` 1.0, `selection` `IN_ORDER`, `count` 1, `delay` 0, order `BEFORE` |
+| `config`, `config.settings` | no settings |
+| `config.advanced` | no wiring |
+| setting `value` | spec `default`, else the type zero, else null |
+| setting `def`, `def.value` | untyped passthrough (no repairs) |
+| setting `type` | untyped passthrough |
+| setting `allowed` | unconstrained within the type |
+| setting `def.meta`, leaf icons | id and blank fallbacks at display |
+| preset `modifiers`, `presets` | no members |
+
+Intentional strictness: an empty file errors in the CLI
+(`E_YAML_PARSE`) while the engine loads it empty. Empty
+files are never valid content, so the CLI fails loudly.

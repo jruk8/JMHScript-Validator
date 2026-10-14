@@ -73,7 +73,9 @@ public enum DiagnosticCode {
     /** Behavior option value the engine clamps or defaults silently. */
     W_OPTION_VALUE("Option value"),
     /** Node shape the engine tolerates or drops silently. */
-    W_SHAPE("Shape tolerated");
+    W_SHAPE("Shape tolerated"),
+    /** Settings folder without a display icon. */
+    W_FOLDER_ICON("Folder icon");
 
     private final String title;
 

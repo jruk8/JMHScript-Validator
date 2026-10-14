@@ -658,6 +658,27 @@ class MainTest {
     }
 
     @Test
+    void iconlessFolderWarnsEndToEnd(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n"
+                + "        - say <setting:targeting.rate>\n"
+                + "config:\n  settings:\n    targeting:\n      def:\n"
+                + "        folder:\n          - rate:\n"
+                + "              value: 1\n              def:\n"
+                + "                value:\n"
+                + "                  type: INTEGER\n"
+                + "                  default: 1\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_FOLDER_ICON"), output);
+        assertTrue(output.contains(
+                "Modifier 'fog' folder 'targeting' has no icon; add meta.icon."),
+                output);
+    }
+
+    @Test
     void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
         Path root = tmp.resolve("mods");
         Files.createDirectories(root.resolve("deep"));

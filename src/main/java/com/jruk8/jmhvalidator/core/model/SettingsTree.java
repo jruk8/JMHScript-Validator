@@ -20,7 +20,12 @@ public record SettingsTree(List<SettingsNode> roots) {
      * the engine.
      */
     public record SettingsNode(String name, boolean folder, List<SettingsNode> children,
-            SettingSpec spec, boolean ambiguous) {
+            SettingSpec spec, boolean ambiguous, String icon) {
+        /** Nodes without captured metadata read as iconless. */
+        public SettingsNode(String name, boolean folder, List<SettingsNode> children,
+                SettingSpec spec, boolean ambiguous) {
+            this(name, folder, children, spec, ambiguous, null);
+        }
     }
 
     /**

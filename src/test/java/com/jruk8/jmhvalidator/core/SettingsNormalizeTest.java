@@ -280,6 +280,57 @@ class SettingsNormalizeTest {
                 result.findings().get(0).code());
     }
 
+    @Test
+    void iconlessFolderWarns() {
+        SettingsTree settings = tree(
+                bareFolder("targeting", leaf("rate")),
+                folder("iconed", leaf("rate")));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        assertEquals(DiagnosticCode.W_FOLDER_ICON, result.findings().get(0).code());
+        assertEquals("Modifier 'fog' folder 'targeting' has no icon; add meta.icon.",
+                result.findings().get(0).message());
+        assertEquals("targeting", result.findings().get(0).provenance().listName());
+    }
+
+    @Test
+    void blankIconWarnsLikeMissing() {
+        SettingsNode blank = new SettingsNode("grp", true,
+                List.of(leaf("rate")), null, false, "  ");
+        SettingsNormalize.Result result =
+                SettingsNormalize.check("fog", tree(blank), null);
+
+        assertEquals(1, result.findings().size());
+        assertEquals(DiagnosticCode.W_FOLDER_ICON, result.findings().get(0).code());
+    }
+
+    @Test
+    void nestedIconlessFolderWarnsAtPath() {
+        SettingsTree settings = tree(
+                folder("outer", bareFolder("inner", leaf("rate"))));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertEquals(1, result.findings().size());
+        assertEquals("Modifier 'fog' folder 'outer.inner' has no icon; add meta.icon.",
+                result.findings().get(0).message());
+    }
+
+    @Test
+    void iconWarningPrecedesDrop() {
+        SettingsTree settings = tree(
+                bareFolder("targeting", leaf("rate"), leaf("rate")));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertTrue(result.dropped());
+        assertEquals(3, result.findings().size());
+        assertEquals(DiagnosticCode.W_FOLDER_ICON, result.findings().get(0).code());
+    }
+
     private static SettingsNode leaf(String name) {
         return new SettingsNode(name, false, List.of(), null, false);
     }
@@ -299,6 +350,10 @@ class SettingsNormalizeTest {
     }
 
     private static SettingsNode folder(String name, SettingsNode... children) {
+        return new SettingsNode(name, true, List.of(children), null, false, "STONE");
+    }
+
+    private static SettingsNode bareFolder(String name, SettingsNode... children) {
         return new SettingsNode(name, true, List.of(children), null, false);
     }
 
