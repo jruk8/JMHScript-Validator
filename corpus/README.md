@@ -10,8 +10,6 @@ until proven otherwise.
 
 - `inputs/shipped/`: 20 files from JManhunt
   `src/main/resources/mods/modifiers/` at rev `10e2b55`.
-- `inputs/jmhmods/`: 15 files from JMH-Mods `mods/` at rev
-  `5a906c4` (flattened; stems are unique).
 - `inputs/crafted/sweep-coverage.yml`: hand-built lines, one
   per check shape, covering every sweep code.
 
@@ -28,14 +26,7 @@ Every sweep code appears at least once: `E_SYNTAX`,
 `W_SETTINGS_FOLDERS`, `W_SETTINGS_STRAY_LEAF`,
 `W_SETTINGS_LEAFS`. Editor-only codes (`E_UNKNOWN_ROOT`,
 `E_UNKNOWN_ITEM`) are pinned by the ported
-`CommandValidationTest` instead. Real-content findings at
-capture time (pre-existing, not caused by the move):
-
-- `jmhmods/bounty`: 1 error (`Tag <if> mixes quotes.`).
-- `jmhmods/cursed-aqua`: style findings only (`phaseffect`
-  became an engine tag after the split).
-- `jmhmods/spyglass-sniper`: style findings only (`pisusinghanditem`
-  became an engine tag after the split).
+`CommandValidationTest` instead.
 
 ## Refresh procedure (deliberate behavior changes only)
 
