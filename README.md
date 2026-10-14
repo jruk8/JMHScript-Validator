@@ -34,6 +34,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Skipped picks** » Random-pick entries the runtime skips, and weak all-players filters.
 - **Unknown preset members** » Preset entries naming no known modifier (needs `--defaults`, see below).
 - **Duplicate ids** » Later same-id files the engine skips unparsed, in engine load order.
+- **Bundled-id shadows** » Custom ids matching engine-bundled ids (needs `--defaults`), which collide where both copies are present.
 - **Key typos** » YAML keys the engine never reads (`conflg`, `behavio`), at every level.
 - **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.

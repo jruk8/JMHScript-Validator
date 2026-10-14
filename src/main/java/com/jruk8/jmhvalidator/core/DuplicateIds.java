@@ -19,4 +19,13 @@ public final class DuplicateIds {
         return "Duplicate " + kind + " id '" + id + "': '" + winner
                 + "' wins, skipping '" + skipped + "'.";
     }
+
+    /**
+     * Suffix when the duplicated id is also engine-bundled:
+     * appended to {@link #message}, naming the override the
+     * operator may not have intended.
+     */
+    public static String bundledNote(String kind, String id) {
+        return " '" + id + "' is also an engine-bundled " + kind + " id.";
+    }
 }

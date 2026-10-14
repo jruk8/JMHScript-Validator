@@ -144,6 +144,81 @@ class MainTest {
     }
 
     @Test
+    void customShadowWarns(@TempDir Path tmp) throws Exception {
+        Path defaults = shadowDefaults(tmp, "gear-dice", "bundled");
+        Path mods = tmp.resolve("mods");
+        Files.createDirectories(mods);
+        Files.writeString(mods.resolve("gear-dice.yml"),
+                "behavior:\n  main:\n    commands:\n      player:\n        - say custom\n",
+                StandardCharsets.UTF_8);
+
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                "--defaults", defaults.toString(), mods.toString());
+
+        assertTrue(output.contains("W_SHADOWED_ID"), output);
+        assertTrue(output.contains("Custom modifier 'gear-dice' shares an id with the "
+                + "engine-bundled copy; where both files are present the first in load order wins."),
+                output);
+    }
+
+    @Test
+    void pristineCopyPasses(@TempDir Path tmp) throws Exception {
+        String body = "behavior:\n  main:\n    commands:\n      player:\n        - say hi\n";
+        Path defaults = shadowDefaults(tmp, "gear-dice", body);
+        Path mods = tmp.resolve("mods");
+        Files.createDirectories(mods);
+        Files.writeString(mods.resolve("gear-dice.yml"), body, StandardCharsets.UTF_8);
+
+        String output = run(0, "--registry", "src/test/resources/tag-registry.json",
+                "--defaults", defaults.toString(), mods.toString());
+
+        assertFalse(output.contains("W_SHADOWED_ID"), output);
+    }
+
+    @Test
+    void shadowSkipsWithoutDefaults(@TempDir Path tmp) throws Exception {
+        Path mods = tmp.resolve("mods");
+        Files.createDirectories(mods);
+        Files.writeString(mods.resolve("gear-dice.yml"),
+                "behavior:\n  main:\n    commands:\n      player:\n        - say custom\n",
+                StandardCharsets.UTF_8);
+
+        String output = run(0, "--registry", "src/test/resources/tag-registry.json",
+                mods.toString());
+
+        assertFalse(output.contains("W_SHADOWED_ID"), output);
+    }
+
+    @Test
+    void presetShadowWarns(@TempDir Path tmp) throws Exception {
+        Path defaults = tmp.resolve("defaults");
+        Files.createDirectories(defaults.resolve("presets"));
+        EngineDefaults.write(defaults.resolve("engine-defaults.json"), "JManhunt", "rev-test",
+                List.of(), List.of(new EngineDefaults.Preset("chaos-mode", List.of("beef"))));
+        Files.writeString(defaults.resolve("presets/chaos-mode.yml"),
+                "meta:\n  name: Bundled\nmodifiers:\n  - beef\n", StandardCharsets.UTF_8);
+        Files.writeString(tmp.resolve("chaos-mode.yml"),
+                "meta:\n  name: Custom\nmodifiers:\n  - beef\n", StandardCharsets.UTF_8);
+
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                "--defaults", defaults.toString(), tmp.resolve("chaos-mode.yml").toString());
+
+        assertTrue(output.contains("W_SHADOWED_ID"), output);
+        assertTrue(output.contains("Custom preset 'chaos-mode' shares an id"),
+                output);
+    }
+
+    private static Path shadowDefaults(Path tmp, String id, String body) throws Exception {
+        Path defaults = tmp.resolve("defaults");
+        Files.createDirectories(defaults.resolve("modifiers"));
+        EngineDefaults.write(defaults.resolve("engine-defaults.json"), "JManhunt", "rev-test",
+                List.of(id), List.of());
+        Files.writeString(defaults.resolve("modifiers/" + id + ".yml"), body,
+                StandardCharsets.UTF_8);
+        return defaults;
+    }
+
+    @Test
     void exportWritesStampedFolder(@TempDir Path tmp) throws Exception {
         Path in = tmp.resolve("in");
         Files.createDirectories(in);
