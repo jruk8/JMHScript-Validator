@@ -1,5 +1,6 @@
 package com.jruk8.jmhvalidator.adapters.files;
 
+import com.jruk8.jmhvalidator.core.ports.InterceptableTriggers;
 import com.jruk8.jmhvalidator.core.ports.KnownMaterials;
 import com.jruk8.jmhvalidator.core.ports.KnownTriggers;
 import com.jruk8.jmhvalidator.core.ports.TagRegistry;
@@ -24,12 +25,14 @@ public final class TagRegistryFiles {
     public static final int FORMAT_VERSION = 1;
 
     /**
-     * One loaded registry: the ports plus provenance. Triggers
-     * and materials stay null when the file predates their
-     * arrays, and those checks stay silent then.
+     * One loaded registry: the ports plus provenance. Triggers,
+     * interceptable triggers, and materials stay null when the
+     * file predates their arrays, and those checks stay silent
+     * then.
      */
     public record LoadedRegistry(TagRegistry registry, KnownTriggers triggers,
-            KnownMaterials materials, String engine, String engineVersion) {
+            InterceptableTriggers interceptable, KnownMaterials materials, String engine,
+            String engineVersion) {
     }
 
     private TagRegistryFiles() {
@@ -64,7 +67,7 @@ public final class TagRegistryFiles {
             names.add(name);
         }
         return new LoadedRegistry(TagRegistry.of(names), readTriggers(map),
-                readMaterials(map),
+                readInterceptable(map), readMaterials(map),
                 stringOr(map.get("engine"), "unknown"),
                 stringOr(map.get("engineVersion"), "unknown"));
     }
@@ -103,6 +106,24 @@ public final class TagRegistryFiles {
             names.add(name);
         }
         return names;
+    }
+
+    private static InterceptableTriggers readInterceptable(Map<?, ?> map) throws IOException {
+        Object interceptable = map.get("interceptable");
+        if (interceptable == null) {
+            return null;
+        }
+        if (!(interceptable instanceof List<?> items)) {
+            throw new IOException("registry 'interceptable' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry interceptable must be strings");
+            }
+            names.add(name);
+        }
+        return InterceptableTriggers.of(names);
     }
 
     private static KnownMaterials readMaterials(Map<?, ?> map) throws IOException {

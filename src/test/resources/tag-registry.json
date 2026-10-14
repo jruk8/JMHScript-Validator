@@ -293,6 +293,11 @@
     "ON_HUNTER_KILL",
     "ON_SPEEDRUNNER_KILL"
   ],
+  "interceptable": [
+    "ON_MOB_KILLED",
+    "ON_BLOCK_BROKEN",
+    "ON_CRAFT_PREPARE"
+  ],
   "materials": [
     "ACACIA_BOAT",
     "ACACIA_CHEST_BOAT",

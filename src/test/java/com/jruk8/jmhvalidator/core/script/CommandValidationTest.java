@@ -42,6 +42,16 @@ class CommandValidationTest {
     }
 
     @Test
+    void giveWithNativeComponentsValidatesOnTheBareMaterial() {
+        assertTrue(CommandValidation.validateLine("give <p> golden_apple[unbreakable={}]", true,
+                ROOTS, KNOWN_APPLE, NAMES).isEmpty());
+        assertEquals(Optional.of("Unknown item 'gulden_apple[x={}]'."
+                        + " Did you mean 'golden_apple'?"),
+                CommandValidation.validateLine("give <p> gulden_apple[x={}]", true, ROOTS,
+                        KNOWN_APPLE, NAMES));
+    }
+
+    @Test
     void warningsStayUntouchedByValidation() {
         assertEquals(List.of("Unknown tag '<bogus>', left untouched at runtime."),
                 CommandSyntax.warnings("give <bogus> apple", TestRegistries.pinned()));

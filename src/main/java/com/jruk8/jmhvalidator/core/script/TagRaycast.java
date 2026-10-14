@@ -26,30 +26,45 @@ public final class TagRaycast {
      * values validate at runtime). Mirrors the runtime warns.
      */
     public static Optional<String> opError(String name, String args) {
+        boolean extended = "raycastext".equals(name);
         if (args == null || args.isBlank()) {
-            return Optional.of("Tag <raycast> needs 3 or 4 args like " + example() + ".");
+            return Optional.of("Tag <" + name + "> needs " + shape(extended) + " like "
+                    + example(name) + ".");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 3 && parts.size() != 4) {
-            return Optional.of("Tag <raycast> needs 3 or 4 args like " + example() + ".");
+        if (parts.size() < 3 || parts.size() > (extended ? 5 : 4)) {
+            return Optional.of("Tag <" + name + "> needs " + shape(extended) + " like "
+                    + example(name) + ".");
         }
         for (String part : parts) {
             if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
-                return Optional.of("Tag <raycast> mixes quotes.");
+                return Optional.of("Tag <" + name + "> mixes quotes.");
             }
         }
         if (TagLists.isList(parts.get(0)) && TagLists.parse(parts.get(0)).size() != 6) {
-            return Optional.of("Tag <raycast> needs a point like [x, y, z, world, 0, 0].");
+            return Optional.of("Tag <" + name + "> needs a point like [x, y, z, world, 0, 0].");
         }
-        if (parts.size() == 4 && !parts.get(3).isBlank() && !parts.get(3).contains("<")
+        if (parts.size() >= 4 && !parts.get(3).isBlank() && !parts.get(3).contains("<")
                 && RayMask.parse(parts.get(3)).isEmpty()) {
-            return Optional.of("Tag <raycast> needs a mask like block, player, liquid, "
+            return Optional.of("Tag <" + name + "> needs a mask like block, player, liquid, "
                     + "all, or block+liquid.");
         }
         return Optional.empty();
     }
 
+    /** Arg-count shape per head: raycast takes 3 or 4, raycastext 3 to 5. */
+    private static String shape(boolean extended) {
+        return extended ? "3, 4, or 5 args" : "3 or 4 args";
+    }
+
     public static String example() {
+        return example("raycast");
+    }
+
+    public static String example(String name) {
+        if ("raycastext".equals(name)) {
+            return "<raycastext:point,dir,reach,mask,ignore>";
+        }
         return "<raycast:point,dir,reach,mask>";
     }
 }

@@ -45,11 +45,11 @@ final class TagSyntaxErrors {
             case "rcolor" -> rcolorError(name, args);
             case "plocation", "ploc", "prole", "peliminated", "pworld", "world", "px", "py",
                     "pz", "pyaw", "ppitch", "pheld" -> playerNameError(name, args);
-            case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.sqrdist", "vec.dist",
-                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift",
-                    "pdir" ->
+            case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
+                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir" ->
                     TagVectors.opError(name, args);
-            case "raycast" -> TagRaycast.opError(name, args);
+            case "raycast", "raycastext" -> TagRaycast.opError(name, args);
+            case "intercept", "give", "dropitem", "itemtag" -> TagItemOps.opError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
                     "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
                     "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",

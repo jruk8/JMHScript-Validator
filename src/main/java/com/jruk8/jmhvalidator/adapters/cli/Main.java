@@ -253,6 +253,8 @@ public final class Main {
                     block.getValue() == null || block.getValue().lists() == null
                             ? null : block.getValue().lists().keySet();
             found.addAll(CommandLists.check(stem, block.getKey(), lists));
+            found.addAll(com.jruk8.jmhvalidator.core.InterceptCheck.check(stem,
+                    block.getValue(), block.getKey(), registry.interceptable()));
         }
         found.addAll(read.keys());
         found.addAll(read.shapes());

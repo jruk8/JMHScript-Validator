@@ -48,7 +48,7 @@ public final class TagVectors {
 
     public static int arity(String name) {
         return switch (name) {
-            case "pdir", "vec.normalize" -> 1;
+            case "pdir", "vec.normalize", "vec.mag", "vec.mag2d" -> 1;
             case "loc.shift" -> 3;
             default -> 2;
         };
@@ -61,6 +61,8 @@ public final class TagVectors {
             case "vec.sub" -> "<vec.sub:a,b>";
             case "vec.mult" -> "<vec.mult:vec,scalar>";
             case "vec.normalize" -> "<vec.normalize:vec>";
+            case "vec.mag" -> "<vec.mag:vec>";
+            case "vec.mag2d" -> "<vec.mag2d:vec>";
             case "vec.sqrdist" -> "<vec.sqrdist:a,b>";
             case "vec.dist" -> "<vec.dist:a,b>";
             case "vec.sqrdist2d" -> "<vec.sqrdist2d:a,b>";
