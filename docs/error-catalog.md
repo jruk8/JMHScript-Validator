@@ -138,6 +138,17 @@ Message text stays byte-identical to the engine.
   runs. Triggered blocks and called-only targets pass;
   files with dynamic ids skip the sweep. Example:
   `Behavior 'side' is never called.`.
+- `W_OPTION_VALUE`: Option value. A behavior option the
+  engine clamps or defaults silently: an unknown scope,
+  selection, or pre-start order (falling back to
+  `PER_INVOKE`, `IN_ORDER`, or `BEFORE`), a chance outside
+  `0.0-1.0`, a deviation above the interval, a negative
+  interval (which disables the behavior), a negative delay,
+  or a pick count below 1. Each message names the
+  effective value. Positions the engine fails to bind stay
+  silent here for the shape checks. Example: `Chance 99.0
+  in behavior 'main' options.success-chance is outside
+  0.0-1.0; clamped to 1.0.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

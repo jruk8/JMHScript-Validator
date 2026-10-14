@@ -50,4 +50,15 @@ class RunTriggersTest {
         assertTrue(RunTriggers.check("fog", "main", List.of("NOPE"), null).isEmpty());
         assertTrue(RunTriggers.check("fog", "main", null, KNOWN).isEmpty());
     }
+
+    @Test
+    void paramShapeRoutesToUnknownTrigger() {
+        List<Diagnostic> found = RunTriggers.check("fog", "main",
+                List.of("INTERVAL:30"), KNOWN);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_TRIGGER, found.get(0).code());
+        assertEquals("Unknown trigger 'INTERVAL:30', it never fires.",
+                found.get(0).message());
+    }
 }

@@ -37,6 +37,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Bundled-id shadows** » Custom ids matching engine-bundled ids (needs `--defaults`), which collide where both copies are present.
 - **Key typos** » YAML keys the engine never reads (`conflg`, `behavio`), at every level.
 - **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
+- **Bad option values** » Behavior options the engine clamps or defaults silently (unknown scopes, out-of-range chance, disabling intervals).
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
 - **Dangling runblocks** » `<runblock:>` calls naming no defined block, plus call cycles, both skipped at runtime.
 - **Uncalled definitions** » Leaf settings never read and blocks never called, which usually flag a typo'd call site.
