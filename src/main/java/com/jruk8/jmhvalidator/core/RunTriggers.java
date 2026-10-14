@@ -12,9 +12,10 @@ import java.util.List;
  * Runs-on sweep: every trigger in a behavior block's
  * {@code runs-on} list must name an engine-dispatched event.
  * Unknown triggers pass through and never match an event, so
- * each warns. A null trigger port (a registry without the
- * triggers array) stays silent, like preset checks without
- * fetched defaults.
+ * each warns; removed or renamed triggers warn apart so the
+ * author can tell a stale mod from a typo. A null trigger
+ * port (a registry without the triggers array) stays silent,
+ * like preset checks without fetched defaults.
  */
 public final class RunTriggers {
 
@@ -29,12 +30,21 @@ public final class RunTriggers {
             return found;
         }
         for (String trigger : runsOn) {
-            if (trigger != null && !known.isKnown(trigger)) {
+            if (trigger == null || known.isKnown(trigger)) {
+                continue;
+            }
+            if (known.isRemoved(trigger)) {
                 found.add(new Diagnostic(
                         new Provenance(modifierId, blockId, "", -1), -1,
-                        Severity.WARNING, DiagnosticCode.W_UNKNOWN_TRIGGER,
-                        "Unknown trigger '" + trigger.trim() + "', it never fires."));
+                        Severity.WARNING, DiagnosticCode.W_REMOVED_TRIGGER,
+                        "Trigger '" + trigger.trim()
+                                + "' was removed or renamed; it never fires."));
+                continue;
             }
+            found.add(new Diagnostic(
+                    new Provenance(modifierId, blockId, "", -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_UNKNOWN_TRIGGER,
+                    "Unknown trigger '" + trigger.trim() + "', it never fires."));
         }
         return found;
     }
