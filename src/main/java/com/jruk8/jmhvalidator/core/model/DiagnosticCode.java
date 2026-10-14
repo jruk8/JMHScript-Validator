@@ -77,7 +77,9 @@ public enum DiagnosticCode {
     /** Settings folder without a display icon. */
     W_FOLDER_ICON("Folder icon"),
     /** Commands list no dispatch key reads. */
-    W_UNKNOWN_LIST("Unknown list");
+    W_UNKNOWN_LIST("Unknown list"),
+    /** Trigger the engine removed or renamed. */
+    W_REMOVED_TRIGGER("Removed trigger");
 
     private final String title;
 

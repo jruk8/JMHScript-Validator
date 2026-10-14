@@ -171,6 +171,12 @@ Message text stays byte-identical to the engine.
   like the dispatch lookup. The engine load reports the
   identical text. Example: `Unknown commands list
   'playre' in behavior 'main'; it never runs.`.
+- `W_REMOVED_TRIGGER`: Removed trigger. A `runs-on`
+  trigger the engine removed or renamed, so the block
+  never fires. Registries without the `removedTriggers`
+  array report these as unknown triggers instead.
+  Example: `Trigger 'ON_MOB_KILL' was removed or
+  renamed; it never fires.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

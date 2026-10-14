@@ -722,6 +722,38 @@ class MainTest {
     }
 
     @Test
+    void removedTriggerWarnsEndToEnd(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_MOB_KILL\n"
+                + "    commands:\n      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_REMOVED_TRIGGER"), output);
+        assertTrue(output.contains(
+                "Trigger 'ON_MOB_KILL' was removed or renamed; it never fires."),
+                output);
+    }
+
+    @Test
+    void oldRegistryReportsRemovedAsUnknown(@TempDir Path tmp) throws Exception {
+        String registry = "{\"format\": 1, \"engine\": \"JManhunt\","
+                + " \"engineVersion\": \"rev-old\", \"tags\": [],"
+                + " \"triggers\": [\"ON_START\"], \"materials\": []}";
+        Path registryFile = tmp.resolve("registry.json");
+        Files.writeString(registryFile, registry, StandardCharsets.UTF_8);
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_MOB_KILL\n"
+                + "    commands:\n      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output =
+                run(1, "--registry", registryFile.toString(), file.toString());
+        assertTrue(output.contains("W_UNKNOWN_TRIGGER"), output);
+        assertTrue(output.contains(
+                "Unknown trigger 'ON_MOB_KILL', it never fires."), output);
+    }
+
+    @Test
     void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
         Path root = tmp.resolve("mods");
         Files.createDirectories(root.resolve("deep"));

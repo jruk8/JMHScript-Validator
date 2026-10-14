@@ -84,7 +84,25 @@ public final class TagRegistryFiles {
             }
             names.add(name);
         }
-        return KnownTriggers.of(names);
+        return KnownTriggers.of(names, readRemovedTriggers(map));
+    }
+
+    private static List<String> readRemovedTriggers(Map<?, ?> map) throws IOException {
+        Object removed = map.get("removedTriggers");
+        if (removed == null) {
+            return List.of();
+        }
+        if (!(removed instanceof List<?> items)) {
+            throw new IOException("registry 'removedTriggers' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry removed triggers must be strings");
+            }
+            names.add(name);
+        }
+        return names;
     }
 
     private static KnownMaterials readMaterials(Map<?, ?> map) throws IOException {

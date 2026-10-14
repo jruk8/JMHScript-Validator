@@ -61,4 +61,41 @@ class RunTriggersTest {
         assertEquals("Unknown trigger 'INTERVAL:30', it never fires.",
                 found.get(0).message());
     }
+
+    @Test
+    void removedTriggerWarnsApart() {
+        KnownTriggers known = KnownTriggers.of(
+                List.of("ON_START"), List.of("ON_MOB_KILL"));
+
+        List<Diagnostic> found =
+                RunTriggers.check("fog", "main", List.of("ON_MOB_KILL"), known);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_REMOVED_TRIGGER, found.get(0).code());
+        assertEquals("Trigger 'ON_MOB_KILL' was removed or renamed; it never fires.",
+                found.get(0).message());
+    }
+
+    @Test
+    void removedMatchingIgnoresCaseAndTrims() {
+        KnownTriggers known = KnownTriggers.of(
+                List.of("ON_START"), List.of("ON_MOB_KILL"));
+
+        List<Diagnostic> found = RunTriggers.check("fog", "main",
+                List.of("  on_mob_kill "), known);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_REMOVED_TRIGGER, found.get(0).code());
+        assertEquals("Trigger 'on_mob_kill' was removed or renamed; it never fires.",
+                found.get(0).message());
+    }
+
+    @Test
+    void unknownStaysUnknownWithoutRemoved() {
+        List<Diagnostic> found =
+                RunTriggers.check("fog", "main", List.of("ON_MOB_KILL"), KNOWN);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_TRIGGER, found.get(0).code());
+    }
 }

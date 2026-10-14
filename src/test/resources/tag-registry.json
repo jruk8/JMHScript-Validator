@@ -282,6 +282,15 @@
     "ON_SPEEDRUNNER_ELIM",
     "ON_HUNTER_ELIM"
   ],
+  "removedTriggers": [
+    "ON_FIRST_ENTER_NETHER",
+    "ON_FIRST_ENTER_END",
+    "ON_EVERY_KILL",
+    "ON_MOB_KILL",
+    "ON_PLAYER_KILL",
+    "ON_HUNTER_KILL",
+    "ON_SPEEDRUNNER_KILL"
+  ],
   "materials": [
     "ACACIA_BOAT",
     "ACACIA_CHEST_BOAT",
