@@ -63,7 +63,9 @@ public enum DiagnosticCode {
     /** Runblock names no defined behavior block of the modifier. */
     W_UNKNOWN_BEHAVIOR("Unknown behavior"),
     /** Runblock chain recurses into its own call path. */
-    W_BEHAVIOR_CYCLE("Behavior cycle");
+    W_BEHAVIOR_CYCLE("Behavior cycle"),
+    /** Setting defines both value and folder; the value wins. */
+    W_AMBIGUOUS_SETTING("Ambiguous setting");
 
     private final String title;
 

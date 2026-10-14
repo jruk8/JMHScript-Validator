@@ -13,9 +13,14 @@ import java.util.List;
  * spec-less leaves hold a null spec.
  */
 public record SettingsTree(List<SettingsNode> roots) {
-    /** One settings entry: folder with children, or leaf. */
+    /**
+     * One settings entry: folder with children, or leaf.
+     * Ambiguous entries defined both value and folder; the
+     * value wins and the folder children are dropped, like
+     * the engine.
+     */
     public record SettingsNode(String name, boolean folder, List<SettingsNode> children,
-            SettingSpec spec) {
+            SettingSpec spec, boolean ambiguous) {
     }
 
     /**

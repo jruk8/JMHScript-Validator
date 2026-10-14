@@ -122,6 +122,11 @@ Message text stays byte-identical to the engine.
   re-entering hop at runtime (once per match). Each closing
   edge reports once. Example: `Tag <runblock> hit cyclic
   chain at behavior 'main'; skipping.`.
+- `W_AMBIGUOUS_SETTING`: Ambiguous setting. A setting defines
+  both a live value and a folder, so the engine uses the
+  value and drops the folder (dropped children validate
+  nowhere). Example: `Modifier 'fog' setting 'thing'
+  defines both value and folder; using the value.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

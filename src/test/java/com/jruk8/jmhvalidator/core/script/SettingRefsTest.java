@@ -116,11 +116,11 @@ class SettingRefsTest {
     }
 
     private static SettingsNode leaf(String name) {
-        return new SettingsNode(name, false, List.of(), null);
+        return new SettingsNode(name, false, List.of(), null, false);
     }
 
     private static SettingsNode folder(String name, SettingsNode... children) {
-        return new SettingsNode(name, true, List.of(children), null);
+        return new SettingsNode(name, true, List.of(children), null, false);
     }
 
     private static SettingsTree tree(SettingsNode... roots) {

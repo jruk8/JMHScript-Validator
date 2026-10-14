@@ -40,6 +40,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
 - **Dangling runblocks** » `<runblock:>` calls naming no defined block, plus call cycles, both skipped at runtime.
 - **Duplicate settings** » Repeated sibling setting names, which drop the whole `config.settings` block.
+- **Ambiguous settings** » Settings defining both value and folder, where the value wins and the folder drops.
 - **Bad defaults and values** » Setting defaults and live values outside their allowed range (clamped or reset at load) and unknown spec types.
 - **Settings style** » Overstuffed or misplaced `config.settings` blocks (too many folders or leafs, stray leafs beside folders).
 - **Bad files** » Unreadable paths, unparseable YAML, wrong section shapes, and non-string command lines.
