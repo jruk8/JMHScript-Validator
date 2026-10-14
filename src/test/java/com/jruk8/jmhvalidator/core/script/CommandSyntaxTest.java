@@ -590,4 +590,24 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <phaseffect:Steve,'speed>").isPresent());
         assertTrue(CommandSyntax.error("say <phaseffect:>").isPresent());
     }
+
+    @Test
+    void pisusinghanditemEditTimeShapeMirrorsRuntime() {
+        assertTrue(CommandSyntax.error("say <pisusinghanditem:Steve>").isEmpty());
+        assertTrue(CommandSyntax.error("say <pisusinghanditem:Steve,spyglass>").isEmpty());
+        assertTrue(CommandSyntax.error("say <pisusinghanditem:>").isPresent());
+        assertTrue(CommandSyntax.error("say <pisusinghanditem:Steve,spyglass,extra>").isPresent());
+        assertTrue(CommandSyntax.error("say <pisusinghanditem:Steve,'spyglass>").isPresent());
+    }
+
+    @Test
+    void particlesEditTimeShapeMirrorsRuntime() {
+        assertTrue(CommandSyntax.error(
+                "say <particles.line:[0, 64, 0],[8, 64, 0],[flame]>").isEmpty());
+        assertTrue(CommandSyntax.error("say <parts.cancel:beam>").isEmpty());
+        assertTrue(CommandSyntax.error("say <particles.line:[0, 64, 0]>").isPresent());
+        assertTrue(CommandSyntax.error("say <particles.point:[0, 64],()>").isPresent());
+        assertTrue(CommandSyntax.error("say <particles.cancel:>").isPresent());
+        assertTrue(CommandSyntax.error("say <particles.sphere:[0, 64, 0],-1,()>").isPresent());
+    }
 }

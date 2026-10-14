@@ -8,7 +8,9 @@ import java.util.Optional;
  * sprinting, gliding, swimming, grounded, and idle; {@code <pstandingon>}
  * reads the block below the feet; {@code <pblock>} reads the block
  * at the feet, head, or below; {@code <pismoving>} reads movement
- * since the modifier's own last check; {@code <premoveitem>} removes
+ * since the modifier's own last check; {@code <pisusinghanditem>}
+ * reads held item use with an optional material filter;
+ * {@code <premoveitem>} removes
  * items all-or-nothing; {@code <ptitle>} sends a center-screen title;
  * {@code <pslot>} gets and sets inventory slots by name or raw index;
  * {@code <pmaxhp>} gets and sets max-health id contributions;
@@ -53,6 +55,7 @@ public final class TagPlayers {
             case "pstandingon" -> count == 1;
             case "pblock" -> count == 1 || count == 2;
             case "pismoving" -> count == 1;
+            case "pisusinghanditem" -> count == 1 || count == 2;
             case "premoveitem" -> count == 2 || count == 3;
             case "puuid" -> count == 1;
             case "ptitle" -> count >= 3 && count <= 6;
@@ -69,6 +72,7 @@ public final class TagPlayers {
             case "pstandingon" -> "1 arg";
             case "pblock" -> "1 or 2 args";
             case "pismoving" -> "1 arg";
+            case "pisusinghanditem" -> "1 or 2 args";
             case "premoveitem" -> "2 or 3 args";
             case "puuid" -> "1 arg";
             case "ptitle" -> "3 to 6 args";
@@ -85,6 +89,7 @@ public final class TagPlayers {
             case "pstandingon" -> "<pstandingon:player>";
             case "pblock" -> "<pblock:player,type>";
             case "pismoving" -> "<pismoving:player>";
+            case "pisusinghanditem" -> "<pisusinghanditem:player,item>";
             case "premoveitem" -> "<premoveitem:player,item,count>";
             case "puuid" -> "<puuid:player>";
             case "ptitle" -> "<ptitle:player,title,subtitle>";

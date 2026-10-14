@@ -48,6 +48,12 @@ final class TagSyntaxErrors {
                     "pdir" ->
                     TagVectors.opError(name, args);
             case "raycast" -> TagRaycast.opError(name, args);
+            case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
+                    "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
+                    "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
+                    "parts.l", "parts.line2d", "parts.point", "parts.players", "parts.sphere", "parts.circle",
+                    "parts.circle2d", "parts.rectangle", "parts.box", "parts.cube", "parts.block",
+                    "parts.cancel" -> TagParticles.opError(name, args);
             default -> collectionsError(name, args);
         };
     }
@@ -115,7 +121,8 @@ final class TagSyntaxErrors {
             case "fill" -> TagFill.fillError(name, args);
             case "replace" -> TagReplace.replaceError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
-                    "pslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear" ->
+                    "pslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
+                    "pisusinghanditem" ->
                     TagPlayers.opError(name, args);
             case "plos" -> TagPlos.opError(name, args);
             case "overlap-players", "nearby-players" -> proximityError(name, args);
