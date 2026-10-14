@@ -59,7 +59,11 @@ public enum DiagnosticCode {
     /** One YAML mapping repeats a key; the loader keeps the last. */
     W_DUPLICATE_KEY("Duplicate YAML key"),
     /** Scanned id reuses an engine-bundled id without being its copy. */
-    W_SHADOWED_ID("Shadowed bundled id");
+    W_SHADOWED_ID("Shadowed bundled id"),
+    /** Runblock names no defined behavior block of the modifier. */
+    W_UNKNOWN_BEHAVIOR("Unknown behavior"),
+    /** Runblock chain recurses into its own call path. */
+    W_BEHAVIOR_CYCLE("Behavior cycle");
 
     private final String title;
 

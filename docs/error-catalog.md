@@ -111,6 +111,17 @@ Message text stays byte-identical to the engine.
   `Custom modifier 'gear-dice' shares an id with the
   engine-bundled copy; where both files are present the first
   in load order wins.`.
+- `W_UNKNOWN_BEHAVIOR`: Unknown behavior. A `<runblock:>`
+  names no defined block of the same modifier, so the engine
+  skips the hop at runtime (once per match). Blank, dynamic,
+  and malformed ids stay silent here (the syntax sweep owns
+  the line). Example: `Tag <runblock> hit unknown behavior
+  'nope'; skipping.`.
+- `W_BEHAVIOR_CYCLE`: Behavior cycle. A `<runblock:>` chain
+  recurses into its own call path, so the engine skips the
+  re-entering hop at runtime (once per match). Each closing
+  edge reports once. Example: `Tag <runblock> hit cyclic
+  chain at behavior 'main'; skipping.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

@@ -15,6 +15,27 @@ final class TagHeads {
     private TagHeads() {
     }
 
+    /**
+     * Every {@code <...>} span including nested ones, as absolute
+     * [start, end) pairs in pre-order. Bodies slice from the
+     * original line with these offsets.
+     */
+    static List<int[]> allTagSpans(String line) {
+        List<int[]> out = new ArrayList<>();
+        collectSpans(line, 0, out);
+        return out;
+    }
+
+    private static void collectSpans(String line, int base, List<int[]> out) {
+        for (int[] span : topLevelTagSpans(line)) {
+            out.add(new int[] {base + span[0], base + span[1]});
+            if (span[1] - span[0] > 2) {
+                collectSpans(line.substring(span[0] + 1, span[1] - 1),
+                        base + span[0] + 1, out);
+            }
+        }
+    }
+
     /** Tag name: before any colon, trimmed, lowercase. Mirrors tag evaluation. */
     static String tagName(String body) {
         int separator = body.indexOf(':');

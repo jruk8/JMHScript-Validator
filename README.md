@@ -38,6 +38,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Key typos** » YAML keys the engine never reads (`conflg`, `behavio`), at every level.
 - **Unknown triggers** » `runs-on` entries that never match an event, so the block never fires.
 - **Dangling setting refs** » `<setting:>` calls naming no defined leaf, which read null at runtime.
+- **Dangling runblocks** » `<runblock:>` calls naming no defined block, plus call cycles, both skipped at runtime.
 - **Duplicate settings** » Repeated sibling setting names, which drop the whole `config.settings` block.
 - **Bad defaults and values** » Setting defaults and live values outside their allowed range (clamped or reset at load) and unknown spec types.
 - **Settings style** » Overstuffed or misplaced `config.settings` blocks (too many folders or leafs, stray leafs beside folders).
