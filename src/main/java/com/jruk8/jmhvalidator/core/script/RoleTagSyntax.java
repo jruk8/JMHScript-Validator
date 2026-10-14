@@ -6,9 +6,9 @@ import java.util.Optional;
 
 /**
  * Edit-time validation for the role tags ({@code <rflag>},
- * {@code <rmessage>}, {@code <rsound>}): arity, quote hygiene, plus
- * the HUNTER/SPEEDRUNNER/ALL head. Mirrors the runtime warns. No
- * Bukkit types.
+ * {@code <rmessage>}, {@code <rsound>}, {@code <rstat>}): arity,
+ * quote hygiene, plus the HUNTER/SPEEDRUNNER/ALL head. Mirrors the
+ * runtime warns. No Bukkit types.
  */
 final class RoleTagSyntax {
 
@@ -124,7 +124,7 @@ final class RoleTagSyntax {
      * Role head value: HUNTER, SPEEDRUNNER, or ALL. A masked nested
      * tag abstains (runtime resolves it); literals must parse.
      */
-    private static Optional<String> headError(String name, String head) {
+    static Optional<String> headError(String name, String head) {
         String role = TagHeads.parsePickItem(head).orElse("").strip()
                 .toUpperCase(Locale.ROOT);
         if (role.contains("?")) {

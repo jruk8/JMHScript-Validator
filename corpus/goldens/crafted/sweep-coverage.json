@@ -97,7 +97,7 @@
           "char": 5,
           "severity": "error",
           "code": "E_SYNTAX",
-          "message": "Unknown <pstat> key 'boguskey'. Valid keys: health, hunger, max-health, mobs-killed, achievements-gained, exp-level, damage-dealt, crafts, blocks-broken."
+          "message": "Unknown <pstat> key 'boguskey'. Valid keys: health, hunger, max-health, mobs-killed, achievements-gained, exp-level, damage-dealt, crafts, blocks-broken, plus any vanilla statistic as bukkit.<name>, b.<name>, or bare."
         },
         {
           "behavior": "main",
