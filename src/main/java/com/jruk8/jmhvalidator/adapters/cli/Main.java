@@ -250,6 +250,7 @@ public final class Main {
             found.addAll(TriggerParams.check(stem, block.getKey(), options));
         }
         found.addAll(read.keys());
+        found.addAll(read.shapes());
         if (!normalized.dropped()) {
             found.addAll(SettingsStyle.check(stem, read.settings()));
         }

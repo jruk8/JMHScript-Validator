@@ -46,16 +46,32 @@ class FilesAdapterTest {
     }
 
     @Test
-    void nonStringLineKeepsItsSlot(@TempDir Path tmp) throws Exception {
+    void scalarLineStringifiesWithWarning(@TempDir Path tmp) throws Exception {
         Path file = tmp.resolve("mod.yml");
         Files.writeString(file,
                 "behavior:\n  main:\n    commands:\n      player:\n        - say ok\n        - 42\n",
                 StandardCharsets.UTF_8);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
+        assertTrue(read.early().isEmpty());
+        assertEquals(1, read.shapes().size());
+        assertEquals(DiagnosticCode.W_SHAPE, read.shapes().get(0).code());
+        assertEquals(1, read.shapes().get(0).provenance().lineIndex());
+        assertEquals(List.of("say ok", "42"),
+                read.behavior().blocks().get("main").lists().get("player"));
+    }
+
+    @Test
+    void mapLineKeepsErrorAndNullSlot(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("mod.yml");
+        Files.writeString(file,
+                "behavior:\n  main:\n    commands:\n      player:\n        - say ok\n        - {a: b}\n",
+                StandardCharsets.UTF_8);
+        ModifierYaml.ReadResult read = ModifierYaml.read(file, "mod");
         assertEquals(1, read.early().size());
         assertEquals(DiagnosticCode.E_YAML_LINE_TYPE, read.early().get(0).code());
         assertEquals(1, read.early().get(0).provenance().lineIndex());
-        assertEquals(2, read.behavior().blocks().get("main").lists().get("player").size());
+        assertEquals(java.util.Arrays.asList("say ok", null),
+                read.behavior().blocks().get("main").lists().get("player"));
     }
 
     @Test

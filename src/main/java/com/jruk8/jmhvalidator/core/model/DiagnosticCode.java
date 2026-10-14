@@ -71,7 +71,9 @@ public enum DiagnosticCode {
     /** Behavior block no trigger fires and no runblock calls. */
     W_UNCALLED_BEHAVIOR("Uncalled behavior"),
     /** Behavior option value the engine clamps or defaults silently. */
-    W_OPTION_VALUE("Option value");
+    W_OPTION_VALUE("Option value"),
+    /** Node shape the engine tolerates or drops silently. */
+    W_SHAPE("Shape tolerated");
 
     private final String title;
 

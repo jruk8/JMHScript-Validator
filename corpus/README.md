@@ -33,10 +33,11 @@ The line-sweep codes appear at least once: `E_SYNTAX`,
 `W_UNKNOWN_SETTING_TYPE`, `W_DEFAULT_OUTSIDE_ALLOWED`,
 `W_VALUE_INVALID`, `W_DUPLICATE_KEY`, `W_SHADOWED_ID`,
 `W_UNKNOWN_BEHAVIOR`, `W_BEHAVIOR_CYCLE`,
-`W_AMBIGUOUS_SETTING`, `W_UNCALLED_SETTING`) stay silent on
-every corpus input by design; their pins live in the core
-unit tests and the CLI tests. `W_UNCALLED_BEHAVIOR` fires
-once, on the crafted input's intentionally dead block.
+`W_AMBIGUOUS_SETTING`, `W_UNCALLED_SETTING`,
+`W_OPTION_VALUE`, `W_SHAPE`) stay silent on every corpus
+input by design; their pins live in the core unit tests
+and the CLI tests. `W_UNCALLED_BEHAVIOR` fires once, on
+the crafted input's intentionally dead block.
 
 ## Refresh procedure (deliberate behavior changes only)
 

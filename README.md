@@ -46,6 +46,7 @@ The modifier GUI validates commands on save: unbalanced brackets, malformed tags
 - **Bad defaults and values** » Setting defaults and live values outside their allowed range (clamped or reset at load) and unknown spec types.
 - **Settings style** » Overstuffed or misplaced `config.settings` blocks (too many folders or leafs, stray leafs beside folders).
 - **Bad files** » Unreadable paths, unparseable YAML, wrong section shapes, and non-string command lines.
+- **Tolerated shapes** » Skipped, defaulted, or stringified nodes the engine loads past (scalar commands, empty lists, misshapen settings).
 - **Duplicate YAML keys** » Repeated keys in one mapping, which silently drop every value but the last.
 
 Every finding carries a stable code (see [docs/error-catalog.md](docs/error-catalog.md)). Map codes in tooling, never message text.
