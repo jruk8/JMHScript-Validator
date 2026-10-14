@@ -55,7 +55,9 @@ public enum DiagnosticCode {
     /** Setting default falls outside its allowed range. */
     W_DEFAULT_OUTSIDE_ALLOWED("Default outside allowed"),
     /** Live setting value falls outside its type or allowed range. */
-    W_VALUE_INVALID("Value invalid");
+    W_VALUE_INVALID("Value invalid"),
+    /** One YAML mapping repeats a key; the loader keeps the last. */
+    W_DUPLICATE_KEY("Duplicate YAML key");
 
     private final String title;
 

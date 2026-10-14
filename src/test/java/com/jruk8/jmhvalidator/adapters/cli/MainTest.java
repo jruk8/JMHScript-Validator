@@ -430,6 +430,25 @@ class MainTest {
     }
 
     @Test
+    void duplicateKeyWarnsAndKeepsLast(@TempDir Path tmp) throws Exception {
+        String yaml = "config:\n  settings:\n    rate:\n      value: 1\n"
+                + "      def:\n        value:\n          type: INTEGER\n"
+                + "          default: 1\nconfig:\n  settings:\n    rate:\n"
+                + "      value: 2\n      def:\n        value:\n"
+                + "          type: INTEGER\n          default: 2\n"
+                + "behavior:\n  main:\n    commands:\n      player:\n"
+                + "        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_DUPLICATE_KEY"), output);
+        assertTrue(output.contains(
+                "Duplicate YAML key 'config' in the file root (line 9); keeping the last."),
+                output);
+    }
+
+    @Test
     void materialDefaultWarns(@TempDir Path tmp) throws Exception {
         String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
                 + "        - say hi\nconfig:\n  settings:\n    blade:\n"

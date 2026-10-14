@@ -94,6 +94,13 @@ Message text stays byte-identical to the engine.
   resets it at load. Absent values fill from the default
   silently. Example: `Modifier 'fog' setting 'rate' value
   is invalid; reset to default.`.
+- `W_DUPLICATE_KEY`: Duplicate YAML key. One mapping repeats
+  a key, so the loader keeps the last value and drops the
+  earlier ones. Anchors with merge-plus-override never match
+  (the override is explicit), and the share round-trip plus
+  the engine-defaults manifest are outside this check.
+  Example: `Duplicate YAML key 'config' in the file root
+  (line 12); keeping the last.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a
