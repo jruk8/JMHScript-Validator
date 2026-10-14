@@ -707,6 +707,21 @@ class MainTest {
     }
 
     @Test
+    void unknownListWarnsEndToEnd(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n        - say hi\n"
+                + "      playre:\n        - say never\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_UNKNOWN_LIST"), output);
+        assertTrue(output.contains(
+                "Unknown commands list 'playre' in behavior 'main'; it never runs."),
+                output);
+    }
+
+    @Test
     void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
         Path root = tmp.resolve("mods");
         Files.createDirectories(root.resolve("deep"));

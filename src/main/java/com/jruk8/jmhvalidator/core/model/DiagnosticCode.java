@@ -75,7 +75,9 @@ public enum DiagnosticCode {
     /** Node shape the engine tolerates or drops silently. */
     W_SHAPE("Shape tolerated"),
     /** Settings folder without a display icon. */
-    W_FOLDER_ICON("Folder icon");
+    W_FOLDER_ICON("Folder icon"),
+    /** Commands list no dispatch key reads. */
+    W_UNKNOWN_LIST("Unknown list");
 
     private final String title;
 
