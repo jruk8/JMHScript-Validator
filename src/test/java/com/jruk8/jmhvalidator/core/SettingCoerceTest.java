@@ -125,6 +125,23 @@ class SettingCoerceTest {
     }
 
     @Test
+    void enumsFallBackToFirstMember() {
+        assertEquals("FULL", SettingCoerce.coerce(
+                SettingType.ENUM, "zzz", List.of("FULL", "BROADCAST"), null));
+        assertEquals("zzz", SettingCoerce.coerce(
+                SettingType.ENUM, "zzz", null, null));
+        assertEquals("zzz", SettingCoerce.coerce(
+                SettingType.ENUM, "zzz", List.of(), null));
+    }
+
+    @Test
+    void booleansRejectGarbage() {
+        assertNull(SettingCoerce.coerce(SettingType.BOOLEAN, "maybe", null, null));
+        assertEquals(Boolean.TRUE,
+                SettingCoerce.coerce(SettingType.BOOLEAN, " true ", null, null));
+    }
+
+    @Test
     void sameRawComparesNumbersAndLists() {
         assertTrue(SettingCoerce.sameRaw(5L, 5));
         assertTrue(SettingCoerce.sameRaw(null, null));

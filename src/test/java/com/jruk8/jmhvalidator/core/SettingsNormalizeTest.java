@@ -281,6 +281,195 @@ class SettingsNormalizeTest {
     }
 
     @Test
+    void booleanRepairsWarnAtBothSites() {
+        SettingsTree badDefault = tree(leafSpec("flag", "BOOLEAN", "maybe", null));
+        SettingsTree badLive = tree(leafSpec("flag", "BOOLEAN", true, null, "maybe"));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void doubleRepairsWarnAtBothSites() {
+        Object allowed = Map.of("max", 1);
+        SettingsTree badDefault = tree(leafSpec("rate", "DOUBLE", 1.5, allowed));
+        SettingsTree badLive = tree(leafSpec("rate", "DOUBLE", 0.5, allowed, 1.5));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void stringCapsWarnAtBothSites() {
+        String longText = "x".repeat(300);
+        SettingsTree badDefault = tree(leafSpec("motto", "STRING", longText, null));
+        SettingsTree badLive = tree(leafSpec("motto", "STRING", "ok", null, longText));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void maxLengthWarnsAtBothSites() {
+        Object allowed = Map.of("maxLength", 2);
+        SettingsTree badDefault = tree(leafSpec("tag", "STRING", "abc", allowed));
+        SettingsTree badLive = tree(leafSpec("tag", "STRING", "ab", allowed, "abc"));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void enumMembershipWarnsAtBothSites() {
+        Object allowed = List.of("FULL", "BROADCAST");
+        SettingsTree badDefault = tree(leafSpec("mode", "ENUM", "zzz", allowed));
+        SettingsTree badLive = tree(leafSpec("mode", "ENUM", "FULL", allowed, "zzz"));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void emptyEnumPassesThrough() {
+        SettingsTree settings = tree(leafSpec("mode", "ENUM", "zzz", null, "yyy"));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertTrue(result.findings().isEmpty());
+    }
+
+    @Test
+    void materialLiveValueNeedsThePort() {
+        KnownMaterials known = KnownMaterials.of(List.of("STONE"));
+        SettingsTree settings = tree(leafSpec("blade", "MATERIAL", "STONE", null, "nope"));
+
+        SettingsNormalize.Result withPort = SettingsNormalize.check("fog", settings, known);
+
+        assertSingle(DiagnosticCode.W_VALUE_INVALID, withPort);
+    }
+
+    @Test
+    void colorRepairsWarnAtBothSites() {
+        SettingsTree badDefault = tree(leafSpec("tint", "COLOR", "red", null));
+        SettingsTree badLive = tree(leafSpec("tint", "COLOR", "ff00aa", null, "red"));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void listCapsWarnAtBothSites() {
+        Object longList = java.util.Collections.nCopies(70, "x");
+        SettingsTree badDefault = tree(leafSpec("names", "LIST", longList, null));
+        SettingsTree badLive =
+                tree(leafSpec("names", "LIST", List.of("x"), null, longList));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void listChoicesWarnAtBothSites() {
+        Object allowed = List.of("a");
+        SettingsTree badDefault = tree(leafSpec("pick", "LIST", List.of("a", "b"), allowed));
+        SettingsTree badLive =
+                tree(leafSpec("pick", "LIST", List.of("a"), allowed, List.of("b")));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void effectsRepairsWarnAtBothSites() {
+        Object bad = List.of(List.of("SPEED", 1));
+        Object good = List.of(List.of("SPEED", 1, 30));
+        SettingsTree badDefault = tree(leafSpec("fx", "EFFECTS", bad, null));
+        SettingsTree badLive = tree(leafSpec("fx", "EFFECTS", good, null, bad));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void itemsRepairsWarnAtBothSites() {
+        KnownMaterials known = KnownMaterials.of(List.of("STONE"));
+        Object bad = List.of(List.of("STONE", 1));
+        Object good = List.of(List.of("STONE", 1, 1));
+        SettingsTree badDefault = tree(leafSpec("kit", "ITEMS", bad, null));
+        SettingsTree badLive = tree(leafSpec("kit", "ITEMS", good, null, bad));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, known));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, known));
+    }
+
+    @Test
+    void weightedRepairsWarnAtBothSites() {
+        Object bad = List.of(List.of(1.0));
+        Object good = List.of(List.of(1.5, "sword"));
+        SettingsTree badDefault = tree(leafSpec("drop", "WEIGHTED_ITEM", bad, null));
+        SettingsTree badLive = tree(leafSpec("drop", "WEIGHTED_ITEM", good, null, bad));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void messageRepairsWarnAtBothSites() {
+        Object bad = List.of(true);
+        Object good = List.of(true, "hi");
+        SettingsTree badDefault = tree(leafSpec("msg", "MESSAGE", bad, null));
+        SettingsTree badLive = tree(leafSpec("msg", "MESSAGE", good, null, bad));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    @Test
+    void soundRepairsWarnAtBothSites() {
+        Object bad = List.of(true, "x");
+        Object good = List.of(true, "x", 1.0, 1.0);
+        SettingsTree badDefault = tree(leafSpec("sfx", "SOUND", bad, null));
+        SettingsTree badLive = tree(leafSpec("sfx", "SOUND", good, null, bad));
+
+        assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
+                SettingsNormalize.check("fog", badDefault, null));
+        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+                SettingsNormalize.check("fog", badLive, null));
+    }
+
+    private static void assertSingle(DiagnosticCode code,
+            SettingsNormalize.Result result) {
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        assertEquals(code, result.findings().get(0).code());
+    }
+
+    @Test
     void iconlessFolderWarns() {
         SettingsTree settings = tree(
                 bareFolder("targeting", leaf("rate")),

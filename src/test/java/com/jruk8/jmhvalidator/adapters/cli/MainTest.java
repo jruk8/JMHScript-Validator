@@ -679,6 +679,34 @@ class MainTest {
     }
 
     @Test
+    void typeRepairsWarnAtBothValueSites(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
+                + "    commands:\n      player:\n        - say hi\n"
+                + "config:\n  settings:\n    mode:\n"
+                + "      value: zzz\n      def:\n        value:\n"
+                + "          type: ENUM\n          default: zzz\n"
+                + "          allowed: [FULL, BROADCAST]\n"
+                + "    motto:\n      value: " + "x".repeat(300) + "\n"
+                + "      def:\n        value:\n          type: STRING\n"
+                + "          default: ok\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_DEFAULT_OUTSIDE_ALLOWED"), output);
+        assertTrue(output.contains("W_VALUE_INVALID"), output);
+        assertTrue(output.contains(
+                "Modifier 'fog' setting 'mode' default is outside allowed; clamped."),
+                output);
+        assertTrue(output.contains(
+                "Modifier 'fog' setting 'mode' value is invalid; reset to default."),
+                output);
+        assertTrue(output.contains(
+                "Modifier 'fog' setting 'motto' value is invalid; reset to default."),
+                output);
+    }
+
+    @Test
     void failedFileNeverOccupiesId(@TempDir Path tmp) throws Exception {
         Path root = tmp.resolve("mods");
         Files.createDirectories(root.resolve("deep"));
