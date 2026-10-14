@@ -18,6 +18,14 @@ class CommandSyntaxTest {
     }
 
     @Test
+    void blankSettingCallNeedsAnId() {
+        assertEquals(Optional.of("Tag <setting> needs a setting id like <setting:base-y>."),
+                CommandSyntax.error("say <setting:>"));
+        assertEquals(Optional.of("Tag <setting> needs a setting id like <setting:base-y>."),
+                CommandSyntax.error("say <s>"));
+    }
+
+    @Test
     void plainCommandPasses() {
         assertTrue(CommandSyntax.error("give Steve bread 8").isEmpty());
         assertTrue(CommandSyntax.warnings("give Steve bread 8", TestRegistries.pinned()).isEmpty());
