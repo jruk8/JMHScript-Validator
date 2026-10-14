@@ -110,6 +110,40 @@ class SettingRefsTest {
         assertEquals(DiagnosticCode.W_UNKNOWN_SETTING, found.get(0).code());
     }
 
+    @Test
+    void modifierIdShapedCallRoutesToUnknownSetting() {
+        SettingsTree settings = tree(leaf("rate"));
+
+        List<Diagnostic> found = SettingRefs.check("fog",
+                file("say <setting:gear-dice:rate>"), settings);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_SETTING, found.get(0).code());
+        assertTrue(found.get(0).message().contains("gear-dice:rate"));
+    }
+
+    @Test
+    void commaShapedCallRoutesToUnknownSetting() {
+        SettingsTree settings = tree(leaf("rate"));
+
+        List<Diagnostic> found = SettingRefs.check("fog",
+                file("say <setting:rate,extra>"), settings);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_SETTING, found.get(0).code());
+    }
+
+    @Test
+    void aliasForeignShapeRoutesToUnknownSetting() {
+        SettingsTree settings = tree(leaf("rate"));
+
+        List<Diagnostic> found = SettingRefs.check("fog",
+                file("say <s:fog:rate>"), settings);
+
+        assertEquals(1, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_SETTING, found.get(0).code());
+    }
+
     private static BehaviorFile file(String... lines) {
         return new BehaviorFile(Map.of("main", new BehaviorFile.BehaviorBlock(
                 Map.of("player", List.of(lines)), List.of("ON_START"))));
