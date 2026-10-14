@@ -54,8 +54,17 @@ class MainTest {
     @Test
     void cleanFileExitsZero() {
         String output = run(0, "--registry", "src/test/resources/tag-registry.json",
-                "corpus/inputs/shipped/vip-escort.yml");
+                "corpus/inputs/shipped/diamond-on-advancement.yml");
         assertTrue(output.contains("1 clean"), output);
+    }
+
+    @Test
+    void styleOnlyFileExitsOne() {
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                "corpus/inputs/shipped/vip-escort.yml");
+        assertTrue(output.contains("0 clean"), output);
+        assertTrue(output.contains("W_SETTINGS_STRAY_LEAF"), output);
+        assertTrue(output.contains("vip-escort.yml effects warning"), output);
     }
 
     @Test

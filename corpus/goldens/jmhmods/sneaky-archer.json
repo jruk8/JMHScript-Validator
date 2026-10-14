@@ -8,12 +8,22 @@
   "files": [
     {
       "file": "jmhmods/sneaky-archer.yml",
-      "diagnostics": []
+      "diagnostics": [
+        {
+          "behavior": "",
+          "list": "messages",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_LEAFS",
+          "message": "9 leafs (max 7): message, sound, empty_message, empty_sound, full_message, full_sound, recharge_sound, shot_sound, move_message"
+        }
+      ]
     }
   ],
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 0
+    "warnings": 1
   }
 }

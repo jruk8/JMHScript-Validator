@@ -26,6 +26,22 @@ Message text stays byte-identical to the engine.
   the runtime skips.
 - `W_ALL_PLAYERS_FILTER`: Weak filter. An all-players filter
   outside letters-only.
+- `W_SETTINGS_FOLDERS`: Too many folders. A settings level
+  holds more than 5 folders. Example: `10 folders (max 5):
+  targeting, rules, ...`.
+- `W_SETTINGS_STRAY_LEAF`: Misplaced settings leaf. A leaf
+  beside folders that is not `enabled` (matched
+  case-insensitively, `-` and `_` unified), or a bare leaf at
+  a folderless settings root. Example: `stray leaf 'sounds'
+  beside 2 folder(s); only 'enabled' may sit beside folders`.
+- `W_SETTINGS_LEAFS`: Too many leafs. A settings level
+  holds more than 7 leafs. Example: `9 leafs (max 7):
+  message, sound, ...`.
+
+Settings style findings carry the dotted settings path in
+the `list` field with an empty `behavior`, line 0, and a
+null char; they are CLI-only, the engine load sweep stays
+silent on style.
 
 ## File diagnostics
 

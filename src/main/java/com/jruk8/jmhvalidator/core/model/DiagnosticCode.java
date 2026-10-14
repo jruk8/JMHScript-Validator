@@ -31,7 +31,13 @@ public enum DiagnosticCode {
     /** Behavior section has the wrong shape (map/list expected). */
     E_YAML_SHAPE("Unexpected YAML shape"),
     /** Behavior command entry is not a string line. */
-    E_YAML_LINE_TYPE("Non-string command line");
+    E_YAML_LINE_TYPE("Non-string command line"),
+    /** Settings level holds more than 5 folders. */
+    W_SETTINGS_FOLDERS("Too many folders"),
+    /** Leaf beside folders that is not `enabled`, or a flat root. */
+    W_SETTINGS_STRAY_LEAF("Misplaced settings leaf"),
+    /** Settings level holds more than 7 leafs. */
+    W_SETTINGS_LEAFS("Too many leafs");
 
     private final String title;
 

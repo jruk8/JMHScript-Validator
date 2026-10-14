@@ -17,6 +17,24 @@
           "severity": "error",
           "code": "E_SYNTAX",
           "message": "Tag <if> mixes quotes."
+        },
+        {
+          "behavior": "",
+          "list": "<root>",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_FOLDERS",
+          "message": "10 folders (max 5): targeting, rules, team_groceries, team_effects, team_stats, killer_groceries, killer_effects, killer_stats, sounds, messages"
+        },
+        {
+          "behavior": "",
+          "list": "sounds",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_LEAFS",
+          "message": "8 leafs (max 7): team_kill, killer_kill, friendly, expire, warn, offer, assigned, slain"
         }
       ]
     }
@@ -24,6 +42,6 @@
   "summary": {
     "files": 1,
     "errors": 1,
-    "warnings": 0
+    "warnings": 2
   }
 }

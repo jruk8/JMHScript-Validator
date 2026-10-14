@@ -3,6 +3,7 @@ package com.jruk8.jmhvalidator.adapters.cli;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.JmhValidator;
+import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import java.io.IOException;
@@ -99,6 +100,7 @@ public final class Main {
         List<Diagnostic> found = new ArrayList<>(read.early());
         found.addAll(JmhValidator.validateBehavior(
                 stem, read.behavior(), registry.registry()));
+        found.addAll(SettingsStyle.check(stem, read.settings()));
         return new ReportJson.FileReport(file.toString(), found);
     }
 
@@ -156,6 +158,8 @@ public final class Main {
             if (found.charOneBased() > 0) {
                 where += ":" + found.charOneBased();
             }
+        } else if (!found.provenance().listName().isBlank()) {
+            where += " " + found.provenance().listName();
         }
         return where + " " + found.severity().name().toLowerCase()
                 + " " + found.code().name() + ": " + found.message();

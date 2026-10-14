@@ -8,12 +8,31 @@
   "files": [
     {
       "file": "shipped/vip-escort.yml",
-      "diagnostics": []
+      "diagnostics": [
+        {
+          "behavior": "",
+          "list": "effects",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'effects' with zero folders; group leafs into folders"
+        },
+        {
+          "behavior": "",
+          "list": "no_armor",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'no_armor' with zero folders; group leafs into folders"
+        }
+      ]
     }
   ],
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 0
+    "warnings": 2
   }
 }

@@ -35,7 +35,7 @@
                 "severity": {"type": "string", "enum": ["error", "warning"]},
                 "code": {
                   "type": "string",
-                  "enum": ["E_BRACKET_UNMATCHED_CLOSE", "E_BRACKET_UNCLOSED_OPEN", "E_SYNTAX", "E_UNKNOWN_ROOT", "E_UNKNOWN_ITEM", "W_UNKNOWN_TAG", "W_RANDOM_PICK_ITEM", "W_ALL_PLAYERS_FILTER", "E_FILE_READ", "E_YAML_PARSE", "E_YAML_SHAPE", "E_YAML_LINE_TYPE"]
+                  "enum": ["E_BRACKET_UNMATCHED_CLOSE", "E_BRACKET_UNCLOSED_OPEN", "E_SYNTAX", "E_UNKNOWN_ROOT", "E_UNKNOWN_ITEM", "W_UNKNOWN_TAG", "W_RANDOM_PICK_ITEM", "W_ALL_PLAYERS_FILTER", "E_FILE_READ", "E_YAML_PARSE", "E_YAML_SHAPE", "E_YAML_LINE_TYPE", "W_SETTINGS_FOLDERS", "W_SETTINGS_STRAY_LEAF", "W_SETTINGS_LEAFS"]
                 },
                 "message": {"type": "string"}
               }

@@ -23,10 +23,12 @@ used at generation is `src/test/resources/tag-registry.json`
 
 Every sweep code appears at least once: `E_SYNTAX`,
 `E_BRACKET_UNMATCHED_CLOSE`, `E_BRACKET_UNCLOSED_OPEN`,
-`W_UNKNOWN_TAG`, `W_RANDOM_PICK_ITEM`, `W_ALL_PLAYERS_FILTER`.
-Editor-only codes (`E_UNKNOWN_ROOT`, `E_UNKNOWN_ITEM`) are pinned
-by the ported `CommandValidationTest` instead. Real-content
-findings at capture time (pre-existing, not caused by the move):
+`W_UNKNOWN_TAG`, `W_RANDOM_PICK_ITEM`, `W_ALL_PLAYERS_FILTER`,
+`W_SETTINGS_FOLDERS`, `W_SETTINGS_STRAY_LEAF`,
+`W_SETTINGS_LEAFS`. Editor-only codes (`E_UNKNOWN_ROOT`,
+`E_UNKNOWN_ITEM`) are pinned by the ported
+`CommandValidationTest` instead. Real-content findings at
+capture time (pre-existing, not caused by the move):
 
 - `jmhmods/bounty`: 1 error (`Tag <if> mixes quotes.`).
 - `jmhmods/cursed-aqua`: 1 unknown-tag warning (`phaseffect`,

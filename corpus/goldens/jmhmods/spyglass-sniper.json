@@ -35,6 +35,15 @@
           "severity": "warning",
           "code": "W_UNKNOWN_TAG",
           "message": "Unknown tag '<pisusinghanditem:?,spyglass>', left untouched at runtime."
+        },
+        {
+          "behavior": "",
+          "list": "sniper",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_LEAFS",
+          "message": "8 leafs (max 7): lock_time, min_distance, leniency, outcome, damage_amount, warn_target, show_sniper_name, glow"
         }
       ]
     }
@@ -42,6 +51,6 @@
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 3
+    "warnings": 4
   }
 }

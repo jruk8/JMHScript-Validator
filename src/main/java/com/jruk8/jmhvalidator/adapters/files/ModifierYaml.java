@@ -4,6 +4,8 @@ import com.jruk8.jmhvalidator.core.model.BehaviorFile;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
 import com.jruk8.jmhvalidator.core.model.Provenance;
+import com.jruk8.jmhvalidator.core.model.SettingsTree;
+import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +20,17 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * Modifier YAML reader: parses one file into the core behavior
- * model. Structural problems become file diagnostics (the sweep
- * never sees them); files without a behavior section (presets)
- * read as empty. Map order follows the file, so provenance
- * matches the engine's load order.
+ * and settings models. Structural behavior problems become file
+ * diagnostics (the sweep never sees them); files without a
+ * behavior section (presets) read as empty. Settings read
+ * silently: a missing or misshapen `config.settings` loads as
+ * empty like the engine Serdes loads it. Map order follows the
+ * file, so provenance matches the engine's load order.
  */
 public final class ModifierYaml {
-    /** One read: the model plus any file-level diagnostics. */
-    public record ReadResult(BehaviorFile behavior, List<Diagnostic> early) {
+    /** One read: both models plus any file-level diagnostics. */
+    public record ReadResult(BehaviorFile behavior, SettingsTree settings,
+            List<Diagnostic> early) {
     }
 
     private ModifierYaml() {
@@ -51,17 +56,18 @@ public final class ModifierYaml {
             return resultWith(BehaviorFile.empty(), fileDiagnostic(modifierId,
                     DiagnosticCode.E_YAML_PARSE, "expected one mapping document"));
         }
-        return readBehavior(modifierId, map);
+        return readDocument(modifierId, map);
     }
 
-    private static ReadResult readBehavior(String modifierId, Map<?, ?> doc) {
+    private static ReadResult readDocument(String modifierId, Map<?, ?> doc) {
         Object behavior = doc.get("behavior");
         if (behavior == null) {
-            return new ReadResult(BehaviorFile.empty(), List.of());
+            return new ReadResult(BehaviorFile.empty(), readSettings(doc), List.of());
         }
         if (!(behavior instanceof Map<?, ?> blocks)) {
-            return resultWith(BehaviorFile.empty(), fileDiagnostic(modifierId,
-                    DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map"));
+            return new ReadResult(BehaviorFile.empty(), readSettings(doc),
+                    List.of(fileDiagnostic(modifierId,
+                            DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map")));
         }
         Map<String, BehaviorFile.BehaviorBlock> out = new LinkedHashMap<>();
         List<Diagnostic> early = new ArrayList<>();
@@ -69,7 +75,67 @@ public final class ModifierYaml {
             out.put(String.valueOf(block.getKey()),
                     readBlock(modifierId, String.valueOf(block.getKey()), block.getValue(), early));
         }
-        return new ReadResult(new BehaviorFile(out), early);
+        return new ReadResult(new BehaviorFile(out), readSettings(doc), early);
+    }
+
+    /**
+     * Read `config.settings` into the style model. Anything but a
+     * map of maps loads as empty, exactly like the engine Serdes
+     * skips it: scalar or list entries vanish, and folder items
+     * must be single-key maps with map values. Never diagnoses.
+     */
+    static SettingsTree readSettings(Map<?, ?> doc) {
+        Object config = doc.get("config");
+        if (!(config instanceof Map<?, ?> settingsMap)) {
+            return SettingsTree.empty();
+        }
+        Object settings = settingsMap.get("settings");
+        if (!(settings instanceof Map<?, ?> entries)) {
+            return SettingsTree.empty();
+        }
+        List<SettingsNode> roots = new ArrayList<>();
+        for (Map.Entry<?, ?> entry : entries.entrySet()) {
+            SettingsNode node = buildNode(String.valueOf(entry.getKey()), entry.getValue());
+            if (node != null) {
+                roots.add(node);
+            }
+        }
+        return new SettingsTree(roots);
+    }
+
+    private static SettingsNode buildNode(String name, Object raw) {
+        if (!(raw instanceof Map<?, ?> map)) {
+            return null;
+        }
+        boolean valuePresent = map.containsKey("value");
+        Object folderRaw = null;
+        Object nodeDef = map.get("def");
+        if (nodeDef instanceof Map<?, ?> defMap) {
+            folderRaw = defMap.get("folder");
+        }
+        boolean isFolder = !valuePresent && folderRaw instanceof List<?>;
+        List<SettingsNode> children =
+                isFolder ? buildChildren((List<?>) folderRaw) : List.of();
+        return new SettingsNode(name, isFolder, children);
+    }
+
+    private static List<SettingsNode> buildChildren(List<?> folder) {
+        List<SettingsNode> children = new ArrayList<>();
+        for (Object item : folder) {
+            if (!(item instanceof Map<?, ?> entry) || entry.size() != 1) {
+                continue;
+            }
+            Map.Entry<?, ?> single = entry.entrySet().iterator().next();
+            if (!(single.getValue() instanceof Map<?, ?>)) {
+                continue;
+            }
+            SettingsNode node =
+                    buildNode(String.valueOf(single.getKey()), single.getValue());
+            if (node != null) {
+                children.add(node);
+            }
+        }
+        return children;
     }
 
     private static BehaviorFile.BehaviorBlock readBlock(String modifierId,
@@ -132,7 +198,7 @@ public final class ModifierYaml {
     }
 
     private static ReadResult resultWith(BehaviorFile behavior, Diagnostic early) {
-        return new ReadResult(behavior, List.of(early));
+        return new ReadResult(behavior, SettingsTree.empty(), List.of(early));
     }
 
     private static String oneLine(Exception failed) {

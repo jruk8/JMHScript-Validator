@@ -7,6 +7,7 @@ import com.jruk8.jmhvalidator.adapters.cli.ReportJson;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.JmhValidator;
+import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -61,6 +62,7 @@ class CorpusParityTest {
         ModifierYaml.ReadResult read = ModifierYaml.read(input, stem);
         List<Diagnostic> found = new ArrayList<>(read.early());
         found.addAll(JmhValidator.validateBehavior(stem, read.behavior(), registry.registry()));
+        found.addAll(SettingsStyle.check(stem, read.settings()));
         String actual = ReportJson.report("test", registry.engine(),
                 registry.engineVersion(),
                 List.of(new ReportJson.FileReport(label + ".yml", found)));

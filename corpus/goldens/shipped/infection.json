@@ -8,12 +8,58 @@
   "files": [
     {
       "file": "shipped/infection.yml",
-      "diagnostics": []
+      "diagnostics": [
+        {
+          "behavior": "",
+          "list": "effects",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'effects' with zero folders; group leafs into folders"
+        },
+        {
+          "behavior": "",
+          "list": "effect_list",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'effect_list' with zero folders; group leafs into folders"
+        },
+        {
+          "behavior": "",
+          "list": "items",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'items' with zero folders; group leafs into folders"
+        },
+        {
+          "behavior": "",
+          "list": "item_list",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'item_list' with zero folders; group leafs into folders"
+        },
+        {
+          "behavior": "",
+          "list": "give_fail_chance",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_SETTINGS_STRAY_LEAF",
+          "message": "flat settings root holds bare leaf 'give_fail_chance' with zero folders; group leafs into folders"
+        }
+      ]
     }
   ],
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 0
+    "warnings": 5
   }
 }
