@@ -32,6 +32,8 @@ public enum DiagnosticCode {
     E_YAML_SHAPE("Unexpected YAML shape"),
     /** Behavior command entry is not a string line. */
     E_YAML_LINE_TYPE("Non-string command line"),
+    /** Intercept tag outside an interceptable block. */
+    E_INTERCEPT_CONTEXT("Intercept outside interceptable block"),
     /** Settings level holds more than 5 folders. */
     W_SETTINGS_FOLDERS("Too many folders"),
     /** Leaf beside folders that is not `enabled`, or a flat root. */

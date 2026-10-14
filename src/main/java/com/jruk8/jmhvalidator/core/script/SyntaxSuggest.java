@@ -55,11 +55,21 @@ public final class SyntaxSuggest {
         if (item.contains("<") || item.contains(">") || knownMaterial.test(item)) {
             return Optional.empty();
         }
-        String hint = closestMaterial(item, materialNames);
+        String bare = stripComponents(item);
+        if (!bare.equals(item) && knownMaterial.test(bare)) {
+            return Optional.empty();
+        }
+        String hint = closestMaterial(bare, materialNames);
         if (hint == null) {
             return Optional.of("Unknown item '" + item + "'.");
         }
         return Optional.of("Unknown item '" + item + "'. Did you mean '" + hint + "'?");
+    }
+
+    /** Item token without its trailing native `[...]` components, if any. */
+    private static String stripComponents(String item) {
+        int open = item.indexOf('[');
+        return open < 0 ? item : item.substring(0, open);
     }
 
     /** First whitespace token with leading slashes stripped. */

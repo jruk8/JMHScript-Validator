@@ -11,7 +11,7 @@ import java.util.Optional;
  * Bodies are verbatim; only the home changed. Runtime dispatch
  * (passes, sinks, budgets) stays engine-side.
  */
-final class TagHeads {
+public final class TagHeads {
     private TagHeads() {
     }
 
@@ -37,7 +37,7 @@ final class TagHeads {
     }
 
     /** Tag name: before any colon, trimmed, lowercase. Mirrors tag evaluation. */
-    static String tagName(String body) {
+    public static String tagName(String body) {
         int separator = body.indexOf(':');
         String name = separator < 0 ? body : body.substring(0, separator);
         return name.trim().toLowerCase(Locale.ROOT);

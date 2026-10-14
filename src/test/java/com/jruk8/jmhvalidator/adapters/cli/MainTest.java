@@ -163,6 +163,16 @@ class MainTest {
     }
 
     @Test
+    void interceptOutsideInterceptableBlockExitsOne(@TempDir Path tmp) throws Exception {
+        Path registry = writeInterceptRegistry(tmp);
+        Path mod = writeInterceptMod(tmp, "INTERVAL");
+        String output = run(1, "--registry", registry.toString(), mod.toString());
+        assertTrue(output.contains("E_INTERCEPT_CONTEXT"), output);
+        assertTrue(output.contains("Tag <intercept> runs only in an interceptable block"),
+                output);
+    }
+
+    @Test
     void pristineCopyPasses(@TempDir Path tmp) throws Exception {
         String body = "behavior:\n  main:\n    runs-on:\n      - ON_START\n"
                 + "    commands:\n      player:\n        - say hi\n";
@@ -219,6 +229,32 @@ class MainTest {
         Files.writeString(defaults.resolve("modifiers/" + id + ".yml"), body,
                 StandardCharsets.UTF_8);
         return defaults;
+    }
+
+    @Test
+    void interceptInsideInterceptableBlockExitsZero(@TempDir Path tmp) throws Exception {
+        Path registry = writeInterceptRegistry(tmp);
+        Path mod = writeInterceptMod(tmp, "ON_MOB_KILLED");
+        String output = run(0, "--registry", registry.toString(), mod.toString());
+        assertTrue(output.contains("1 clean"), output);
+    }
+
+    private static Path writeInterceptRegistry(Path tmp) throws Exception {
+        Path registry = tmp.resolve("registry.json");
+        Files.writeString(registry,
+                "{\"format\": 1, \"tags\": [\"intercept\"], "
+                        + "\"interceptable\": [\"ON_MOB_KILLED\"]}",
+                StandardCharsets.UTF_8);
+        return registry;
+    }
+
+    private static Path writeInterceptMod(Path tmp, String trigger) throws Exception {
+        Path mod = tmp.resolve("trap.yml");
+        Files.writeString(mod,
+                "meta:\n  name: Trap\nbehavior:\n  main:\n    runs-on:\n      - " + trigger
+                        + "\n    commands:\n      player:\n        - <intercept:[dirt, 1]>\n",
+                StandardCharsets.UTF_8);
+        return mod;
     }
 
     @Test

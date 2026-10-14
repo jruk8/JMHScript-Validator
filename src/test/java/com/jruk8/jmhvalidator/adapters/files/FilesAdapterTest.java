@@ -128,7 +128,19 @@ class FilesAdapterTest {
         Files.writeString(file, "{\"format\": 1, \"tags\": [\"p\"]}", StandardCharsets.UTF_8);
         TagRegistryFiles.LoadedRegistry loaded = TagRegistryFiles.read(file);
         assertEquals(null, loaded.triggers());
+        assertEquals(null, loaded.interceptable());
         assertTrue(loaded.registry().isKnown("p"));
+    }
+
+    @Test
+    void registryWithInterceptableReadsSet(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("registry.json");
+        Files.writeString(file,
+                "{\"format\": 1, \"tags\": [\"p\"], \"interceptable\": [\"ON_MOB_KILLED\"]}",
+                StandardCharsets.UTF_8);
+        TagRegistryFiles.LoadedRegistry loaded = TagRegistryFiles.read(file);
+        assertTrue(loaded.interceptable().isInterceptable("on_mob_killed"));
+        assertTrue(!loaded.interceptable().isInterceptable("INTERVAL"));
     }
 
     @Test

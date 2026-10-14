@@ -17,6 +17,11 @@ Message text stays byte-identical to the engine.
   known command (editor checks only).
 - `E_UNKNOWN_ITEM`: Unknown item. A give-shape item names no
   known material (editor checks only).
+- `E_INTERCEPT_CONTEXT`: Intercept outside interceptable block. An
+  `<intercept>` tag in a behavior block whose `runs-on` names no
+  interceptable event. Example: `Tag <intercept> runs only in an
+  interceptable block (ON_MOB_KILLED, ON_BLOCK_BROKEN, or
+  ON_CRAFT_PREPARE).`.
 
 ## Warnings
 
