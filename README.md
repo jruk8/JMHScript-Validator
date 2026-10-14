@@ -61,6 +61,23 @@ java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json \
 
 `fetch-defaults` downloads the default modifier and preset files at one JManhunt rev and writes `engine-defaults.json` (format 1: engine, engineVersion, sorted modifier ids, presets with members in file order) beside them. `--defaults` takes that file or its directory; known ids are the manifest plus the scanned modifier stems, mirroring the engine load order. Unknown members warn as `W_UNKNOWN_MODIFIER` with the engine's load message. Without `--defaults`, presets stay silent as before.
 
+# Sharing Mods
+
+`export` converts modifier and preset files to share strings without needing a registry, one `<id>.txt` per file:
+
+```sh
+java -jar JMHScript-Validator-<version>-cli.jar export mods/
+```
+
+`import` takes each input inline or from a file holding only the string (any extension) and writes one `<id>.yml` per string:
+
+```sh
+java -jar JMHScript-Validator-<version>-cli.jar import JMH1D:...
+java -jar JMHScript-Validator-<version>-cli.jar import export/2026-10-14-1-export/beef.txt
+```
+
+Exports land in `export/YYYY-MM-DD-N-export/`, imports in `imports/YYYY-MM-DD-N-import/`, with N counting from 1 per day.
+
 # Requirements
 
 - Java Version » **Java 25**
@@ -78,7 +95,7 @@ java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json \
 
 ## Layout
 
-- `src/main/.../core/`: the checking core. `model/` (Provenance, Diagnostic, codes, behavior model), `ports/` (TagRegistry), `script/` (moved validators), `JmhValidator` (public sweep entry). Core imports `java.*` plus fellow core types only (enforced by `ArchTest`).
+- `src/main/.../core/`: the checking core. `model/` (Provenance, Diagnostic, codes, behavior model), `ports/` (TagRegistry, ShareMaterials), `script/` (moved validators), `share/` (share-string codec), `JmhValidator` (public sweep entry). Core imports `java.*` plus fellow core types only (enforced by `ArchTest`).
 - `src/main/.../adapters/`: `cli/` (Main, versioned JSON/Text reports), `files/` (modifier YAML plus registry JSON loading).
 - `contract/`: the versioned JSON report schema plus a Python subprocess example (no Python port; the jar is the truth).
 - `corpus/`: frozen inputs plus goldens from unmodified engine code (see `corpus/README.md`).
@@ -88,6 +105,7 @@ java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json \
 
 - Tag list: owned by the engine. The core takes a `TagRegistry` port; JManhunt implements it from live `knownTags`, and the CLI reads the exported `tag-registry.json`. The core never hardcodes tag names.
 - Parser: owned by this module (`TagHeads`, `TagLists`, `BracketCheck`). The engine's load path and the validator both call it; no duplicate tag-splitting lives elsewhere.
+- Share strings: owned by this module (`ShareCodec`, `ShareFraming`, `ShareJson`). The engine's import and export commands delegate to it; no share logic lives elsewhere. Material validity arrives through the `ShareMaterials` port.
 - Messages: byte-identical to the engine, pinned by the corpus plus ported unit tests. Codes are new stable metadata; consumers map codes, never message text.
 
 ## Build and test
