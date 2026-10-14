@@ -69,7 +69,9 @@ public enum DiagnosticCode {
     /** Leaf setting no behavior line reads. */
     W_UNCALLED_SETTING("Uncalled setting"),
     /** Behavior block no trigger fires and no runblock calls. */
-    W_UNCALLED_BEHAVIOR("Uncalled behavior");
+    W_UNCALLED_BEHAVIOR("Uncalled behavior"),
+    /** Behavior option value the engine clamps or defaults silently. */
+    W_OPTION_VALUE("Option value");
 
     private final String title;
 

@@ -11,8 +11,13 @@ import java.util.Map;
  * frameworks along.
  */
 public record BehaviorFile(Map<String, BehaviorBlock> blocks) {
-    /** One behavior block: runs-on triggers plus command lines. */
-    public record BehaviorBlock(Map<String, List<String>> lists, List<String> runsOn) {
+    /** One behavior block: runs-on triggers, command lines, and option values. */
+    public record BehaviorBlock(Map<String, List<String>> lists, List<String> runsOn,
+            OptionsNode options) {
+        /** Blocks without captured options read as option-less. */
+        public BehaviorBlock(Map<String, List<String>> lists, List<String> runsOn) {
+            this(lists, runsOn, OptionsNode.empty());
+        }
     }
 
     /** Empty model for files with no behaviors. */

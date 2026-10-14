@@ -584,6 +584,26 @@ class MainTest {
     }
 
     @Test
+    void optionValuesWarn(@TempDir Path tmp) throws Exception {
+        String yaml = "behavior:\n  main:\n    runs-on:\n      - INTERVAL\n"
+                + "    options:\n      interval-settings:\n        interval: 60\n"
+                + "        deviation: 999\n        behavior: FOO\n"
+                + "      success-chance:\n        chance: 99\n"
+                + "    commands:\n      player:\n        - say hi\n";
+        Path file = tmp.resolve("fog.yml");
+        Files.writeString(file, yaml, StandardCharsets.UTF_8);
+        String output = run(1, "--registry", "src/test/resources/tag-registry.json",
+                file.toString());
+        assertTrue(output.contains("W_OPTION_VALUE"), output);
+        assertTrue(output.contains(
+                "Unknown behavior 'FOO' in behavior 'main' options.interval-settings;"
+                        + " using PER_INVOKE."),
+                output);
+        assertTrue(output.contains("clamped to 60.0."), output);
+        assertTrue(output.contains("clamped to 1.0."), output);
+    }
+
+    @Test
     void materialDefaultWarns(@TempDir Path tmp) throws Exception {
         String yaml = "behavior:\n  main:\n    commands:\n      player:\n"
                 + "        - say hi\nconfig:\n  settings:\n    blade:\n"

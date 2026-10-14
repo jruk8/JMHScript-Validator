@@ -3,6 +3,7 @@ package com.jruk8.jmhvalidator.adapters.files;
 import com.jruk8.jmhvalidator.core.model.BehaviorFile;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
+import com.jruk8.jmhvalidator.core.model.OptionsNode;
 import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
@@ -352,21 +353,64 @@ public final class ModifierYaml {
             return new BehaviorFile.BehaviorBlock(lists, List.of());
         }
         List<String> runsOn = readRunsOn(modifierId, blockId, block, early);
+        OptionsNode options = readOptions(block);
         Object commands = block.get("commands");
         if (commands == null) {
-            return new BehaviorFile.BehaviorBlock(lists, runsOn);
+            return new BehaviorFile.BehaviorBlock(lists, runsOn, options);
         }
         if (!(commands instanceof Map<?, ?> groups)) {
             early.add(shaped(modifierId, blockId,
                     "'behavior." + blockId + ".commands' must be a map"));
-            return new BehaviorFile.BehaviorBlock(lists, runsOn);
+            return new BehaviorFile.BehaviorBlock(lists, runsOn, options);
         }
         for (Map.Entry<?, ?> list : groups.entrySet()) {
             lists.put(String.valueOf(list.getKey()),
                     readLines(modifierId, blockId, String.valueOf(list.getKey()),
                             list.getValue(), early));
         }
-        return new BehaviorFile.BehaviorBlock(lists, runsOn);
+        return new BehaviorFile.BehaviorBlock(lists, runsOn, options);
+    }
+
+    /**
+     * Read one block's raw option values. Misshapen subtrees
+     * read as absent here; the shape checks own them.
+     */
+    private static OptionsNode readOptions(Map<?, ?> block) {
+        Object preStartOrder = null;
+        if (block.get("on-start") instanceof Map<?, ?> onStart) {
+            preStartOrder = onStart.get("pre-start-order");
+        }
+        if (!(block.get("options") instanceof Map<?, ?> options)) {
+            return new OptionsNode(null, null, null, null, null, null, null, null,
+                    null, preStartOrder);
+        }
+        Object interval = null;
+        Object deviation = null;
+        Object intervalBehavior = null;
+        if (options.get("interval-settings") instanceof Map<?, ?> settings) {
+            interval = settings.get("interval");
+            deviation = settings.get("deviation");
+            intervalBehavior = settings.get("behavior");
+        }
+        Object chance = null;
+        Object chanceBehavior = null;
+        if (options.get("success-chance") instanceof Map<?, ?> success) {
+            chance = success.get("chance");
+            chanceBehavior = success.get("behavior");
+        }
+        Object selection = null;
+        Object pickCount = null;
+        Object pickBehavior = null;
+        if (options.get("execution") instanceof Map<?, ?> execution) {
+            selection = execution.get("selection");
+            if (execution.get("pick-random") instanceof Map<?, ?> pick) {
+                pickCount = pick.get("count");
+                pickBehavior = pick.get("behavior");
+            }
+        }
+        return new OptionsNode(interval, deviation, intervalBehavior, chance,
+                chanceBehavior, selection, pickCount, pickBehavior,
+                options.get("delay"), preStartOrder);
     }
 
     /**

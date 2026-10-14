@@ -12,6 +12,7 @@ import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.NaturalOrder;
 import com.jruk8.jmhvalidator.core.RunTriggers;
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
+import com.jruk8.jmhvalidator.core.TriggerParams;
 import com.jruk8.jmhvalidator.core.script.BehaviorRefs;
 import com.jruk8.jmhvalidator.core.script.SettingRefs;
 import com.jruk8.jmhvalidator.core.script.UncalledSweep;
@@ -20,6 +21,7 @@ import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import com.jruk8.jmhvalidator.core.model.BehaviorFile;
 import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
+import com.jruk8.jmhvalidator.core.model.OptionsNode;
 import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.ports.KnownModifiers;
@@ -243,6 +245,9 @@ public final class Main {
             List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
             found.addAll(RunTriggers.check(stem, block.getKey(), runsOn,
                     registry.triggers()));
+            OptionsNode options =
+                    block.getValue() == null ? null : block.getValue().options();
+            found.addAll(TriggerParams.check(stem, block.getKey(), options));
         }
         found.addAll(read.keys());
         if (!normalized.dropped()) {
