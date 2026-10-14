@@ -14,6 +14,7 @@ import com.jruk8.jmhvalidator.core.RunTriggers;
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
 import com.jruk8.jmhvalidator.core.script.BehaviorRefs;
 import com.jruk8.jmhvalidator.core.script.SettingRefs;
+import com.jruk8.jmhvalidator.core.script.UncalledSweep;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
@@ -247,6 +248,7 @@ public final class Main {
         if (!normalized.dropped()) {
             found.addAll(SettingsStyle.check(stem, read.settings()));
         }
+        found.addAll(UncalledSweep.check(stem, read.behavior(), refTree));
         return new ReportJson.FileReport(file.toString(), found);
     }
 

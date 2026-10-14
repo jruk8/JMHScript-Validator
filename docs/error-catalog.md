@@ -127,6 +127,17 @@ Message text stays byte-identical to the engine.
   value and drops the folder (dropped children validate
   nowhere). Example: `Modifier 'fog' setting 'thing'
   defines both value and folder; using the value.`.
+- `W_UNCALLED_SETTING`: Uncalled setting. A leaf setting no
+  behavior line reads, which usually means its call site has
+  a typo. Reads resolve like the reference check against the
+  post-drop tree; files with dynamic ids skip the sweep, and
+  GUI-only settings still warn (GUI reads are invisible
+  here). Example: `Setting 'rate' is never read.`.
+- `W_UNCALLED_BEHAVIOR`: Uncalled behavior. A block with no
+  `runs-on` trigger and no `<runblock>` call, so it never
+  runs. Triggered blocks and called-only targets pass;
+  files with dynamic ids skip the sweep. Example:
+  `Behavior 'side' is never called.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

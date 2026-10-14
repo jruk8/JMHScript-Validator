@@ -12,6 +12,7 @@ import com.jruk8.jmhvalidator.core.SettingsNormalize;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.script.BehaviorRefs;
 import com.jruk8.jmhvalidator.core.script.SettingRefs;
+import com.jruk8.jmhvalidator.core.script.UncalledSweep;
 import com.jruk8.jmhvalidator.core.model.BehaviorFile;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
@@ -84,6 +85,7 @@ class CorpusParityTest {
         if (!normalized.dropped()) {
             found.addAll(SettingsStyle.check(stem, read.settings()));
         }
+        found.addAll(UncalledSweep.check(stem, read.behavior(), refTree));
         String actual = ReportJson.report("test", registry.engine(),
                 registry.engineVersion(),
                 List.of(new ReportJson.FileReport(label + ".yml", found)));

@@ -8,8 +8,10 @@ import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Setting-reference sweep: every {@code <setting:path>} (alias
@@ -57,10 +59,60 @@ public final class SettingRefs {
         }
     }
 
+    /**
+     * Collected setting calls in one file: resolved leaf paths
+     * plus whether any id builds dynamically (unresolvable).
+     */
+    public record SettingCalls(Set<String> leafs, boolean dynamic) {
+    }
+
+    /** Collect every setting call in one file, in first-read order. */
+    public static SettingCalls collectedCalls(BehaviorFile file, SettingsTree tree) {
+        Set<String> leafs = new LinkedHashSet<>();
+        boolean dynamic = false;
+        if (file == null || file.blocks() == null) {
+            return new SettingCalls(leafs, false);
+        }
+        for (Map.Entry<String, BehaviorFile.BehaviorBlock> block : file.blocks().entrySet()) {
+            if (block.getValue() == null || block.getValue().lists() == null) {
+                continue;
+            }
+            for (List<String> lines : block.getValue().lists().values()) {
+                if (lines == null) {
+                    continue;
+                }
+                for (String line : lines) {
+                    dynamic |= collectLine(line, tree, leafs);
+                }
+            }
+        }
+        return new SettingCalls(leafs, dynamic);
+    }
+
+    /** Collect one line's calls; true when a dynamic id appears. */
+    private static boolean collectLine(String line, SettingsTree tree, Set<String> leafs) {
+        if (!LineGates.checkable(line)) {
+            return false;
+        }
+        boolean dynamic = false;
+        for (Span ref : settingSpans(line)) {
+            if (isLeaf(tree, ref.path())) {
+                leafs.add(ref.path());
+            }
+        }
+        for (int[] span : TagHeads.allTagSpans(line)) {
+            String body = line.substring(span[0] + 1, span[1] - 1);
+            String head = TagHeads.tagName(body);
+            if ((head.equals("setting") || head.equals("s")) && holdsTag(args(body).trim())) {
+                dynamic = true;
+            }
+        }
+        return dynamic;
+    }
+
     private static void checkLine(String modifierId, String blockId, String listName,
             int index, String line, SettingsTree settings, List<Diagnostic> found) {
-        if (line == null || BracketCheck.firstFault(line).isPresent()
-                || CommandSyntax.error(line).isPresent()) {
+        if (!LineGates.checkable(line)) {
             return;
         }
         for (Span ref : settingSpans(line)) {

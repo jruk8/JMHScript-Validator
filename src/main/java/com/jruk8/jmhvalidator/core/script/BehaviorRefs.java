@@ -8,6 +8,7 @@ import com.jruk8.jmhvalidator.core.model.Severity;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,11 +63,67 @@ public final class BehaviorRefs {
         }
     }
 
+    /**
+     * Collected runblock calls in one file: resolved target
+     * blocks plus whether any id builds dynamically
+     * (unresolvable).
+     */
+    public record BlockCalls(Set<String> targets, boolean dynamic) {
+    }
+
+    /** Collect every runblock call in one file, in first-call order. */
+    public static BlockCalls collectedCalls(BehaviorFile file) {
+        Set<String> targets = new LinkedHashSet<>();
+        boolean dynamic = false;
+        if (file == null || file.blocks() == null) {
+            return new BlockCalls(targets, false);
+        }
+        Set<String> ids = file.blocks().keySet();
+        for (Map.Entry<String, BehaviorFile.BehaviorBlock> block : file.blocks().entrySet()) {
+            if (block.getValue() == null || block.getValue().lists() == null) {
+                continue;
+            }
+            for (List<String> lines : block.getValue().lists().values()) {
+                if (lines == null) {
+                    continue;
+                }
+                for (String line : lines) {
+                    dynamic |= collectLine(line, ids, targets);
+                }
+            }
+        }
+        return new BlockCalls(targets, dynamic);
+    }
+
+    /** Collect one line's calls; true when a dynamic id appears. */
+    private static boolean collectLine(String line, Set<String> ids, Set<String> targets) {
+        if (!LineGates.checkable(line)) {
+            return false;
+        }
+        boolean dynamic = false;
+        for (int[] span : TagHeads.allTagSpans(line)) {
+            String body = line.substring(span[0] + 1, span[1] - 1);
+            if (!TagHeads.tagName(body).equals("runblock")) {
+                continue;
+            }
+            Optional<String> first = firstPart(body);
+            if (first.isPresent()
+                    && (first.get().indexOf('<') >= 0 || first.get().indexOf('>') >= 0)) {
+                dynamic = true;
+                continue;
+            }
+            Optional<String> target = idOf(body);
+            if (target.isPresent() && ids.contains(target.get())) {
+                targets.add(target.get());
+            }
+        }
+        return dynamic;
+    }
+
     private static void checkLine(String modifierId, String blockId, String listName,
             int index, String line, Set<String> ids, Map<String, List<Edge>> edges,
             List<Diagnostic> found) {
-        if (line == null || BracketCheck.firstFault(line).isPresent()
-                || CommandSyntax.error(line).isPresent()) {
+        if (!LineGates.checkable(line)) {
             return;
         }
         for (int[] span : TagHeads.allTagSpans(line)) {
@@ -102,6 +159,19 @@ public final class BehaviorRefs {
      * stripped. Blank, dynamic, and malformed ids stay empty.
      */
     private static Optional<String> idOf(String body) {
+        Optional<String> first = firstPart(body);
+        if (first.isEmpty()) {
+            return Optional.empty();
+        }
+        String raw = first.get();
+        if (raw.indexOf('<') >= 0 || raw.indexOf('>') >= 0) {
+            return Optional.empty();
+        }
+        return TagHeads.parsePickItem(raw).filter(id -> !id.isBlank());
+    }
+
+    /** Raw first top-level comma part of one runblock body. */
+    private static Optional<String> firstPart(String body) {
         int separator = body.indexOf(':');
         if (separator < 0) {
             return Optional.empty();
@@ -110,11 +180,7 @@ public final class BehaviorRefs {
         if (parts.isEmpty()) {
             return Optional.empty();
         }
-        String raw = parts.get(0);
-        if (raw.indexOf('<') >= 0 || raw.indexOf('>') >= 0) {
-            return Optional.empty();
-        }
-        return TagHeads.parsePickItem(raw).filter(id -> !id.isBlank());
+        return Optional.of(parts.get(0));
     }
 
     /**
