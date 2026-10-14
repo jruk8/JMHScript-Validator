@@ -62,6 +62,13 @@ class CommandSyntaxTest {
     }
 
     @Test
+    void escapedMarkupStaysSilent() {
+        String command = "say \\<bold\\>hi\\</bold\\>";
+        assertTrue(CommandSyntax.error(command).isEmpty());
+        assertTrue(CommandSyntax.warnings(command, TestRegistries.pinned()).isEmpty());
+    }
+
+    @Test
     void randomNumberRules() {
         assertTrue(CommandSyntax.error("give <p> apple <random-num:1,6>").isEmpty());
         assertTrue(CommandSyntax.error("give <p> apple <random-num:6,1>").isEmpty());
