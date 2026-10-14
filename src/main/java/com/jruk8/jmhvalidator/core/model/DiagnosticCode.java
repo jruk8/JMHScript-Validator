@@ -57,7 +57,9 @@ public enum DiagnosticCode {
     /** Live setting value falls outside its type or allowed range. */
     W_VALUE_INVALID("Value invalid"),
     /** One YAML mapping repeats a key; the loader keeps the last. */
-    W_DUPLICATE_KEY("Duplicate YAML key");
+    W_DUPLICATE_KEY("Duplicate YAML key"),
+    /** Scanned id reuses an engine-bundled id without being its copy. */
+    W_SHADOWED_ID("Shadowed bundled id");
 
     private final String title;
 

@@ -101,6 +101,16 @@ Message text stays byte-identical to the engine.
   the engine-defaults manifest are outside this check.
   Example: `Duplicate YAML key 'config' in the file root
   (line 12); keeping the last.`.
+- `W_SHADOWED_ID`: Shadowed bundled id. A scanned file reuses
+  an engine-bundled id of the same namespace without being
+  the pristine bundled copy, so where both files are present
+  the first in load order wins. Needs `--defaults`: files
+  byte-identical to the fetched bundled copy stay silent, a
+  bundled file missing from the defaults dir still warns,
+  and runs without `--defaults` skip the check. Example:
+  `Custom modifier 'gear-dice' shares an id with the
+  engine-bundled copy; where both files are present the first
+  in load order wins.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a

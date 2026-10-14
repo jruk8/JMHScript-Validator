@@ -6,6 +6,7 @@ import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYamlException;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
+import com.jruk8.jmhvalidator.core.BundledShadow;
 import com.jruk8.jmhvalidator.core.DuplicateIds;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.NaturalOrder;
@@ -34,9 +35,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -103,17 +106,20 @@ public final class Main {
             System.err.println("error: no .yml/.yaml files found");
             return 2;
         }
-        KnownModifiers known = null;
+        Universes universes = null;
         if (options.defaults != null) {
-            known = knownModifiers(options, files);
-            if (known == null) {
+            universes = universes(options, files);
+            if (universes == null) {
                 return 2;
             }
         }
-        Map<Path, Diagnostic> duplicates = duplicateIds(files);
+        KnownModifiers known = universes == null ? null : universes.known();
+        ShadowUniverse shadow = universes == null ? null : universes.shadow();
+        IdPass pass = duplicateIds(files, shadow);
         List<ReportJson.FileReport> reports = new ArrayList<>();
         for (Path file : files) {
-            reports.add(checkFile(file, registry, known, duplicates.get(file)));
+            reports.add(checkFile(file, registry, known, pass.duplicates().get(file),
+                    pass.shadows().get(file)));
         }
         if (options.format.equals("json")) {
             System.out.print(ReportJson.report(version(), registry.engine(),
@@ -133,16 +139,49 @@ public final class Main {
         return 0;
     }
 
+    /** Both defaults-derived universes, read once. Null fields never occur. */
+    private record Universes(KnownModifiers known, ShadowUniverse shadow) {
+    }
+
     /**
-     * Resolve the preset check universe: fetched engine defaults
-     * plus the scanned modifier stems, mirroring the engine load
-     * order (modifiers resolve before presets). Null when the
-     * manifest cannot be read (already reported, exit 2).
+     * Bundled id sets plus the defaults root for pristine
+     * comparison. The root mirrors the fetch cache layout
+     * ({@code modifiers/*.yml}, {@code presets/*.yml}).
      */
-    private static KnownModifiers knownModifiers(Options options, List<Path> files) {
+    private record ShadowUniverse(Set<String> modifiers, Set<String> presets, Path root) {
+        boolean isBundled(String kind, String id) {
+            if (id == null) {
+                return false;
+            }
+            return "preset".equals(kind) ? presets.contains(id) : modifiers.contains(id);
+        }
+
+        byte[] bundledBytes(String kind, String id) {
+            Path file = root.resolve("preset".equals(kind) ? "presets" : "modifiers")
+                    .resolve(id + ".yml");
+            try {
+                return Files.readAllBytes(file);
+            } catch (IOException unfound) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Resolve the preset check universe (fetched engine defaults
+     * plus the scanned modifier stems, mirroring the engine load
+     * order) and the shadow universe (bundled-only ids plus the
+     * defaults root). Null when the manifest cannot be read
+     * (already reported, exit 2).
+     */
+    private static Universes universes(Options options, List<Path> files) {
         Path manifest = options.defaults;
+        Path root;
         if (Files.isDirectory(manifest)) {
+            root = manifest;
             manifest = manifest.resolve(EngineDefaults.MANIFEST_NAME);
+        } else {
+            root = manifest.toAbsolutePath().getParent();
         }
         EngineDefaults.LoadedDefaults defaults;
         try {
@@ -159,17 +198,28 @@ public final class Main {
                 ids.add(stem);
             }
         }
-        return KnownModifiers.of(ids);
+        Set<String> bundledPresets = new HashSet<>();
+        for (EngineDefaults.Preset preset : defaults.presets()) {
+            if (preset.id() != null) {
+                bundledPresets.add(preset.id());
+            }
+        }
+        return new Universes(KnownModifiers.of(ids),
+                new ShadowUniverse(Set.copyOf(defaults.modifiers().ids()),
+                        Set.copyOf(bundledPresets), root));
     }
 
     private static ReportJson.FileReport checkFile(Path file,
             TagRegistryFiles.LoadedRegistry registry, KnownModifiers known,
-            Diagnostic duplicate) {
+            Diagnostic duplicate, Diagnostic shadow) {
         String stem = stemOf(file);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, stem);
         List<Diagnostic> found = new ArrayList<>();
         if (duplicate != null) {
             found.add(duplicate);
+        }
+        if (shadow != null) {
+            found.add(shadow);
         }
         found.addAll(read.early());
         if (known != null && read.behavior().blocks().isEmpty()
@@ -210,9 +260,14 @@ public final class Main {
      * unknown file instead), and unreadable, unparseable, or
      * misshapen files never occupy an id, mirroring the engine.
      */
-    private static Map<Path, Diagnostic> duplicateIds(List<Path> files) {
+    /** Both id-level passes over the discovered files. */
+    private record IdPass(Map<Path, Diagnostic> duplicates, Map<Path, Diagnostic> shadows) {
+    }
+
+    private static IdPass duplicateIds(List<Path> files, ShadowUniverse shadow) {
         Map<String, Path> winners = new HashMap<>();
         Map<Path, Diagnostic> skipped = new HashMap<>();
+        Map<Path, Diagnostic> shadows = new HashMap<>();
         for (Path file : files) {
             String name = file.getFileName().toString();
             if (!isEngineYaml(name)) {
@@ -227,6 +282,7 @@ public final class Main {
             Path winner = winners.get(kind + "\0" + id);
             if (winner == null) {
                 winners.put(kind + "\0" + id, file);
+                shadowFinding(file, kind, id, shadow, shadows);
             } else {
                 skipped.put(file, new Diagnostic(new Provenance(id, "", "", -1), -1,
                         Severity.WARNING, DiagnosticCode.W_DUPLICATE_ID,
@@ -234,7 +290,31 @@ public final class Main {
                                 winner.toString(), file.toString())));
             }
         }
-        return skipped;
+        return new IdPass(skipped, shadows);
+    }
+
+    /**
+     * Shadow finding for one winning file: bundled id without
+     * pristine bytes. Null shadow (no {@code --defaults}) and
+     * unreadable files stay silent.
+     */
+    private static void shadowFinding(Path file, String kind, String id,
+            ShadowUniverse shadow, Map<Path, Diagnostic> shadows) {
+        if (shadow == null || !shadow.isBundled(kind, id)) {
+            return;
+        }
+        byte[] scanned;
+        try {
+            scanned = Files.readAllBytes(file);
+        } catch (IOException unreadable) {
+            return;
+        }
+        Optional<String> message = BundledShadow.check(kind, id, scanned,
+                shadow.bundledBytes(kind, id));
+        if (message.isPresent()) {
+            shadows.put(file, new Diagnostic(new Provenance(id, "", "", -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_SHADOWED_ID, message.get()));
+        }
     }
 
     private static boolean occupiesId(ModifierYaml.ReadResult read) {
