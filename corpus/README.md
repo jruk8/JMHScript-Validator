@@ -17,7 +17,8 @@ until proven otherwise.
 
 Presets carry no behavior lines and are excluded. The registry
 used at generation is `src/test/resources/tag-registry.json`
-(228 tags, JManhunt rev `10e2b55`).
+(229 tags: JManhunt rev `10e2b55` plus `phaseffect`, which
+landed on main after the split).
 
 ## Coverage
 
@@ -31,8 +32,8 @@ Every sweep code appears at least once: `E_SYNTAX`,
 capture time (pre-existing, not caused by the move):
 
 - `jmhmods/bounty`: 1 error (`Tag <if> mixes quotes.`).
-- `jmhmods/cursed-aqua`: 1 unknown-tag warning (`phaseffect`,
-  not an engine tag).
+- `jmhmods/cursed-aqua`: style findings only (`phaseffect`
+  became an engine tag after the split).
 - `jmhmods/spyglass-sniper`: 3 unknown-tag warnings
   (`pisusinghanditem`, not an engine tag).
 
