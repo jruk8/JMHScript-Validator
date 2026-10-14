@@ -5,10 +5,12 @@ import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
 import com.jruk8.jmhvalidator.core.model.Provenance;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.ports.KnownModifiers;
 import com.jruk8.jmhvalidator.core.ports.TagRegistry;
 import com.jruk8.jmhvalidator.core.script.BracketCheck;
 import com.jruk8.jmhvalidator.core.script.CommandSyntax;
 import com.jruk8.jmhvalidator.core.script.ErrorLocate;
+import com.jruk8.jmhvalidator.core.script.PresetRefs;
 import com.jruk8.jmhvalidator.core.script.TagFunctionScope;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,29 @@ import java.util.Set;
  */
 public final class JmhValidator {
     private JmhValidator() {
+    }
+
+    /**
+     * Check one preset member list against the known modifier
+     * ids, in member order. Mirrors the engine load filter: one
+     * warning per unknown member, known members stay silent.
+     */
+    public static List<Diagnostic> validatePreset(String presetId,
+            List<String> members, KnownModifiers known) {
+        List<Diagnostic> found = new ArrayList<>();
+        if (members == null || known == null) {
+            return found;
+        }
+        for (int index = 0; index < members.size(); index++) {
+            String member = members.get(index);
+            if (member != null && !known.isKnown(member)) {
+                found.add(new Diagnostic(
+                        new Provenance(presetId, "", "modifiers", index), -1,
+                        Severity.WARNING, DiagnosticCode.W_UNKNOWN_MODIFIER,
+                        PresetRefs.unknownMessage(presetId, member)));
+            }
+        }
+        return found;
     }
 
     /** Sweep every behavior list of one modifier, in file order. */

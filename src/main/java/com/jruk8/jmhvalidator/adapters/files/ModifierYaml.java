@@ -22,15 +22,16 @@ import org.yaml.snakeyaml.error.YAMLException;
  * Modifier YAML reader: parses one file into the core behavior
  * and settings models. Structural behavior problems become file
  * diagnostics (the sweep never sees them); files without a
- * behavior section (presets) read as empty. Settings read
- * silently: a missing or misshapen `config.settings` loads as
- * empty like the engine Serdes loads it. Map order follows the
- * file, so provenance matches the engine's load order.
+ * behavior section (presets) read as empty behavior and expose
+ * their `modifiers` member ids instead. Settings read silently:
+ * a missing or misshapen `config.settings` loads as empty like
+ * the engine Serdes loads it. Map order follows the file, so
+ * provenance matches the engine's load order.
  */
 public final class ModifierYaml {
-    /** One read: both models plus any file-level diagnostics. */
+    /** One read: both models, preset members, file diagnostics. */
     public record ReadResult(BehaviorFile behavior, SettingsTree settings,
-            List<Diagnostic> early) {
+            List<String> presetMembers, List<Diagnostic> early) {
     }
 
     private ModifierYaml() {
@@ -62,10 +63,12 @@ public final class ModifierYaml {
     private static ReadResult readDocument(String modifierId, Map<?, ?> doc) {
         Object behavior = doc.get("behavior");
         if (behavior == null) {
-            return new ReadResult(BehaviorFile.empty(), readSettings(doc), List.of());
+            return new ReadResult(BehaviorFile.empty(), readSettings(doc),
+                    presetMembers(doc), List.of());
         }
         if (!(behavior instanceof Map<?, ?> blocks)) {
             return new ReadResult(BehaviorFile.empty(), readSettings(doc),
+                    presetMembers(doc),
                     List.of(fileDiagnostic(modifierId,
                             DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map")));
         }
@@ -75,7 +78,28 @@ public final class ModifierYaml {
             out.put(String.valueOf(block.getKey()),
                     readBlock(modifierId, String.valueOf(block.getKey()), block.getValue(), early));
         }
-        return new ReadResult(new BehaviorFile(out), readSettings(doc), early);
+        return new ReadResult(new BehaviorFile(out), readSettings(doc),
+                presetMembers(doc), early);
+    }
+
+    /**
+     * Preset member ids: string entries of the top-level
+     * `modifiers` list, in file order. Anything else (missing,
+     * scalar, or non-string entries) reads as empty, like the
+     * engine load path skips it. Never diagnoses.
+     */
+    static List<String> presetMembers(Map<?, ?> doc) {
+        Object members = doc.get("modifiers");
+        if (!(members instanceof List<?> items)) {
+            return List.of();
+        }
+        List<String> ids = new ArrayList<>();
+        for (Object entry : items) {
+            if (entry instanceof String id) {
+                ids.add(id);
+            }
+        }
+        return ids;
     }
 
     /**
@@ -198,7 +222,7 @@ public final class ModifierYaml {
     }
 
     private static ReadResult resultWith(BehaviorFile behavior, Diagnostic early) {
-        return new ReadResult(behavior, SettingsTree.empty(), List.of(early));
+        return new ReadResult(behavior, SettingsTree.empty(), List.of(), List.of(early));
     }
 
     private static String oneLine(Exception failed) {

@@ -37,7 +37,9 @@ public enum DiagnosticCode {
     /** Leaf beside folders that is not `enabled`, or a flat root. */
     W_SETTINGS_STRAY_LEAF("Misplaced settings leaf"),
     /** Settings level holds more than 7 leafs. */
-    W_SETTINGS_LEAFS("Too many leafs");
+    W_SETTINGS_LEAFS("Too many leafs"),
+    /** Preset member names no known modifier id. */
+    W_UNKNOWN_MODIFIER("Unknown modifier");
 
     private final String title;
 

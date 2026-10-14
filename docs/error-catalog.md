@@ -26,6 +26,12 @@ Message text stays byte-identical to the engine.
   the runtime skips.
 - `W_ALL_PLAYERS_FILTER`: Weak filter. An all-players filter
   outside letters-only.
+- `W_UNKNOWN_MODIFIER`: Unknown modifier. A preset member names
+  no known modifier id (fetched engine defaults plus scanned
+  modifiers). The engine drops the member at load and keeps the
+  file list, so a later reload picks it up once its file exists.
+  Example: `Preset 'horror-manhunt' references unknown modifier
+  'fog'; skipping.`.
 - `W_SETTINGS_FOLDERS`: Too many folders. A settings level
   holds more than 5 folders. Example: `10 folders (max 5):
   targeting, rules, ...`.
@@ -41,7 +47,10 @@ Message text stays byte-identical to the engine.
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a
 null char; they are CLI-only, the engine load sweep stays
-silent on style.
+silent on style. Preset findings carry `modifiers` in the
+`list` field with an empty `behavior`; `line` is the 1-based
+member position and char is null. They appear only when the
+CLI runs with fetched engine defaults (see `--defaults`).
 
 ## File diagnostics
 

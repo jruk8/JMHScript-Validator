@@ -1,11 +1,14 @@
 package com.jruk8.jmhvalidator.adapters.cli;
 
+import com.jruk8.jmhvalidator.adapters.files.DefaultsFetch;
+import com.jruk8.jmhvalidator.adapters.files.EngineDefaults;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.SettingsStyle;
 import com.jruk8.jmhvalidator.core.model.Diagnostic;
 import com.jruk8.jmhvalidator.core.model.Severity;
+import com.jruk8.jmhvalidator.core.ports.KnownModifiers;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,6 +36,9 @@ public final class Main {
     static int run(String[] args) {
         if (args.length > 0 && args[0].equals("docs")) {
             return docs(List.of(args).subList(1, args.length));
+        }
+        if (args.length > 0 && args[0].equals("fetch-defaults")) {
+            return fetchDefaults(List.of(args).subList(1, args.length));
         }
         Options options;
         try {
@@ -71,9 +77,16 @@ public final class Main {
             System.err.println("error: no .yml/.yaml files found");
             return 2;
         }
+        KnownModifiers known = null;
+        if (options.defaults != null) {
+            known = knownModifiers(options, files);
+            if (known == null) {
+                return 2;
+            }
+        }
         List<ReportJson.FileReport> reports = new ArrayList<>();
         for (Path file : files) {
-            reports.add(checkFile(file, registry));
+            reports.add(checkFile(file, registry, known));
         }
         if (options.format.equals("json")) {
             System.out.print(ReportJson.report(version(), registry.engine(),
@@ -93,15 +106,53 @@ public final class Main {
         return 0;
     }
 
+    /**
+     * Resolve the preset check universe: fetched engine defaults
+     * plus the scanned modifier stems, mirroring the engine load
+     * order (modifiers resolve before presets). Null when the
+     * manifest cannot be read (already reported, exit 2).
+     */
+    private static KnownModifiers knownModifiers(Options options, List<Path> files) {
+        Path manifest = options.defaults;
+        if (Files.isDirectory(manifest)) {
+            manifest = manifest.resolve(EngineDefaults.MANIFEST_NAME);
+        }
+        EngineDefaults.LoadedDefaults defaults;
+        try {
+            defaults = EngineDefaults.read(manifest);
+        } catch (IOException failed) {
+            System.err.println("error: " + failed.getMessage());
+            return null;
+        }
+        List<String> ids = new ArrayList<>(defaults.modifiers().ids());
+        for (Path file : files) {
+            String stem = stemOf(file);
+            ModifierYaml.ReadResult read = ModifierYaml.read(file, stem);
+            if (!read.behavior().blocks().isEmpty()) {
+                ids.add(stem);
+            }
+        }
+        return KnownModifiers.of(ids);
+    }
+
     private static ReportJson.FileReport checkFile(Path file,
-            TagRegistryFiles.LoadedRegistry registry) {
-        String stem = file.getFileName().toString().replaceFirst("\\.[^.]*$", "");
+            TagRegistryFiles.LoadedRegistry registry, KnownModifiers known) {
+        String stem = stemOf(file);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, stem);
         List<Diagnostic> found = new ArrayList<>(read.early());
-        found.addAll(JmhValidator.validateBehavior(
-                stem, read.behavior(), registry.registry()));
+        if (known != null && read.behavior().blocks().isEmpty()
+                && !read.presetMembers().isEmpty()) {
+            found.addAll(JmhValidator.validatePreset(stem, read.presetMembers(), known));
+        } else {
+            found.addAll(JmhValidator.validateBehavior(
+                    stem, read.behavior(), registry.registry()));
+        }
         found.addAll(SettingsStyle.check(stem, read.settings()));
         return new ReportJson.FileReport(file.toString(), found);
+    }
+
+    private static String stemOf(Path file) {
+        return file.getFileName().toString().replaceFirst("\\.[^.]*$", "");
     }
 
     private static List<Path> discover(List<Path> paths) {
@@ -165,6 +216,49 @@ public final class Main {
                 + " " + found.code().name() + ": " + found.message();
     }
 
+    /**
+     * Fetch the engine default modifiers and presets at one
+     * engine rev, for upstream preset checks (JMH-Mods resolves
+     * its preset members against the fetched manifest).
+     */
+    static int fetchDefaults(List<String> args) {
+        Path out = null;
+        String rev = null;
+        String repo = DefaultsFetch.DEFAULT_REPO;
+        for (int index = 0; index < args.size(); index++) {
+            if (args.get(index).equals("--engine-rev") && index + 1 < args.size()) {
+                rev = args.get(index + 1);
+                index++;
+            } else if (args.get(index).equals("--out") && index + 1 < args.size()) {
+                out = Paths.get(args.get(index + 1));
+                index++;
+            } else if (args.get(index).equals("--repo") && index + 1 < args.size()) {
+                repo = args.get(index + 1);
+                index++;
+            }
+        }
+        if (rev == null || rev.isBlank()) {
+            System.err.println("error: fetch-defaults needs --engine-rev REV");
+            return 2;
+        }
+        if (out == null) {
+            System.err.println("error: fetch-defaults needs --out DIR");
+            return 2;
+        }
+        DefaultsFetch.Fetched fetched;
+        try {
+            fetched = DefaultsFetch.fetch(repo, rev, out);
+        } catch (IOException failed) {
+            System.err.println("error: " + failed.getMessage());
+            return 2;
+        }
+        System.out.println("defaults: " + fetched.modifiers().size() + " modifiers, "
+                + fetched.presets().size() + " presets from " + repo + "@" + rev);
+        System.out.println("manifest: "
+                + fetched.dir().resolve(EngineDefaults.MANIFEST_NAME));
+        return 0;
+    }
+
     /** Tag-list markdown for the reference docs, from a registry file. */
     static int docs(List<String> args) {
         Path registry = null;
@@ -225,7 +319,9 @@ public final class Main {
         return """
                 JMHScript-Validator CLI.
                 Usage: validator --registry REGISTRY [--format text|json]
-                         [--expect-engine-version V] PATH...
+                         [--expect-engine-version V] [--defaults FILE|DIR] PATH...
+                       validator fetch-defaults --engine-rev REV --out DIR
+                         [--repo OWNER/NAME]
                        validator docs --registry REGISTRY [--out FILE]
                        validator [--version] [--help]
                 Exits 0 clean, 1 diagnostics found, 2 usage or setup error.
@@ -234,37 +330,64 @@ public final class Main {
 
     /** Parsed CLI options. */
     private record Options(Path registry, String format,
-            String expectEngine, List<Path> paths, boolean help, boolean version) {
+            String expectEngine, Path defaults, List<Path> paths,
+            boolean help, boolean version) {
         static Options parse(List<String> args) {
-            Path registry = null;
-            String format = "text";
-            String expectEngine = null;
-            List<Path> paths = new ArrayList<>();
-            boolean help = false;
-            boolean version = false;
+            Parser parser = new Parser();
             for (int index = 0; index < args.size(); index++) {
-                String arg = args.get(index);
-                if (arg.equals("--registry") && index + 1 < args.size()) {
-                    registry = Paths.get(args.get(index + 1));
-                    index++;
-                } else if (arg.equals("--format") && index + 1 < args.size()) {
-                    format = args.get(index + 1);
-                    index++;
-                } else if (arg.equals("--expect-engine-version") && index + 1 < args.size()) {
-                    expectEngine = args.get(index + 1);
-                    index++;
-                } else if (arg.equals("--help") || arg.equals("-h")) {
-                    help = true;
-                } else if (arg.equals("--version")) {
-                    version = true;
-                } else if (arg.startsWith("--")) {
-                    throw new IllegalArgumentException("unknown option " + arg);
-                } else {
-                    paths.add(Paths.get(arg));
-                }
+                index = parser.take(args, index);
             }
+            return parser.build();
+        }
+    }
+
+    /** Mutable option accumulator behind the parse loop. */
+    private static final class Parser {
+        private Path registry;
+        private String format = "text";
+        private String expectEngine;
+        private Path defaults;
+        private final List<Path> paths = new ArrayList<>();
+        private boolean help;
+        private boolean version;
+
+        int take(List<String> args, int index) {
+            String arg = args.get(index);
+            if (arg.equals("--help") || arg.equals("-h")) {
+                help = true;
+            } else if (arg.equals("--version")) {
+                version = true;
+            } else if (arg.startsWith("--")) {
+                return takeValued(args, index);
+            } else {
+                paths.add(Paths.get(arg));
+            }
+            return index;
+        }
+
+        private int takeValued(List<String> args, int index) {
+            String arg = args.get(index);
+            if (index + 1 >= args.size()) {
+                throw new IllegalArgumentException("unknown option " + arg);
+            }
+            if (arg.equals("--registry")) {
+                registry = Paths.get(args.get(index + 1));
+            } else if (arg.equals("--format")) {
+                format = args.get(index + 1);
+            } else if (arg.equals("--expect-engine-version")) {
+                expectEngine = args.get(index + 1);
+            } else if (arg.equals("--defaults")) {
+                defaults = Paths.get(args.get(index + 1));
+            } else {
+                throw new IllegalArgumentException("unknown option " + arg);
+            }
+            return index + 1;
+        }
+
+        Options build() {
             if (help || version) {
-                return new Options(registry, format, expectEngine, paths, help, version);
+                return new Options(registry, format, expectEngine, defaults,
+                        paths, help, version);
             }
             if (registry == null) {
                 throw new IllegalArgumentException("missing --registry PATH");
@@ -275,7 +398,8 @@ public final class Main {
             if (paths.isEmpty()) {
                 throw new IllegalArgumentException("no paths to validate");
             }
-            return new Options(registry, format, expectEngine, paths, false, false);
+            return new Options(registry, format, expectEngine, defaults,
+                    paths, false, false);
         }
     }
 }

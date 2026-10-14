@@ -53,13 +53,40 @@ Exit 0 clean, 1 diagnostics found, 2 usage or setup error.
 `--expect-engine-version` fails closed when the registry does
 not match the targeted engine.
 
+## Engine defaults (preset checks)
+
+Preset `modifiers` entries must resolve to a known modifier id.
+The engine owns that universe (its bundled defaults plus the
+loaded data-folder files), so the CLI checks preset members
+only when the defaults are supplied:
+
+```sh
+java -jar JMHScript-Validator-<version>-cli.jar fetch-defaults \
+  --engine-rev <jmanhunt-rev> --out engine-defaults/
+java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json \
+  --defaults engine-defaults/ mods/ presets/
+```
+
+`fetch-defaults` downloads the default modifier and preset
+files at one JManhunt rev and writes `engine-defaults.json`
+(format 1: engine, engineVersion, sorted modifier ids, presets
+with members in file order) beside them. `--defaults` takes
+that file or its directory; known ids are the manifest plus
+the scanned modifier stems, mirroring the engine load order.
+Unknown members warn as `W_UNKNOWN_MODIFIER` with the
+engine's load message. Without `--defaults`, presets stay
+silent as before.
+
 ## Consuming
 
 - JManhunt: JitPack `com.github.jruk8:JMHScript-Validator:<tag>`
   plus a conditional `includeBuild` for local cross-repo work.
 - JMH-Mods: fetch the versioned `-cli.jar` from GitHub releases
   plus `tag-registry.json` from the JManhunt release at the
-  pinned tag; assert both versions on every run.
+  pinned tag; assert both versions on every run. For preset
+  reference checks, run `fetch-defaults` at the pinned engine
+  rev and resolve preset members against the fetched manifest
+  plus the repo's own `mods/` ids.
 
 ## Releases (fixed order)
 
