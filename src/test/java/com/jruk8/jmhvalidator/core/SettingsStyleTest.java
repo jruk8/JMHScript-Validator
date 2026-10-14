@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Settings style pins, ported 1:1 from the JMH-Mods settings
+ * Settings style pins, ported 1:1 from the original settings
  * tester (R1/R2/R3 there). Trees mirror the tester fixtures;
  * codes, dotted paths, and message text must match the old
  * reports exactly, only the rule code changes (R1 to

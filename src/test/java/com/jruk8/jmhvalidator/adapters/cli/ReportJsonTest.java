@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Pins the report bytes: golden files and the JMH-Mods adapter
+ * Pins the report bytes: golden files and downstream consumers
  * depend on field order, indentation, and escaping. A format
  * change bumps REPORT_VERSION with the bytes.
  */

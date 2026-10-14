@@ -1,7 +1,7 @@
 # AGENTS.md: guide for AI agents working on JMHScript-Validator
 
 Standalone JMHScript validation core plus CLI, consumed by
-JManhunt (Gradle library) and JMH-Mods (CLI over subprocess).
+JManhunt (Gradle library) and by mod authors (CLI over files).
 Behavior stays 1:1 with the engine; the corpus proves it.
 
 ## 1. Orientation
@@ -42,5 +42,4 @@ Behavior stays 1:1 with the engine; the corpus proves it.
 3. Update `docs/error-catalog.md` for new codes (the catalog
    test enforces it) and bump `reportVersion` for format
    changes.
-4. Follow the README release order (validator, JManhunt,
-   JMH-Mods).
+4. Follow the README release order (validator, JManhunt).

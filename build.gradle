@@ -10,8 +10,7 @@ plugins {
 group = 'com.github.jruk8'
 
 // Tag-based versions (v1.2.3), same convention as JManhunt: the
-// validator tags first, then JManhunt bumps, then JMH-Mods bumps
-// its CLI pin. JMH-Mods asserts this version on every run.
+// validator tags first, then JManhunt bumps its version pin.
 scmVersion {
     repository {
         pushTagsOnly = true
@@ -67,8 +66,8 @@ check {
     dependsOn 'checkstyleMain', 'checkstyleTest'
 }
 
-// Fat CLI jar for the JMH-Mods fetch: one asset, no classpath
-// assembly on the tester machine.
+// Fat CLI jar for the release download: one asset, no classpath
+// assembly on the validating machine.
 tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar).configure {
     archiveBaseName = 'JMHScript-Validator'
     archiveClassifier = 'cli'

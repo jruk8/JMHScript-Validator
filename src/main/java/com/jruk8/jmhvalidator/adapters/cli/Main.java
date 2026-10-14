@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Validator CLI entry. Exit codes mirror the JMH-Mods tester:
+ * Validator CLI entry. Exit codes:
  * 0 clean, 1 diagnostics found, 2 usage or setup error.
  */
 public final class Main {
@@ -218,8 +218,8 @@ public final class Main {
 
     /**
      * Fetch the engine default modifiers and presets at one
-     * engine rev, for upstream preset checks (JMH-Mods resolves
-     * its preset members against the fetched manifest).
+     * engine rev, for upstream preset checks (preset members
+     * resolve against the fetched manifest).
      */
     static int fetchDefaults(List<String> args) {
         Path out = null;

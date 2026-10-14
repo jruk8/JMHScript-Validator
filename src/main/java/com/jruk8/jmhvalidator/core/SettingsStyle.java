@@ -12,7 +12,7 @@ import java.util.Locale;
 
 /**
  * Settings style sweep: the strict tree limits, ported 1:1 from
- * the JMH-Mods settings tester (R1/R2/R3 there). At every level
+ * the original settings tester (R1/R2/R3 there). At every level
  * including the root: at most 5 folders, no leaf beside folders
  * except `enabled`, at most 7 leafs. Findings are warnings with
  * the dotted settings path in the list field; behavior stays

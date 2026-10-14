@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Versioned JSON report writer (reportVersion 1). Field order
  * and escaping are pinned by {@code ReportJsonTest}: golden
- * files and the JMH-Mods adapter both depend on the shape.
+ * files and downstream consumers both depend on the shape.
  * Consumers assert reportVersion and map codes; validatorVersion
  * is informational and excluded from parity comparison.
  */
