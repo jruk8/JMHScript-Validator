@@ -144,6 +144,9 @@ public final class JmhValidator {
         if (warning.startsWith("Unknown tag '")) {
             return DiagnosticCode.W_UNKNOWN_TAG;
         }
+        if (warning.startsWith("Tag '") && warning.contains("was removed; use")) {
+            return DiagnosticCode.W_REMOVED_TAG;
+        }
         if (warning.startsWith("Skipping invalid <random-pick>")) {
             return DiagnosticCode.W_RANDOM_PICK_ITEM;
         }

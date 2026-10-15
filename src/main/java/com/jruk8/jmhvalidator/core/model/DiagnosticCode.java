@@ -83,7 +83,9 @@ public enum DiagnosticCode {
     /** Commands list no dispatch key reads. */
     W_UNKNOWN_LIST("Unknown list"),
     /** Trigger the engine removed or renamed. */
-    W_REMOVED_TRIGGER("Removed trigger");
+    W_REMOVED_TRIGGER("Removed trigger"),
+    /** Tag the engine removed; the message names the replacement. */
+    W_REMOVED_TAG("Removed tag");
 
     private final String title;
 

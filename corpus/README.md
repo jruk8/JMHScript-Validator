@@ -27,7 +27,7 @@ warnings those lists produce.
 
 The line-sweep codes appear at least once: `E_SYNTAX`,
 `E_BRACKET_UNMATCHED_CLOSE`, `E_BRACKET_UNCLOSED_OPEN`,
-`W_UNKNOWN_TAG`, `W_RANDOM_PICK_ITEM`, `W_ALL_PLAYERS_FILTER`,
+`W_UNKNOWN_TAG`, `W_REMOVED_TAG`, `W_RANDOM_PICK_ITEM`, `W_ALL_PLAYERS_FILTER`,
 `W_SETTINGS_FOLDERS`, `W_SETTINGS_STRAY_LEAF`,
 `W_SETTINGS_LEAFS`. Editor-only codes (`E_UNKNOWN_ROOT`,
 `E_UNKNOWN_ITEM`) are pinned by the ported

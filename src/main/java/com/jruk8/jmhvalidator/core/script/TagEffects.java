@@ -4,14 +4,10 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Effect tags: {@code <peffect:player,effects>} hits one player,
- * {@code <geffect:effects>} hits everyone online, and
- * {@code <reffect:role,effects>} hits the named role members
- * ({@code peff}, {@code geff}, and {@code reff} alias them). The
- * effects nest as {@code [[id, amplifier, seconds], ...]}, and a
- * trailing {@code hide} flag (default true) controls particles.
- * Every tag yields empty. No Bukkit types: delivery runs through
- * the context backends.
+ * Effect live read: {@code <phaseffect:player,effect,min>} yields
+ * true or false. Effect writes moved to the shared ledger
+ * ({@code <pfx.set>} and its twins); the old {@code <peffect>}
+ * family reports through the removed-tag pointer instead.
   * Validation carve: evaluation stays engine-side.
 */
 public final class TagEffects {
@@ -42,38 +38,15 @@ public final class TagEffects {
         return Optional.empty();
     }
 
-    public static boolean isPlayer(String name) {
-        return name.equals("peffect") || name.equals("peff");
-    }
-
-    public static boolean isRole(String name) {
-        return name.equals("reffect") || name.equals("reff");
-    }
-
     private static boolean arityOk(String name, int count) {
-        if (name.equals("geffect") || name.equals("geff")) {
-            return count == 1 || count == 2;
-        }
         return count == 2 || count == 3;
     }
 
     private static String arityText(String name) {
-        if (name.equals("geffect") || name.equals("geff")) {
-            return "1 or 2 args";
-        }
         return "2 or 3 args";
     }
 
     private static String example(String name) {
-        if (isPlayer(name)) {
-            return "<peffect:player,effects>";
-        }
-        if (isRole(name)) {
-            return "<reffect:role,effects>";
-        }
-        if (name.equals("phaseffect")) {
-            return "<phaseffect:player,effect>";
-        }
-        return "<geffect:effects>";
+        return "<phaseffect:player,effect>";
     }
 }

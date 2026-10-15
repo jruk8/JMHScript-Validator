@@ -11,6 +11,24 @@
       "diagnostics": [
         {
           "behavior": "main",
+          "list": "hunter",
+          "line": 2,
+          "char": 1,
+          "severity": "warning",
+          "code": "W_REMOVED_TAG",
+          "message": "Tag '<peffect>' was removed; use '<pfx.set>' instead."
+        },
+        {
+          "behavior": "main",
+          "list": "speedrunner",
+          "line": 2,
+          "char": 1,
+          "severity": "warning",
+          "code": "W_REMOVED_TAG",
+          "message": "Tag '<peffect>' was removed; use '<pfx.set>' instead."
+        },
+        {
+          "behavior": "main",
           "list": "player-cleanup",
           "line": 0,
           "char": null,
@@ -24,6 +42,6 @@
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 1
+    "warnings": 3
   }
 }

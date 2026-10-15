@@ -58,6 +58,22 @@ class CommandValidationTest {
     }
 
     @Test
+    void removedWritersPointAtLedger() {
+        assertEquals(
+                List.of("Tag '<peffect>' was removed; use '<pfx.set>' instead."),
+                CommandSyntax.warnings("say <peffect:Steve,[[speed,0,5]]>",
+                        TestRegistries.pinned()));
+        assertEquals(
+                List.of("Tag '<geffect>' was removed; use '<gfx.set>' instead."),
+                CommandSyntax.warnings("say <geffect:[[speed,0,5]]>",
+                        TestRegistries.pinned()));
+        assertEquals(
+                List.of("Tag '<reff>' was removed; use '<rfx.set>' instead."),
+                CommandSyntax.warnings("say <reff:hunter,[[speed,0,5]]>",
+                        TestRegistries.pinned()));
+    }
+
+    @Test
     void escapedRootFailsClosedWithReadableMessage() {
         assertEquals(Optional.of("Unknown command '<give>'."),
                 CommandValidation.validateLine("\\<give\\> Steve bread", true, ROOTS,

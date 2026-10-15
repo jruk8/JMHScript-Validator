@@ -298,6 +298,11 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <pdamage:Steve,5,Alex,arrow> x").isEmpty());
         assertTrue(CommandSyntax.error("say <pslot:Steve,helmet> x").isEmpty());
         assertTrue(CommandSyntax.error("say <clearslot:Steve,helmet> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pfx.set:Steve,glow,[[glowing,0,5]]> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pfx.set:Steve,[[glowing,0,5]]> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pfx.get:Steve,glow> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pfx.clear:Steve> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pfx.duration:Steve,glow,glowing> x").isEmpty());
         assertTrue(CommandSyntax.error("say <pslot:Steve,0,[STONE,64]> x").isEmpty());
         assertTrue(CommandSyntax.error("say <pstat:Steve,exp-level> x").isEmpty());
         assertTrue(CommandSyntax.error("say <floor:7/2> <ceil:1> <round:2> <abs:0> <sign:3> x").isEmpty());
@@ -503,6 +508,11 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <pdamage:Steve,5,Alex,arrow,extra> x").isPresent());
         assertTrue(CommandSyntax.error("say <pslot:Steve> x").isPresent());
         assertTrue(CommandSyntax.error("say <clearslot:Steve> x").isPresent());
+        assertTrue(CommandSyntax.error("say <pfx.set:Steve> x").isPresent());
+        assertTrue(CommandSyntax.error("say <pfx.set:Steve,glow,[[glowing,0,5]],false,x> x")
+                .isPresent());
+        assertTrue(CommandSyntax.error("say <pfx.get:Steve> x").isPresent());
+        assertTrue(CommandSyntax.error("say <pfx.duration:Steve,glow> x").isPresent());
         assertTrue(CommandSyntax.error("say <clearslot:Steve,helmet,x> x").isPresent());
         assertTrue(CommandSyntax.error("say <pslot:Steve,helmet,[STONE,1],x> x").isPresent());
         assertTrue(CommandSyntax.error("say <floor> x").isPresent());

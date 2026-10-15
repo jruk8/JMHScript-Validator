@@ -10,6 +10,15 @@
       "file": "shipped/vip-escort.yml",
       "diagnostics": [
         {
+          "behavior": "2",
+          "list": "console",
+          "line": 3,
+          "char": 59,
+          "severity": "warning",
+          "code": "W_REMOVED_TAG",
+          "message": "Tag '<peffect>' was removed; use '<pfx.set>' instead."
+        },
+        {
           "behavior": "",
           "list": "effects",
           "line": 0,
@@ -51,6 +60,6 @@
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 4
+    "warnings": 5
   }
 }

@@ -4,6 +4,7 @@ import com.jruk8.jmhvalidator.core.ports.TagRegistry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -217,8 +218,7 @@ final class TagSyntaxErrors {
             case "gsound" -> TagSinks.soundError(name, args);
             case "psound" -> TagSinks.playerSoundError(name, args);
             case "rsound" -> RoleTagSyntax.soundError(name, args);
-            case "peffect", "peff", "geffect", "geff", "reffect", "reff", "phaseffect" ->
-                    TagEffects.effectError(name, args);
+            case "phaseffect" -> TagEffects.effectError(name, args);
             case "gteleport" -> TagSinks.teleportError(name, args);
             case "pteleport" -> TagSinks.playerTeleportError(name, args);
             case "rteleport" -> RoleTagSyntax.teleportError(name, args);
@@ -226,7 +226,7 @@ final class TagSyntaxErrors {
             case "replace" -> TagReplace.replaceError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
                     "pslot", "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get",
-                    "pmaxhp.clear",
+                    "pmaxhp.clear", "pfx.set", "pfx.get", "pfx.clear", "pfx.duration",
                     "pisusinghanditem", "pdamage" ->
                     TagPlayers.opError(name, args);
             case "plos" -> TagPlos.opError(name, args);
@@ -260,11 +260,22 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
+    /** Removed tags and their ledger replacements. */
+    private static final Map<String, String> REMOVED_TAGS = Map.of(
+            "peffect", "pfx.set", "peff", "pfx.set",
+            "geffect", "gfx.set", "geff", "gfx.set",
+            "reffect", "rfx.set", "reff", "rfx.set");
+
     public static void collectWarnings(String body, List<String> found,
             Collection<String> knownFunctions, TagRegistry registry) {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
+        if (REMOVED_TAGS.containsKey(name)) {
+            found.add("Tag '<" + name + ">' was removed; use '<"
+                    + REMOVED_TAGS.get(name) + ">' instead.");
+            return;
+        }
         if (!registry.isKnown(name) && !knownFunctions.contains(name)) {
             found.add("Unknown tag '<" + body.trim() + ">', left untouched at runtime.");
             return;

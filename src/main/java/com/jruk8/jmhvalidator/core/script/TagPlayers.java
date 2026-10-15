@@ -14,6 +14,8 @@ import java.util.Optional;
  * items all-or-nothing; {@code <ptitle>} sends a center-screen title;
  * {@code <pslot>} gets and sets inventory slots by name or raw index;
  * {@code <clearslot>} empties one slot by name or raw index;
+ * {@code <pfx.set>}, {@code <pfx.get>}, {@code <pfx.clear>}, and
+ * {@code <pfx.duration>} own one named entry in the shared effect ledger;
  * {@code <pdamage>} deals damage with an optional attacker and type;
  * {@code <pmaxhp>} gets and sets max-health id contributions;
  * {@code <puuid>} reads the Mojang id as four ints. Reads resolve
@@ -62,6 +64,10 @@ public final class TagPlayers {
             case "pdamage" -> count >= 2 && count <= 4;
             case "puuid" -> count == 1;
             case "clearslot" -> count == 2;
+            case "pfx.set" -> count >= 2 && count <= 4;
+            case "pfx.get" -> count == 2;
+            case "pfx.clear" -> count == 1 || count == 2;
+            case "pfx.duration" -> count == 3;
             case "ptitle" -> count >= 3 && count <= 6;
             case "pmaxhp.set", "pmaxhp.modify" -> count == 3;
             case "pmaxhp.get" -> count == 2;
@@ -81,6 +87,10 @@ public final class TagPlayers {
             case "pdamage" -> "2 to 4 args";
             case "puuid" -> "1 arg";
             case "clearslot" -> "2 args";
+            case "pfx.set" -> "2 to 4 args";
+            case "pfx.get" -> "2 args";
+            case "pfx.clear" -> "1 or 2 args";
+            case "pfx.duration" -> "3 args";
             case "ptitle" -> "3 to 6 args";
             case "pmaxhp.set", "pmaxhp.modify" -> "3 args";
             case "pmaxhp.get" -> "2 args";
@@ -100,6 +110,10 @@ public final class TagPlayers {
             case "pdamage" -> "<pdamage:player,amount>";
             case "puuid" -> "<puuid:player>";
             case "clearslot" -> "<clearslot:player,slot>";
+            case "pfx.set" -> "<pfx.set:player,id,effects>";
+            case "pfx.get" -> "<pfx.get:player,id>";
+            case "pfx.clear" -> "<pfx.clear:player,id>";
+            case "pfx.duration" -> "<pfx.duration:player,id,effect>";
             case "ptitle" -> "<ptitle:player,title,subtitle>";
             case "pmaxhp.set" -> "<pmaxhp.set:player,id,amount>";
             case "pmaxhp.modify" -> "<pmaxhp.modify:player,id,amount>";
