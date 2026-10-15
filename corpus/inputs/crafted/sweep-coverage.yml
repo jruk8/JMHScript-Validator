@@ -49,3 +49,7 @@ behavior:
       player:
         - 'say <gstat:boguskey>'
         - 'say <loseplayer:>'
+        - 'say <rstate:hunter,SNEAK> <gheld> <gcooldown:dash,5>'
+        - 'say <rcooldown:hunter,dash>'
+        - 'say <gswitch:>'
+        - 'say <rheld>'

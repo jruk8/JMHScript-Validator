@@ -30,7 +30,8 @@ public final class TagItemOps {
     public static Optional<String> opError(String name, String args) {
         return switch (name) {
             case "intercept" -> TagIntercept.opError(name, args);
-            case "give", "itemtag" -> fixedArity(name, args, 2);
+            case "give", "itemtag", "rgive", "ritemtag" -> fixedArity(name, args, 2);
+            case "ggive", "gitemtag" -> fixedArity(name, args, 1);
             case "dropitem" -> dropitemError(args);
             default -> Optional.empty();
         };
@@ -161,6 +162,10 @@ public final class TagItemOps {
     public static String example(String name) {
         return switch (name) {
             case "give" -> "<give:player,item>";
+            case "rgive" -> "<rgive:role,item>";
+            case "ggive" -> "<ggive:item>";
+            case "ritemtag" -> "<ritemtag:role,slot>";
+            case "gitemtag" -> "<gitemtag:slot>";
             case "dropitem" -> "<dropitem:location,item,cooldown>";
             default -> "<itemtag:player,slot>";
         };

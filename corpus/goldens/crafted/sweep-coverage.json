@@ -299,6 +299,33 @@
         },
         {
           "behavior": "second",
+          "list": "player",
+          "line": 4,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <rcooldown> needs 3 args like <rcooldown:role,key,seconds>."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 5,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <gswitch> needs a new role like <gswitch:SPEEDRUNNER>."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 6,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <rheld> needs a role like <rheld:hunter>."
+        },
+        {
+          "behavior": "second",
           "list": "",
           "line": 0,
           "char": null,
@@ -311,7 +338,7 @@
   ],
   "summary": {
     "files": 1,
-    "errors": 28,
+    "errors": 31,
     "warnings": 5
   }
 }

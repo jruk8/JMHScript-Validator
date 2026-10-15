@@ -48,7 +48,9 @@ public final class TagCooldowns {
     public static int arity(String name) {
         return switch (name) {
             case "pcooldown", "pcooldown.get" -> 3;
+            case "rcooldown", "rcooldown.get" -> 3;
             case "pcooldown.reset", "gcooldown", "gcooldown.get" -> 2;
+            case "rcooldown.reset" -> 2;
             default -> 1;
         };
     }
@@ -58,6 +60,9 @@ public final class TagCooldowns {
             case "pcooldown" -> "<pcooldown:player,key,seconds>";
             case "pcooldown.get" -> "<pcooldown.get:player,key,seconds>";
             case "pcooldown.reset" -> "<pcooldown.reset:player,key>";
+            case "rcooldown" -> "<rcooldown:role,key,seconds>";
+            case "rcooldown.get" -> "<rcooldown.get:role,key,seconds>";
+            case "rcooldown.reset" -> "<rcooldown.reset:role,key>";
             case "gcooldown" -> "<gcooldown:key,seconds>";
             case "gcooldown.get" -> "<gcooldown.get:key,seconds>";
             default -> "<gcooldown.reset:key>";

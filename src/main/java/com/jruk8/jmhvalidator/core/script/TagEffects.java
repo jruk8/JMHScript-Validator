@@ -39,14 +39,19 @@ public final class TagEffects {
     }
 
     private static boolean arityOk(String name, int count) {
-        return count == 2 || count == 3;
+        return name.equals("ghaseffect")
+                ? (count == 1 || count == 2) : (count == 2 || count == 3);
     }
 
     private static String arityText(String name) {
-        return "2 or 3 args";
+        return name.equals("ghaseffect") ? "1 or 2 args" : "2 or 3 args";
     }
 
     private static String example(String name) {
-        return "<phaseffect:player,effect>";
+        return switch (name) {
+            case "rhaseffect" -> "<rhaseffect:role,effect>";
+            case "ghaseffect" -> "<ghaseffect:effect>";
+            default -> "<phaseffect:player,effect>";
+        };
     }
 }
