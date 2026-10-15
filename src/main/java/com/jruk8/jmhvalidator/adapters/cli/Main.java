@@ -1,6 +1,5 @@
 package com.jruk8.jmhvalidator.adapters.cli;
 
-import com.jruk8.jmhvalidator.adapters.files.DefaultsFetch;
 import com.jruk8.jmhvalidator.adapters.files.EngineDefaults;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.ShareYaml;
@@ -66,7 +65,7 @@ public final class Main {
             return docs(List.of(args).subList(1, args.length));
         }
         if (args.length > 0 && args[0].equals("fetch-defaults")) {
-            return fetchDefaults(List.of(args).subList(1, args.length));
+            return FetchDefaultsCommand.fetchDefaults(List.of(args).subList(1, args.length));
         }
         if (args.length > 0 && args[0].equals("export")) {
             return exportCommand(List.of(args).subList(1, args.length), Paths.get("export"));
@@ -130,7 +129,7 @@ public final class Main {
             System.out.print(ReportJson.report(version(), registry.engine(),
                     registry.engineVersion(), reports));
         } else {
-            System.out.print(renderText(reports));
+            System.out.print(ReportText.renderText(reports));
         }
         return exitFor(reports);
     }
@@ -241,6 +240,20 @@ public final class Main {
                 normalized.dropped() ? SettingsTree.empty() : read.settings();
         found.addAll(SettingRefs.check(stem, read.behavior(), refTree));
         found.addAll(BehaviorRefs.check(stem, read.behavior()));
+        found.addAll(blockFindings(stem, read, registry));
+        found.addAll(read.keys());
+        found.addAll(read.shapes());
+        if (!normalized.dropped()) {
+            found.addAll(SettingsStyle.check(stem, read.settings()));
+        }
+        found.addAll(UncalledSweep.check(stem, read.behavior(), refTree));
+        return new ReportJson.FileReport(file.toString(), found);
+    }
+
+    /** Per-block trigger, list, and intercept findings behind one file. */
+    private static List<Diagnostic> blockFindings(String stem, ModifierYaml.ReadResult read,
+            TagRegistryFiles.LoadedRegistry registry) {
+        List<Diagnostic> found = new ArrayList<>();
         for (Map.Entry<String, BehaviorFile.BehaviorBlock> block
                 : read.behavior().blocks().entrySet()) {
             List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
@@ -256,13 +269,7 @@ public final class Main {
             found.addAll(com.jruk8.jmhvalidator.core.InterceptCheck.check(stem,
                     block.getValue(), block.getKey(), registry.interceptable()));
         }
-        found.addAll(read.keys());
-        found.addAll(read.shapes());
-        if (!normalized.dropped()) {
-            found.addAll(SettingsStyle.check(stem, read.settings()));
-        }
-        found.addAll(UncalledSweep.check(stem, read.behavior(), refTree));
-        return new ReportJson.FileReport(file.toString(), found);
+        return found;
     }
 
     private static String stemOf(Path file) {
@@ -404,88 +411,6 @@ public final class Main {
     private static boolean isYaml(Path path) {
         String name = path.getFileName().toString().toLowerCase();
         return name.endsWith(".yml") || name.endsWith(".yaml");
-    }
-
-    private static String renderText(List<ReportJson.FileReport> reports) {
-        StringBuilder out = new StringBuilder();
-        int errors = 0;
-        int warnings = 0;
-        int dirty = 0;
-        for (ReportJson.FileReport report : reports) {
-            if (!report.diagnostics().isEmpty()) {
-                dirty++;
-            }
-            for (Diagnostic found : report.diagnostics()) {
-                if (found.severity() == Severity.ERROR) {
-                    errors++;
-                } else {
-                    warnings++;
-                }
-                out.append(textLine(report.file(), found)).append("\n");
-            }
-        }
-        out.append("%d files: %d clean, %d with diagnostics (errors: %d, warnings: %d)%n"
-                .formatted(reports.size(), reports.size() - dirty, dirty, errors, warnings));
-        return out.toString();
-    }
-
-    private static String textLine(String file, Diagnostic found) {
-        String where = file;
-        if (!found.provenance().behaviorId().isBlank()) {
-            where += " " + found.provenance().behaviorId()
-                    + "/" + found.provenance().listName()
-                    + ":" + (found.provenance().lineIndex() + 1);
-            if (found.charOneBased() > 0) {
-                where += ":" + found.charOneBased();
-            }
-        } else if (!found.provenance().listName().isBlank()) {
-            where += " " + found.provenance().listName();
-        }
-        return where + " " + found.severity().name().toLowerCase()
-                + " " + found.code().name() + ": " + found.message();
-    }
-
-    /**
-     * Fetch the engine default modifiers and presets at one
-     * engine rev, for upstream preset checks (preset members
-     * resolve against the fetched manifest).
-     */
-    static int fetchDefaults(List<String> args) {
-        Path out = null;
-        String rev = null;
-        String repo = DefaultsFetch.DEFAULT_REPO;
-        for (int index = 0; index < args.size(); index++) {
-            if (args.get(index).equals("--engine-rev") && index + 1 < args.size()) {
-                rev = args.get(index + 1);
-                index++;
-            } else if (args.get(index).equals("--out") && index + 1 < args.size()) {
-                out = Paths.get(args.get(index + 1));
-                index++;
-            } else if (args.get(index).equals("--repo") && index + 1 < args.size()) {
-                repo = args.get(index + 1);
-                index++;
-            }
-        }
-        if (rev == null || rev.isBlank()) {
-            System.err.println("error: fetch-defaults needs --engine-rev REV");
-            return 2;
-        }
-        if (out == null) {
-            System.err.println("error: fetch-defaults needs --out DIR");
-            return 2;
-        }
-        DefaultsFetch.Fetched fetched;
-        try {
-            fetched = DefaultsFetch.fetch(repo, rev, out);
-        } catch (IOException failed) {
-            System.err.println("error: " + failed.getMessage());
-            return 2;
-        }
-        System.out.println("defaults: " + fetched.modifiers().size() + " modifiers, "
-                + fetched.presets().size() + " presets from " + repo + "@" + rev);
-        System.out.println("manifest: "
-                + fetched.dir().resolve(EngineDefaults.MANIFEST_NAME));
-        return 0;
     }
 
     /**
