@@ -27,6 +27,8 @@ class SettingCoerceTest {
         assertEquals(0L, SettingCoerce.zero(SettingType.INTEGER));
         assertEquals(0.0, SettingCoerce.zero(SettingType.DOUBLE));
         assertEquals("", SettingCoerce.zero(SettingType.STRING));
+        assertEquals("", SettingCoerce.zero(SettingType.BLOCK));
+        assertEquals("", SettingCoerce.zero(SettingType.SOLID_BLOCK));
         assertEquals(List.of(), SettingCoerce.zero(SettingType.LIST));
         assertEquals(List.of(false, ""), SettingCoerce.zero(SettingType.MESSAGE));
         assertEquals(List.of(false, "", 1.0, 1.0), SettingCoerce.zero(SettingType.SOUND));
@@ -67,6 +69,42 @@ class SettingCoerceTest {
                 SettingType.MATERIAL, "nope", null, null));
         assertEquals("MINECRAFT:DIAMOND SWORD", SettingCoerce.coerce(
                 SettingType.MATERIAL, "minecraft:diamond sword", null, STONE));
+    }
+
+    @Test
+    void blocksNeedBlockData() {
+        KnownMaterials known = KnownMaterials.of(
+                List.of("STONE", "TORCH", "DIAMOND_SWORD", "AIR"),
+                List.of("STONE", "TORCH"), List.of("STONE"));
+        assertEquals("STONE", SettingCoerce.coerce(
+                SettingType.BLOCK, "stone", null, known));
+        assertEquals("TORCH", SettingCoerce.coerce(
+                SettingType.BLOCK, "torch", null, known));
+        assertNull(SettingCoerce.coerce(SettingType.BLOCK, "diamond_sword", null, known));
+        assertNull(SettingCoerce.coerce(SettingType.BLOCK, "air", null, known));
+        assertNull(SettingCoerce.coerce(SettingType.BLOCK, "nope", null, known));
+    }
+
+    @Test
+    void solidBlocksNeedCollisionData() {
+        KnownMaterials known = KnownMaterials.of(
+                List.of("STONE", "TORCH", "DIAMOND_SWORD"),
+                List.of("STONE", "TORCH"), List.of("STONE"));
+        assertEquals("STONE", SettingCoerce.coerce(
+                SettingType.SOLID_BLOCK, "stone", null, known));
+        assertNull(SettingCoerce.coerce(SettingType.SOLID_BLOCK, "torch", null, known));
+        assertNull(SettingCoerce.coerce(
+                SettingType.SOLID_BLOCK, "diamond_sword", null, known));
+    }
+
+    @Test
+    void blockTypesFallBackWithoutBlockSets() {
+        assertEquals("DIAMOND_SWORD", SettingCoerce.coerce(
+                SettingType.BLOCK, "diamond_sword", null, STONE));
+        assertEquals("DIAMOND_SWORD", SettingCoerce.coerce(
+                SettingType.SOLID_BLOCK, "diamond_sword", null, STONE));
+        assertNull(SettingCoerce.coerce(SettingType.BLOCK, "nope", null, STONE));
+        assertNull(SettingCoerce.coerce(SettingType.SOLID_BLOCK, "nope", null, STONE));
     }
 
     @Test

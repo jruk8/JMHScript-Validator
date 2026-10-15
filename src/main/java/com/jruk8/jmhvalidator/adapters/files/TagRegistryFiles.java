@@ -141,7 +141,31 @@ public final class TagRegistryFiles {
             }
             names.add(name);
         }
-        return KnownMaterials.of(names);
+        return KnownMaterials.of(names, readNameList(map, "blocks"),
+                readNameList(map, "solidBlocks"));
+    }
+
+    /**
+     * One optional name list behind the registry: missing reads as
+     * empty (predate registries fall back to known-name checks),
+     * malformed entries fail the load.
+     */
+    private static List<String> readNameList(Map<?, ?> map, String key) throws IOException {
+        Object raw = map.get(key);
+        if (raw == null) {
+            return List.of();
+        }
+        if (!(raw instanceof List<?> items)) {
+            throw new IOException("registry '" + key + "' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry " + key + " must be strings");
+            }
+            names.add(name);
+        }
+        return names;
     }
 
     private static String stringOr(Object value, String fallback) {

@@ -16,12 +16,14 @@ public final class TagFunctions {
      * Mirrors the resolveTag switch plus the pre-pass ops.
      */
     private static final Set<String> BUILTINS = Set.of(
-            "p", "random-mob", "random-item", "random-num", "random-pick",
+            "p", "random-mob", "random-item", "random-block", "random-solid-block",
+            "random-num", "random-pick",
             "random-player", "all-players", "all-fanout", "duration", "id", "i",
             "pstat", "gstat", "rstat", "phasitem", "gflag", "gf", "pflag", "pf", "lflag", "lf", "rflag",
             "placeholder",
             "min", "max", "clamp", "root", "if", "switch",
             "gmessage", "gmsg", "pmessage", "pmsg", "rmessage", "rmsg", "gsound", "psound", "rsound",
+            "lsound",
             "gerror", "gerrormessage", "perror", "perrormessage", "rerror",
             "rerrormessage",
             "loseplayer", "win", "pswitch", "args",

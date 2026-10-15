@@ -20,6 +20,7 @@ final class TagTailErrors {
             case "rerror", "rerrormessage" -> RoleTagSyntax.messageError(name, args);
             case "gsound" -> TagSinks.soundError(name, args);
             case "psound" -> TagSinks.playerSoundError(name, args);
+            case "lsound" -> TagSinks.locatedSoundError(name, args);
             case "rsound" -> RoleTagSyntax.soundError(name, args);
             case "phaseffect", "rhaseffect", "ghaseffect" -> TagEffects.effectError(name, args);
             case "gteleport" -> TagSinks.teleportError(name, args);

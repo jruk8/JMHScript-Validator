@@ -272,4 +272,66 @@ public final class TagSinks {
         return Optional.empty();
     }
 
+    /**
+     * Edit-time shape for {@code <lsound>}: a location plus an id,
+     * pitch, and volume, or a location plus an
+     * {@code [enabled,id,pitch,volume]} array. Mirrors the runtime
+     * warns.
+     */
+    public static Optional<String> locatedSoundError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a location plus a sound id.");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() == 2 && TagLists.isList(unquoted(parts.get(1)))) {
+            Optional<String> loc = locatedPointError(name, parts.get(0));
+            if (loc.isPresent()) {
+                return loc;
+            }
+            return soundArrayError(name, TagLists.parse(unquoted(parts.get(1))));
+        }
+        if (parts.size() < 2 || parts.size() > 4) {
+            return Optional.of("Tag <" + name
+                    + "> needs a location plus an id, pitch, and volume.");
+        }
+        Optional<String> loc = locatedPointError(name, parts.get(0));
+        if (loc.isPresent()) {
+            return loc;
+        }
+        for (String part : parts.subList(1, parts.size())) {
+            if (TagHeads.parsePickItem(part).isEmpty()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Edit-time shape for one located-sound point: a 4- or
+     * 6-element list, or a collapsed nested tag the editor cannot
+     * see through (runtime validates it).
+     */
+    private static Optional<String> locatedPointError(String name, String loc) {
+        if (loc.strip().equals("?")) {
+            return Optional.empty();
+        }
+        Optional<String> item = TagHeads.parsePickItem(loc.strip());
+        if (item.isEmpty()) {
+            return Optional.of("Tag <" + name + "> mixes quotes.");
+        }
+        if (!TagLists.isList(item.get())) {
+            return Optional.of("Tag <" + name + "> needs a location [x, y, z, world].");
+        }
+        int elements = TagLists.parse(item.get()).size();
+        if (elements != 4 && elements != 6) {
+            return Optional.of("Tag <" + name + "> needs a location [x, y, z, world].");
+        }
+        return Optional.empty();
+    }
+
+    /** Strips one quote pair for list-shape detection, else the raw part. */
+    private static String unquoted(String part) {
+        return TagHeads.parsePickItem(part.strip()).orElse(part.strip());
+    }
+
 }
