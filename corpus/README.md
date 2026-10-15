@@ -38,6 +38,11 @@ The line-sweep codes appear at least once: `E_SYNTAX`,
 input by design; their pins live in the core unit tests
 and the CLI tests. `W_UNCALLED_BEHAVIOR` fires once, on
 the crafted input's intentionally dead block.
+`W_REDUNDANT_VALUE` fires on the shipped inputs by
+design: frozen files carry the old value-plus-default
+convention, so the goldens pin the nudge to omit the key.
+`E_VALUE_DIFFERS` stays silent (no shipped fixture carries
+an override); its pins live in the core unit tests.
 
 ## Refresh procedure (deliberate behavior changes only)
 

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -195,36 +196,46 @@ class SettingsNormalizeTest {
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
         assertFalse(result.dropped());
-        assertEquals(1, result.findings().size());
+        assertEquals(2, result.findings().size());
         Diagnostic only = result.findings().get(0);
         assertEquals(DiagnosticCode.W_VALUE_INVALID, only.code());
         assertEquals(Severity.WARNING, only.severity());
         assertEquals("rate", only.provenance().listName());
         assertEquals("Modifier 'fog' setting 'rate' value is invalid; reset to default.",
                 only.message());
+        assertEquals(DiagnosticCode.E_VALUE_DIFFERS,
+                result.findings().get(1).code());
     }
 
     @Test
-    void validValuePasses() {
+    void validValueFlagsOverride() {
         SettingsTree settings = tree(
                 leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), 60));
 
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
-        assertFalse(result.dropped());
-        assertTrue(result.findings().isEmpty());
+        assertSingle(DiagnosticCode.E_VALUE_DIFFERS, result);
     }
 
     @Test
-    void absentAndNullValuesPass() {
+    void absentValuePasses() {
         SettingsTree settings = tree(
-                leafSpec("absent", "INTEGER", 50, Map.of("min", 0, "max", 100)),
-                leafSpec("explicit", "INTEGER", 50, Map.of("min", 0, "max", 100), null));
+                leafSpec("absent", "INTEGER", 50, Map.of("min", 0, "max", 100)));
 
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
         assertFalse(result.dropped());
         assertTrue(result.findings().isEmpty());
+    }
+
+    @Test
+    void explicitNullValueFlagsOverride() {
+        SettingsTree settings = tree(
+                leafSpec("explicit", "INTEGER", 50, Map.of("min", 0, "max", 100), null, true));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertSingle(DiagnosticCode.E_VALUE_DIFFERS, result);
     }
 
     @Test
@@ -234,10 +245,12 @@ class SettingsNormalizeTest {
 
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
-        assertEquals(2, result.findings().size());
+        assertEquals(3, result.findings().size());
         assertEquals(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 result.findings().get(0).code());
         assertEquals(DiagnosticCode.W_VALUE_INVALID, result.findings().get(1).code());
+        assertEquals(DiagnosticCode.E_VALUE_DIFFERS,
+                result.findings().get(2).code());
     }
 
     @Test
@@ -255,14 +268,17 @@ class SettingsNormalizeTest {
     @Test
     void ambiguousWarnsFirstThenContinues() {
         SettingsTree settings = tree(ambiguous("thing",
-                new SettingsTree.SettingSpec("INTEGER", 500, Map.of("min", 0, "max", 100), 50)));
+                new SettingsTree.SettingSpec("INTEGER", 500, Map.of("min", 0, "max", 100), 50,
+                        true)));
 
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
         assertFalse(result.dropped());
-        assertEquals(2, result.findings().size());
+        assertEquals(3, result.findings().size());
         assertEquals(DiagnosticCode.W_AMBIGUOUS_SETTING,
                 result.findings().get(0).code());
+        assertEquals(DiagnosticCode.E_VALUE_DIFFERS,
+                result.findings().get(2).code());
         assertEquals("Modifier 'fog' setting 'thing' defines both value and folder; "
                 + "using the value.", result.findings().get(0).message());
         assertEquals(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
@@ -287,7 +303,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -299,7 +315,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -311,7 +327,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -323,7 +339,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -335,18 +351,17 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
     @Test
-    void emptyEnumPassesThrough() {
+    void emptyEnumFlagsOverride() {
         SettingsTree settings = tree(leafSpec("mode", "ENUM", "zzz", null, "yyy"));
 
         SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
 
-        assertFalse(result.dropped());
-        assertTrue(result.findings().isEmpty());
+        assertSingle(DiagnosticCode.E_VALUE_DIFFERS, result);
     }
 
     @Test
@@ -356,7 +371,7 @@ class SettingsNormalizeTest {
 
         SettingsNormalize.Result withPort = SettingsNormalize.check("fog", settings, known);
 
-        assertSingle(DiagnosticCode.W_VALUE_INVALID, withPort);
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS, withPort);
     }
 
     @Test
@@ -366,7 +381,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -379,7 +394,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -392,7 +407,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -405,7 +420,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -419,7 +434,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, known));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, known));
     }
 
@@ -432,7 +447,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -445,7 +460,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -458,7 +473,7 @@ class SettingsNormalizeTest {
 
         assertSingle(DiagnosticCode.W_DEFAULT_OUTSIDE_ALLOWED,
                 SettingsNormalize.check("fog", badDefault, null));
-        assertSingle(DiagnosticCode.W_VALUE_INVALID,
+        assertPair(DiagnosticCode.W_VALUE_INVALID, DiagnosticCode.E_VALUE_DIFFERS,
                 SettingsNormalize.check("fog", badLive, null));
     }
 
@@ -467,6 +482,14 @@ class SettingsNormalizeTest {
         assertFalse(result.dropped());
         assertEquals(1, result.findings().size());
         assertEquals(code, result.findings().get(0).code());
+    }
+
+    private static void assertPair(DiagnosticCode first, DiagnosticCode second,
+            SettingsNormalize.Result result) {
+        assertFalse(result.dropped());
+        assertEquals(2, result.findings().size());
+        assertEquals(first, result.findings().get(0).code());
+        assertEquals(second, result.findings().get(1).code());
     }
 
     @Test
@@ -525,13 +548,18 @@ class SettingsNormalizeTest {
     }
 
     private static SettingsNode leafSpec(String name, String type, Object def, Object allowed) {
-        return leafSpec(name, type, def, allowed, null);
+        return leafSpec(name, type, def, allowed, null, false);
     }
 
     private static SettingsNode leafSpec(String name, String type, Object def, Object allowed,
             Object live) {
+        return leafSpec(name, type, def, allowed, live, live != null);
+    }
+
+    private static SettingsNode leafSpec(String name, String type, Object def, Object allowed,
+            Object live, boolean present) {
         return new SettingsNode(name, false, List.of(),
-                new SettingsTree.SettingSpec(type, def, allowed, live), false);
+                new SettingsTree.SettingSpec(type, def, allowed, live, present), false);
     }
 
     private static SettingsNode ambiguous(String name, SettingsTree.SettingSpec spec) {
@@ -540,6 +568,76 @@ class SettingsNormalizeTest {
 
     private static SettingsNode folder(String name, SettingsNode... children) {
         return new SettingsNode(name, true, List.of(children), null, false, "STONE");
+    }
+
+    @Test
+    void redundantValueWarns() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), 50, true));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        Diagnostic only = result.findings().get(0);
+        assertEquals(DiagnosticCode.W_REDUNDANT_VALUE, only.code());
+        assertEquals(Severity.WARNING, only.severity());
+        assertEquals("Modifier 'fog' setting 'rate' value repeats the default; omit it.",
+                only.message());
+    }
+
+    @Test
+    void redundantValueComparesAcrossIntAndDouble() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "DOUBLE", 3, Map.of("min", 0, "max", 10), 3.0, true));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        assertEquals(DiagnosticCode.W_REDUNDANT_VALUE,
+                result.findings().get(0).code());
+    }
+
+    @Test
+    void differingValueErrors() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), 60, true));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertEquals(1, result.findings().size());
+        Diagnostic only = result.findings().get(0);
+        assertEquals(DiagnosticCode.E_VALUE_DIFFERS, only.code());
+        assertEquals(Severity.ERROR, only.severity());
+        assertEquals("Modifier 'fog' setting 'rate' value differs from the default;"
+                + " shipped files must not carry overrides.", only.message());
+    }
+
+    @Test
+    void absentValueStaysSilent() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", 50, Map.of("min", 0, "max", 100), null, false));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        assertTrue(result.findings().isEmpty());
+    }
+
+    @Test
+    void missingDefaultSkipsBothChecks() {
+        SettingsTree settings = tree(
+                leafSpec("rate", "INTEGER", null, Map.of("min", 0, "max", 100), 50, true));
+
+        SettingsNormalize.Result result = SettingsNormalize.check("fog", settings, null);
+
+        assertFalse(result.dropped());
+        for (Diagnostic finding : result.findings()) {
+            assertNotEquals(DiagnosticCode.W_REDUNDANT_VALUE, finding.code());
+            assertNotEquals(DiagnosticCode.E_VALUE_DIFFERS, finding.code());
+        }
     }
 
     private static SettingsNode bareFolder(String name, SettingsNode... children) {

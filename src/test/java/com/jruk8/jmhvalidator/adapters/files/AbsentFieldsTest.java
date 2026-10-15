@@ -1,6 +1,7 @@
 package com.jruk8.jmhvalidator.adapters.files;
 
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
+import com.jruk8.jmhvalidator.core.model.DiagnosticCode;
 import com.jruk8.jmhvalidator.core.model.OptionsNode;
 import com.jruk8.jmhvalidator.core.model.SettingsTree;
 import java.nio.charset.StandardCharsets;
@@ -151,11 +152,13 @@ class AbsentFieldsTest {
         assertEquals("", read.settings().roots().get(0).spec().liveValue());
         SettingsNormalize.Result normalized =
                 SettingsNormalize.check("fog", read.settings(), null);
-        assertTrue(normalized.findings().isEmpty());
+        assertEquals(1, normalized.findings().size());
+        assertEquals(DiagnosticCode.E_VALUE_DIFFERS,
+                normalized.findings().get(0).code());
     }
 
     @Test
-    void unconstrainedTypedDefaultPasses(@TempDir Path tmp) throws Exception {
+    void unconstrainedTypedDefaultFlagsRedundant(@TempDir Path tmp) throws Exception {
         ModifierYaml.ReadResult read = read(tmp, "fog.yml",
                 "behavior:\n  main:\n    runs-on: [ON_START]\nconfig:\n"
                         + "  settings:\n    rate:\n      value: 5\n      def:\n"
@@ -165,7 +168,9 @@ class AbsentFieldsTest {
         assertSilent(read);
         SettingsNormalize.Result normalized =
                 SettingsNormalize.check("fog", read.settings(), null);
-        assertTrue(normalized.findings().isEmpty());
+        assertEquals(1, normalized.findings().size());
+        assertEquals(DiagnosticCode.W_REDUNDANT_VALUE,
+                normalized.findings().get(0).code());
     }
 
     @Test
