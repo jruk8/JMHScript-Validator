@@ -225,7 +225,8 @@ final class TagSyntaxErrors {
             case "fill" -> TagFill.fillError(name, args);
             case "replace" -> TagReplace.replaceError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
-                    "pslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
+                    "pslot", "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get",
+                    "pmaxhp.clear",
                     "pisusinghanditem", "pdamage" ->
                     TagPlayers.opError(name, args);
             case "plos" -> TagPlos.opError(name, args);

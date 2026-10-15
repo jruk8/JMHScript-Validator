@@ -13,6 +13,7 @@ import java.util.Optional;
  * {@code <premoveitem>} removes
  * items all-or-nothing; {@code <ptitle>} sends a center-screen title;
  * {@code <pslot>} gets and sets inventory slots by name or raw index;
+ * {@code <clearslot>} empties one slot by name or raw index;
  * {@code <pdamage>} deals damage with an optional attacker and type;
  * {@code <pmaxhp>} gets and sets max-health id contributions;
  * {@code <puuid>} reads the Mojang id as four ints. Reads resolve
@@ -60,6 +61,7 @@ public final class TagPlayers {
             case "premoveitem" -> count == 2 || count == 3;
             case "pdamage" -> count >= 2 && count <= 4;
             case "puuid" -> count == 1;
+            case "clearslot" -> count == 2;
             case "ptitle" -> count >= 3 && count <= 6;
             case "pmaxhp.set", "pmaxhp.modify" -> count == 3;
             case "pmaxhp.get" -> count == 2;
@@ -78,6 +80,7 @@ public final class TagPlayers {
             case "premoveitem" -> "2 or 3 args";
             case "pdamage" -> "2 to 4 args";
             case "puuid" -> "1 arg";
+            case "clearslot" -> "2 args";
             case "ptitle" -> "3 to 6 args";
             case "pmaxhp.set", "pmaxhp.modify" -> "3 args";
             case "pmaxhp.get" -> "2 args";
@@ -96,6 +99,7 @@ public final class TagPlayers {
             case "premoveitem" -> "<premoveitem:player,item,count>";
             case "pdamage" -> "<pdamage:player,amount>";
             case "puuid" -> "<puuid:player>";
+            case "clearslot" -> "<clearslot:player,slot>";
             case "ptitle" -> "<ptitle:player,title,subtitle>";
             case "pmaxhp.set" -> "<pmaxhp.set:player,id,amount>";
             case "pmaxhp.modify" -> "<pmaxhp.modify:player,id,amount>";
