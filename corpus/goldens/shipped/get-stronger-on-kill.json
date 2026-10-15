@@ -28,6 +28,15 @@
           "message": "Modifier 'get-stronger-on-kill' setting 'step' value repeats the default; omit it."
         },
         {
+          "behavior": "main",
+          "list": "player-cleanup",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_UNKNOWN_LIST",
+          "message": "Unknown commands list 'player-cleanup' in behavior 'main'; it never runs."
+        },
+        {
           "behavior": "",
           "list": "cap",
           "line": 0,
@@ -51,6 +60,6 @@
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 4
+    "warnings": 5
   }
 }

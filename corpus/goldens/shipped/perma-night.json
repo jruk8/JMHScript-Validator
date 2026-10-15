@@ -8,12 +8,22 @@
   "files": [
     {
       "file": "shipped/perma-night.yml",
-      "diagnostics": []
+      "diagnostics": [
+        {
+          "behavior": "main",
+          "list": "console-cleanup",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_UNKNOWN_LIST",
+          "message": "Unknown commands list 'console-cleanup' in behavior 'main'; it never runs."
+        }
+      ]
     }
   ],
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 0
+    "warnings": 1
   }
 }

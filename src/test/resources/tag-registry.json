@@ -269,6 +269,10 @@
     "ON_PLAYER_KILLS",
     "ON_HUNTER_KILLS",
     "ON_SPEEDRUNNER_KILLS",
+    "ON_BLOCK_BROKEN",
+    "ON_BLOCK_PLACED",
+    "ON_CRAFT_PREPARE",
+    "ON_CRAFT",
     "ON_NETHER_ENTER",
     "ON_END_ENTER",
     "ON_FIRST_NETHER_ENTER",
@@ -282,7 +286,8 @@
     "ON_DISCONNECT",
     "ON_ELIM",
     "ON_SPEEDRUNNER_ELIM",
-    "ON_HUNTER_ELIM"
+    "ON_HUNTER_ELIM",
+    "ON_CLEANUP"
   ],
   "removedTriggers": [
     "ON_FIRST_ENTER_NETHER",
