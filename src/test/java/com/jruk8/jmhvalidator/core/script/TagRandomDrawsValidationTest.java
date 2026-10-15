@@ -60,6 +60,11 @@ class TagRandomDrawsValidationTest {
     }
 
     @Test
+    void colorIsBuiltin() {
+        assertTrue(TagFunctions.isBuiltin("random-color"));
+    }
+
+    @Test
     void biomeHunterAndRunnerShapes() {
         assertTrue(TagRandomDraws.randomDrawError("random-biome", null).isEmpty());
         assertTrue(TagRandomDraws.randomDrawError("random-biome", "world").isEmpty());

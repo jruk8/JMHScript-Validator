@@ -28,6 +28,7 @@ final class TagTailErrors {
             case "rteleport" -> RoleTagSyntax.teleportError(name, args);
             case "fill" -> TagFill.fillError(name, args);
             case "replace" -> TagReplace.replaceError(name, args);
+            case "setblock", "getblock" -> TagBlocks.blocksError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle", "pslot",
                     "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
                     "pfx.set", "pfx.get", "pfx.clear", "pfx.duration", "pisusinghanditem",
