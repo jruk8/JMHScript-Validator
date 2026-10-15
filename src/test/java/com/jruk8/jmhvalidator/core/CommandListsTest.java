@@ -10,8 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * List-name pins: the six dispatched names pass, unknown
- * names warn in map order, matching is exact, and the
+ * List-name pins: the four dispatched names pass, unknown
+ * names warn in map order, matching is exact, the retired
+ * cleanup lists warn like any unknown list, and the
  * synthetic loader list stays silent for the shape check.
  */
 class CommandListsTest {
@@ -19,10 +20,24 @@ class CommandListsTest {
     @Test
     void dispatchedNamesStaySilent() {
         List<Diagnostic> found = CommandLists.check("fog", "main", List.of(
-                "console", "player", "hunter", "speedrunner",
-                "console-cleanup", "player-cleanup"));
+                "console", "player", "hunter", "speedrunner"));
 
         assertTrue(found.isEmpty());
+    }
+
+    @Test
+    void retiredCleanupListsWarn() {
+        List<Diagnostic> found = CommandLists.check("fog", "main", List.of(
+                "console-cleanup", "player-cleanup"));
+
+        assertEquals(2, found.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_LIST, found.get(0).code());
+        assertEquals(Severity.WARNING, found.get(0).severity());
+        assertEquals("console-cleanup", found.get(0).provenance().listName());
+        assertEquals("Unknown commands list 'console-cleanup' in behavior 'main';"
+                + " it never runs.", found.get(0).message());
+        assertEquals(DiagnosticCode.W_UNKNOWN_LIST, found.get(1).code());
+        assertEquals("player-cleanup", found.get(1).provenance().listName());
     }
 
     @Test

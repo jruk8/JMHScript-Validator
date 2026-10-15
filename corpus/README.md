@@ -15,9 +15,13 @@ until proven otherwise.
 
 Presets carry no behavior lines and are excluded. The registry
 used at generation is `src/test/resources/tag-registry.json`
-(256 tags and 20 triggers matching JManhunt rev `10e2b55`
-through current, plus 2154 materials from the current
-export).
+(258 tags and 25 triggers: the tag table frozen at rev
+`10e2b55` plus the live trigger table with `ON_CLEANUP`,
+`engineVersion` still pinned at `rev-10e2b55`, plus 2154
+materials from the current export). Shipped inputs stay frozen
+at `10e2b55` even as the engine converts its own copies, so
+the three retired-list inputs now pin the `W_UNKNOWN_LIST`
+warnings those lists produce.
 
 ## Coverage
 
@@ -43,6 +47,9 @@ design: frozen files carry the old value-plus-default
 convention, so the goldens pin the nudge to omit the key.
 `E_VALUE_DIFFERS` stays silent (no shipped fixture carries
 an override); its pins live in the core unit tests.
+`W_UNKNOWN_LIST` fires once each on the three frozen
+retired-list inputs (`perma-night`, `get-stronger-on-kill`,
+`speedrunner-health-advantage`).
 
 ## Refresh procedure (deliberate behavior changes only)
 

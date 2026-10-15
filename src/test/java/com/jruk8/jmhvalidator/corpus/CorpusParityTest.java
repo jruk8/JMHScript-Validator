@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.jruk8.jmhvalidator.adapters.cli.ReportJson;
 import com.jruk8.jmhvalidator.adapters.files.ModifierYaml;
 import com.jruk8.jmhvalidator.adapters.files.TagRegistryFiles;
+import com.jruk8.jmhvalidator.core.CommandLists;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.RunTriggers;
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
@@ -23,6 +24,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -80,6 +82,10 @@ class CorpusParityTest {
             List<String> runsOn = block.getValue() == null ? null : block.getValue().runsOn();
             found.addAll(RunTriggers.check(stem, block.getKey(), runsOn,
                     registry.triggers()));
+            Set<String> lists = block.getValue() == null
+                    || block.getValue().lists() == null
+                    ? null : block.getValue().lists().keySet();
+            found.addAll(CommandLists.check(stem, block.getKey(), lists));
         }
         found.addAll(read.keys());
         if (!normalized.dropped()) {
