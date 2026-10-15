@@ -38,6 +38,8 @@ behavior:
         - 'say <active-players:<lf:t>>'
         - 'say <switch:1>'
         - 'say <setting:>'
+        - 'say <place:0 64 0>'
+        - 'say <kill:Steve,Alex,maybe>'
         - ''
       console:
         - 'say <win:<lf:team>,done>'

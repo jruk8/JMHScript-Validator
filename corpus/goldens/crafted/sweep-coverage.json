@@ -274,6 +274,24 @@
           "behavior": "main",
           "list": "player",
           "line": 31,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <place> needs a loc and a target like <place:0 64 0,stone>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 32,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <kill> force wants true or false."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 33,
           "char": null,
           "severity": "error",
           "code": "E_SYNTAX",
@@ -338,7 +356,7 @@
   ],
   "summary": {
     "files": 1,
-    "errors": 31,
+    "errors": 33,
     "warnings": 5
   }
 }
