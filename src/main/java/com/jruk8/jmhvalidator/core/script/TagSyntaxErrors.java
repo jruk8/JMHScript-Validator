@@ -20,7 +20,8 @@ final class TagSyntaxErrors {
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
         return switch (name) {
-            case "random-num" -> randomNumberError(args); case "random-pick" -> randomPickError(args);
+            case "random-num", "random-pick", "random-sound", "random-effect", "random-enchant",
+                    "random-biome", "random-hunter", "random-runner" -> picksError(name, args);
             case "id", "i", "pi", "e" -> noArgsError(name, args);
             case "min", "max", "clamp", "atan2", "lerp", "smoothstep", "smootherstep",
                     "sum", "average", "avg", "median" ->
@@ -32,8 +33,7 @@ final class TagSyntaxErrors {
             case "gflag", "gf", "pflag", "pf", "lflag", "lf" -> flagError(name, args);
             case "rflag" -> RoleTagSyntax.flagError(name, args);
             case "placeholder" -> arityError(name, args, 1, "one key");
-            case "loseplayer" -> loseplayerError(name, args);
-            case "win" -> winError(name, args);
+            case "loseplayer" -> loseplayerError(name, args); case "win" -> winError(name, args);
             case "pswitch", "rswitch", "gswitch" -> pswitchError(name, args);
             case "args" -> argsError(name, args);
             case "default" -> topLevelArityError(name, args, 2, "<default:value,fallback>");
@@ -58,6 +58,15 @@ final class TagSyntaxErrors {
                     "parts.circle2d", "parts.rectangle", "parts.box", "parts.cube", "parts.block",
                     "parts.cancel" -> TagParticles.opError(name, args);
             default -> collectionsError(name, args);
+        };
+    }
+
+    /** Random picks and draws behind {@link #tagError}. */
+    private static Optional<String> picksError(String name, String args) {
+        return switch (name) {
+            case "random-num" -> randomNumberError(args);
+            case "random-pick" -> randomPickError(args);
+            default -> TagRandomDraws.randomDrawError(name, args);
         };
     }
 
