@@ -61,6 +61,7 @@ final class TagSyntaxErrors {
             case "intercept", "give", "dropitem", "itemtag", "rgive", "ggive", "ritemtag",
                     "gitemtag" ->
                     TagItemOps.opError(name, args);
+            case "summon" -> TagSummon.opError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
                     "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
                     "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
