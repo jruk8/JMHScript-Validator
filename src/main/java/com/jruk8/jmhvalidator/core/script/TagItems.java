@@ -24,14 +24,18 @@ public final class TagItems {
      * an optional count, quotes parsed. Mirrors the runtime warns.
      */
     public static Optional<String> syntaxError(String name, String args) {
+        boolean global = name.equals("ghasitem");
+        int floor = global ? 1 : 2;
+        int ceiling = global ? 2 : 3;
+        String shape = global ? "an item and an optional count"
+                : name.equals("rhasitem") ? "a role, an item, and an optional count"
+                : "a player, an item, and an optional count";
         if (args == null || args.isBlank()) {
-            return Optional.of("Tag <" + name + "> needs a player, an item, "
-                    + "and an optional count.");
+            return Optional.of("Tag <" + name + "> needs " + shape + ".");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() < 2 || parts.size() > 3) {
-            return Optional.of("Tag <" + name + "> needs a player, an item, "
-                    + "and an optional count.");
+        if (parts.size() < floor || parts.size() > ceiling) {
+            return Optional.of("Tag <" + name + "> needs " + shape + ".");
         }
         for (String part : parts) {
             if (TagHeads.parsePickItem(part).isEmpty()) {
@@ -46,12 +50,17 @@ public final class TagItems {
      * item, quotes parsed. Mirrors the runtime warns.
      */
     public static Optional<String> countSyntaxError(String name, String args) {
+        boolean global = name.equals("gcountitem");
+        String shape = global ? "an item"
+                : name.equals("rcountitem") ? "a role and an item"
+                : "a player and an item";
+        int arity = global ? 1 : 2;
         if (args == null || args.isBlank()) {
-            return Optional.of("Tag <" + name + "> needs a player and an item.");
+            return Optional.of("Tag <" + name + "> needs " + shape + ".");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 2) {
-            return Optional.of("Tag <" + name + "> needs a player and an item.");
+        if (parts.size() != arity) {
+            return Optional.of("Tag <" + name + "> needs " + shape + ".");
         }
         for (String part : parts) {
             if (TagHeads.parsePickItem(part).isEmpty()) {

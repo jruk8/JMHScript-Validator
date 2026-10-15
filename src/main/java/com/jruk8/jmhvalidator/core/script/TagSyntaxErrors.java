@@ -4,6 +4,7 @@ import com.jruk8.jmhvalidator.core.ports.TagRegistry;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -33,23 +34,37 @@ final class TagSyntaxErrors {
             case "pstat" -> playerStatError(name, args);
             case "gstat" -> statError(name, args, 0, TagStats.GSTAT_KEYS);
             case "rstat" -> roleStatError(name, args);
-            case "phasitem", "pcountitem" -> itemError(name, args);
+            case "phasitem", "pcountitem", "rhasitem", "rcountitem", "ghasitem", "gcountitem" ->
+                    itemError(name, args);
             case "gflag", "gf", "pflag", "pf", "lflag", "lf" -> flagError(name, args);
             case "rflag" -> RoleTagSyntax.flagError(name, args);
             case "placeholder" -> arityError(name, args, 1, "one key");
             case "loseplayer" -> loseplayerError(name, args);
-            case "win" -> winError(name, args); case "pswitch" -> pswitchError(name, args);
+            case "win" -> winError(name, args);
+            case "pswitch", "rswitch", "gswitch" -> pswitchError(name, args);
             case "args" -> argsError(name, args);
             case "default" -> topLevelArityError(name, args, 2, "<default:value,fallback>");
             case "active-players" -> activePlayersError(name, args);
             case "rcolor" -> rcolorError(name, args);
             case "plocation", "ploc", "prole", "peliminated", "pworld", "world", "px", "py",
-                    "pz", "pyaw", "ppitch", "pheld" -> playerNameError(name, args);
+                    "pz", "pyaw", "ppitch", "pheld", "pdirx", "pdiry", "pdirz" ->
+                    playerNameError(name, args);
+            case "rlocation", "rloc", "reliminated", "rworld", "rx", "ry", "rz", "ryaw",
+                    "rpitch", "rheld", "rdirx", "rdiry", "rdirz" -> roleNameError(name, args);
+            case "glocation", "gloc", "geliminated", "gworld", "gx", "gy", "gz", "gyaw",
+                    "gpitch", "gheld", "gdirx", "gdiry", "gdirz" -> arglessError(name, args);
             case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
-                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir" ->
+                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
+                    "rdir", "gdir" ->
                     TagVectors.opError(name, args);
             case "raycast", "raycastext" -> TagRaycast.opError(name, args);
-            case "intercept", "give", "dropitem", "itemtag" -> TagItemOps.opError(name, args);
+            case "intercept", "give", "dropitem", "itemtag", "rgive", "ggive", "ritemtag",
+                    "gitemtag" ->
+                    TagItemOps.opError(name, args);
+            case "summon" -> TagSummon.opError(name, args);
+            case "gamerule", "rule", "timeset", "timeadd", "timeget" ->
+                    TagWorldClock.opError(name, args);
+            case "place", "kill" -> TagPlaceKill.opError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
                     "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
                     "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
@@ -87,7 +102,8 @@ final class TagSyntaxErrors {
             case "string.listformat", "string.lformat", "s.listformat", "s.lformat" ->
                     TagStrings.opError(name, args);
             case "pcooldown", "pcooldown.get", "pcooldown.reset", "gcooldown", "gcooldown.get",
-                    "gcooldown.reset" -> TagCooldowns.syntaxError(name, args);
+                    "gcooldown.reset", "rcooldown", "rcooldown.get", "rcooldown.reset" ->
+                    TagCooldowns.syntaxError(name, args);
             default -> tailError(name, args);
         };
     }
@@ -201,8 +217,10 @@ final class TagSyntaxErrors {
     }
 
     private static Optional<String> itemError(String name, String args) {
-        return name.equals("phasitem") ? TagItems.syntaxError(name, args)
-                : TagItems.countSyntaxError(name, args);
+        return switch (name) {
+            case "phasitem", "rhasitem", "ghasitem" -> TagItems.syntaxError(name, args);
+            default -> TagItems.countSyntaxError(name, args);
+        };
     }
 
     /** Trailing tag names behind {@link #tagError}: sinks, proximity, math, loops, defs. */
@@ -217,18 +235,28 @@ final class TagSyntaxErrors {
             case "gsound" -> TagSinks.soundError(name, args);
             case "psound" -> TagSinks.playerSoundError(name, args);
             case "rsound" -> RoleTagSyntax.soundError(name, args);
-            case "peffect", "peff", "geffect", "geff", "reffect", "reff", "phaseffect" ->
-                    TagEffects.effectError(name, args);
+            case "phaseffect", "rhaseffect", "ghaseffect" -> TagEffects.effectError(name, args);
             case "gteleport" -> TagSinks.teleportError(name, args);
             case "pteleport" -> TagSinks.playerTeleportError(name, args);
             case "rteleport" -> RoleTagSyntax.teleportError(name, args);
             case "fill" -> TagFill.fillError(name, args);
             case "replace" -> TagReplace.replaceError(name, args);
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
-                    "pslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
-                    "pisusinghanditem", "pdamage" ->
+                    "pslot", "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get",
+                    "pmaxhp.clear", "pfx.set", "pfx.get", "pfx.clear", "pfx.duration",
+                    "pisusinghanditem", "pdamage", "puuid" ->
                     TagPlayers.opError(name, args);
-            case "plos" -> TagPlos.opError(name, args);
+            case "rstate", "rstandingon", "rblock", "rismoving", "rremoveitem", "rtitle",
+                    "rslot", "rclearslot", "rmaxhp.set", "rmaxhp.modify", "rmaxhp.get",
+                    "rmaxhp.clear", "rfx.set", "rfx.get", "rfx.clear", "rfx.duration",
+                    "risusinghanditem", "rdamage", "ruuid" ->
+                    TagPlayers.opError(name, args);
+            case "gstate", "gstandingon", "gblock", "gismoving", "gremoveitem", "gtitle",
+                    "gslot", "gclearslot", "gmaxhp.set", "gmaxhp.modify", "gmaxhp.get",
+                    "gmaxhp.clear", "gfx.set", "gfx.get", "gfx.clear", "gfx.duration",
+                    "gisusinghanditem", "gdamage", "guuid" ->
+                    TagPlayers.opError(name, args);
+            case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
             case "overlap-players", "nearby-players" -> proximityError(name, args);
             case "distance" -> topLevelArityError(name, args, 2, "<distance:loc1,loc2>");
             case "ismobhostile" -> TagEntities.opError(name, args);
@@ -259,11 +287,22 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
+    /** Removed tags and their ledger replacements. */
+    private static final Map<String, String> REMOVED_TAGS = Map.of(
+            "peffect", "pfx.set", "peff", "pfx.set",
+            "geffect", "gfx.set", "geff", "gfx.set",
+            "reffect", "rfx.set", "reff", "rfx.set");
+
     public static void collectWarnings(String body, List<String> found,
             Collection<String> knownFunctions, TagRegistry registry) {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
+        if (REMOVED_TAGS.containsKey(name)) {
+            found.add("Tag '<" + name + ">' was removed; use '<"
+                    + REMOVED_TAGS.get(name) + ">' instead.");
+            return;
+        }
         if (!registry.isKnown(name) && !knownFunctions.contains(name)) {
             found.add("Unknown tag '<" + body.trim() + ">', left untouched at runtime.");
             return;
@@ -398,23 +437,36 @@ final class TagSyntaxErrors {
      * role after the first comma.
      */
     public static Optional<String> pswitchError(String name, String args) {
-        String usage = "Tag <pswitch> needs a player and a role like <pswitch:Steve,HUNTER>.";
+        String usage = switch (name) {
+            case "rswitch" -> "Tag <rswitch> needs a role and a new role like <rswitch:hunter,SPEEDRUNNER>.";
+            case "gswitch" -> "Tag <gswitch> needs a new role like <gswitch:SPEEDRUNNER>.";
+            default -> "Tag <pswitch> needs a player and a role like <pswitch:Steve,HUNTER>.";
+        };
         if (args == null || args.isBlank()) {
             return Optional.of(usage);
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 2
+        int arity = name.equals("gswitch") ? 1 : 2;
+        if (parts.size() != arity
                 || TagHeads.parsePickItem(parts.get(0)).isEmpty()) {
             return Optional.of(usage);
         }
-        Optional<String> target = TagHeads.parsePickItem(parts.get(1));
+        Optional<String> target = TagHeads.parsePickItem(parts.get(parts.size() - 1));
         if (target.isPresent() && target.get().contains("?")) {
             return Optional.empty();
         }
         if (target.flatMap(Role::parse).isEmpty()) {
-            return Optional.of("Tag <pswitch> needs a valid role like <pswitch:Steve,HUNTER>.");
+            return Optional.of("Tag <" + name + "> needs a valid role like " + usageExample(name) + ".");
         }
         return Optional.empty();
+    }
+
+    private static String usageExample(String name) {
+        return switch (name) {
+            case "rswitch" -> "<rswitch:hunter,SPEEDRUNNER>";
+            case "gswitch" -> "<gswitch:SPEEDRUNNER>";
+            default -> "<pswitch:Steve,HUNTER>";
+        };
     }
 
     /**
@@ -576,6 +628,33 @@ final class TagSyntaxErrors {
         List<String> parts = TagLists.splitTopLevel(args);
         if (parts.size() != 1 || TagHeads.parsePickItem(parts.get(0)).isEmpty()) {
             return Optional.of("Tag <" + name + "> needs a player like <" + name + ":Steve>.");
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Role-name shape for the {@code <r*>} twins of the
+     * one-player reads: one present, quote-clean role like
+     * {@code <rheld:hunter>}.
+     */
+    public static Optional<String> roleNameError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a role like <" + name + ":hunter>.");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() != 1 || TagHeads.parsePickItem(parts.get(0)).isEmpty()) {
+            return Optional.of("Tag <" + name + "> needs a role like <" + name + ":hunter>.");
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Argless shape for the {@code <g*>} twins of the one-player
+     * reads: no args, like {@code <gheld>}.
+     */
+    public static Optional<String> arglessError(String name, String args) {
+        if (args != null && !args.isBlank()) {
+            return Optional.of("Tag <" + name + "> takes no args like <" + name + ">.");
         }
         return Optional.empty();
     }

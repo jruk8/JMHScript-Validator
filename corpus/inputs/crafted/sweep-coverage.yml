@@ -31,12 +31,15 @@ behavior:
         - 'say <count'
         - 'say done>>'
         - 'say <bogus:1>'
+        - 'say <peffect:Steve,[[speed,0,5]]>'
         - 'say <random-pick:ok,"bad>'
         - 'say <random-pick:ok,>'
         - 'say <all-players:HUNTER1>'
         - 'say <active-players:<lf:t>>'
         - 'say <switch:1>'
         - 'say <setting:>'
+        - 'say <place:0 64 0>'
+        - 'say <kill:Steve,Alex,maybe>'
         - ''
       console:
         - 'say <win:<lf:team>,done>'
@@ -48,3 +51,7 @@ behavior:
       player:
         - 'say <gstat:boguskey>'
         - 'say <loseplayer:>'
+        - 'say <rstate:hunter,SNEAK> <gheld> <gcooldown:dash,5>'
+        - 'say <rcooldown:hunter,dash>'
+        - 'say <gswitch:>'
+        - 'say <rheld>'

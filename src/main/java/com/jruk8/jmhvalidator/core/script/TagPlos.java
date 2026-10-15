@@ -26,25 +26,32 @@ public final class TagPlos {
      * values validate at runtime). Mirrors the runtime warns.
      */
     public static Optional<String> opError(String name, String args) {
+        int floor = name.equals("glos") ? 1 : 2;
+        int ceiling = name.equals("glos") ? 3 : 4;
+        String range = name.equals("glos") ? "1 to 3 args" : "2 to 4 args";
         if (args == null || args.isBlank()) {
-            return Optional.of("Tag <plos> needs 2 to 4 args like " + example() + ".");
+            return Optional.of("Tag <" + name + "> needs " + range + " like "
+                    + example(name) + ".");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() < 2 || parts.size() > 4) {
-            return Optional.of("Tag <plos> needs 2 to 4 args like " + example() + ".");
+        if (parts.size() < floor || parts.size() > ceiling) {
+            return Optional.of("Tag <" + name + "> needs " + range + " like "
+                    + example(name) + ".");
         }
         for (String part : parts) {
             if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
-                return Optional.of("Tag <plos> mixes quotes.");
+                return Optional.of("Tag <" + name + "> mixes quotes.");
             }
         }
-        if (parts.size() > 2 && literalLimit(parts.get(2)) != null
-                && literalLimit(parts.get(2)) <= 0) {
-            return Optional.of("Tag <plos> needs a positive maxdist.");
+        int options = parts.size() - floor;
+        if (options > 0 && literalLimit(parts.get(parts.size() - options)) != null
+                && literalLimit(parts.get(parts.size() - options)) <= 0) {
+            return Optional.of("Tag <" + name + "> needs a positive maxdist.");
         }
-        if (parts.size() > 3 && literalLimit(parts.get(3)) != null
-                && (literalLimit(parts.get(3)) < 0 || literalLimit(parts.get(3)) > 180)) {
-            return Optional.of("Tag <plos> maxangle clamps to 0..180.");
+        if (options > 1 && literalLimit(parts.get(parts.size() - 1)) != null
+                && (literalLimit(parts.get(parts.size() - 1)) < 0
+                || literalLimit(parts.get(parts.size() - 1)) > 180)) {
+            return Optional.of("Tag <" + name + "> maxangle clamps to 0..180.");
         }
         return Optional.empty();
     }
@@ -62,7 +69,16 @@ public final class TagPlos {
         }
     }
 
+    public static String example(String name) {
+        return switch (name) {
+            case "rlos" -> "<rlos:role,target,maxdist,maxangle>";
+            case "glos" -> "<glos:target,maxdist,maxangle>";
+            default -> "<plos:player,target,maxdist,maxangle>";
+        };
+    }
+
+    /** Engine-facing example for the {@code <plos>} head. */
     public static String example() {
-        return "<plos:player,target,maxdist,maxangle>";
+        return example("plos");
     }
 }

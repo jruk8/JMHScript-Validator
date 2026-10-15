@@ -221,6 +221,15 @@
           "list": "player",
           "line": 24,
           "char": 5,
+          "severity": "warning",
+          "code": "W_REMOVED_TAG",
+          "message": "Tag '<peffect>' was removed; use '<pfx.set>' instead."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 25,
+          "char": 5,
           "severity": "error",
           "code": "E_BRACKET_UNCLOSED_OPEN",
           "message": "Unclosed angle bracket"
@@ -228,7 +237,7 @@
         {
           "behavior": "main",
           "list": "player",
-          "line": 25,
+          "line": 26,
           "char": 5,
           "severity": "warning",
           "code": "W_RANDOM_PICK_ITEM",
@@ -237,7 +246,7 @@
         {
           "behavior": "main",
           "list": "player",
-          "line": 26,
+          "line": 27,
           "char": 5,
           "severity": "warning",
           "code": "W_ALL_PLAYERS_FILTER",
@@ -246,7 +255,7 @@
         {
           "behavior": "main",
           "list": "player",
-          "line": 28,
+          "line": 29,
           "char": 5,
           "severity": "error",
           "code": "E_SYNTAX",
@@ -255,7 +264,7 @@
         {
           "behavior": "main",
           "list": "player",
-          "line": 29,
+          "line": 30,
           "char": 5,
           "severity": "error",
           "code": "E_SYNTAX",
@@ -264,7 +273,25 @@
         {
           "behavior": "main",
           "list": "player",
-          "line": 30,
+          "line": 31,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <place> needs a loc and a target like <place:0 64 0,stone>."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 32,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <kill> force wants true or false."
+        },
+        {
+          "behavior": "main",
+          "list": "player",
+          "line": 33,
           "char": null,
           "severity": "error",
           "code": "E_SYNTAX",
@@ -290,6 +317,33 @@
         },
         {
           "behavior": "second",
+          "list": "player",
+          "line": 4,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <rcooldown> needs 3 args like <rcooldown:role,key,seconds>."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 5,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <gswitch> needs a new role like <gswitch:SPEEDRUNNER>."
+        },
+        {
+          "behavior": "second",
+          "list": "player",
+          "line": 6,
+          "char": 5,
+          "severity": "error",
+          "code": "E_SYNTAX",
+          "message": "Tag <rheld> needs a role like <rheld:hunter>."
+        },
+        {
+          "behavior": "second",
           "list": "",
           "line": 0,
           "char": null,
@@ -302,7 +356,7 @@
   ],
   "summary": {
     "files": 1,
-    "errors": 28,
-    "warnings": 4
+    "errors": 33,
+    "warnings": 5
   }
 }

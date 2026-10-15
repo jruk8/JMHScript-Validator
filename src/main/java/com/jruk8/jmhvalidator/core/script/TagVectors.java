@@ -29,11 +29,8 @@ public final class TagVectors {
      */
     public static Optional<String> opError(String name, String args) {
         int count = arity(name);
-        if (args == null || args.isBlank()) {
-            return Optional.of("Tag <" + name + "> needs " + count + " args like "
-                    + example(name) + ".");
-        }
-        List<String> parts = TagLists.splitTopLevel(args);
+        List<String> parts = args == null || args.isBlank()
+                ? List.of() : TagLists.splitTopLevel(args);
         if (parts.size() != count) {
             return Optional.of("Tag <" + name + "> needs " + count + " args like "
                     + example(name) + ".");
@@ -48,7 +45,8 @@ public final class TagVectors {
 
     public static int arity(String name) {
         return switch (name) {
-            case "pdir", "vec.normalize", "vec.mag", "vec.mag2d" -> 1;
+            case "pdir", "rdir", "vec.normalize", "vec.mag", "vec.mag2d" -> 1;
+            case "gdir" -> 0;
             case "loc.shift" -> 3;
             default -> 2;
         };
@@ -57,6 +55,8 @@ public final class TagVectors {
     public static String example(String name) {
         return switch (name) {
             case "pdir" -> "<pdir:player>";
+            case "rdir" -> "<rdir:role>";
+            case "gdir" -> "<gdir>";
             case "vec.add" -> "<vec.add:a,b>";
             case "vec.sub" -> "<vec.sub:a,b>";
             case "vec.mult" -> "<vec.mult:vec,scalar>";

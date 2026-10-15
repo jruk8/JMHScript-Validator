@@ -195,6 +195,11 @@ Message text stays byte-identical to the engine.
   array report these as unknown triggers instead.
   Example: `Trigger 'ON_MOB_KILL' was removed or
   renamed; it never fires.`.
+- `W_REMOVED_TAG`: Removed tag. A tag the engine
+  removed, so the line runs untouched at runtime.
+  The message names the replacement. Example:
+  `Tag '<peffect>' was removed; use '<pfx.set>'
+  instead.`.
 
 Settings style findings carry the dotted settings path in
 the `list` field with an empty `behavior`, line 0, and a
