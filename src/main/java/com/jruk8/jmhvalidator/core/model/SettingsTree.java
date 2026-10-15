@@ -31,10 +31,11 @@ public record SettingsTree(List<SettingsNode> roots) {
     /**
      * One leaf's spec: raw type, default, and allowed from the
      * `def.value` block, plus the live `value:` beside the def
-     * (null when the key is absent).
+     * (null when the key is absent) and whether that key exists
+     * at all, so absent reads apart from explicit nulls.
      */
     public record SettingSpec(String type, Object defaultValue, Object allowed,
-            Object liveValue) {
+            Object liveValue, boolean valuePresent) {
     }
 
     /** Empty model for files with no settings. */

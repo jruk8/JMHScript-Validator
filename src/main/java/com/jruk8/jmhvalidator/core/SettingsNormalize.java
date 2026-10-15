@@ -94,6 +94,26 @@ public final class SettingsNormalize {
     }
 
     /**
+     * Message for a stored value repeating its default.
+     * Validator-side only: the engine never emits this, since
+     * a redundant key still loads fine.
+     */
+    public static String redundantMessage(String modifierId, String path) {
+        return "Modifier '" + modifierId + "' setting '" + path
+                + "' value repeats the default; omit it.";
+    }
+
+    /**
+     * Message for a stored value differing from its default.
+     * Validator-side only: the engine never emits this, since
+     * operator overrides are legitimate at load.
+     */
+    public static String differsMessage(String modifierId, String path) {
+        return "Modifier '" + modifierId + "' setting '" + path
+                + "' value differs from the default; shipped files must not carry overrides.";
+    }
+
+    /**
      * Message for a setting defining both value and folder.
      * Byte-identical to the engine normalize warning.
      */
@@ -194,6 +214,28 @@ public final class SettingsNormalize {
                     Severity.WARNING, DiagnosticCode.W_VALUE_INVALID,
                     valueMessage(modifierId, path)));
         }
+        checkStoredValue(modifierId, path, spec, found);
+    }
+
+    /**
+     * Compares a stored value against its default: equal reads
+     * redundant, different reads as a shipped override. Skips
+     * absent values and missing defaults. Validator-side only.
+     */
+    private static void checkStoredValue(String modifierId, String path,
+            SettingSpec spec, List<Diagnostic> found) {
+        if (!spec.valuePresent() || spec.defaultValue() == null) {
+            return;
+        }
+        if (SettingCoerce.sameRaw(spec.liveValue(), spec.defaultValue())) {
+            found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
+                    Severity.WARNING, DiagnosticCode.W_REDUNDANT_VALUE,
+                    redundantMessage(modifierId, path)));
+            return;
+        }
+        found.add(new Diagnostic(new Provenance(modifierId, "", path, -1), -1,
+                Severity.ERROR, DiagnosticCode.E_VALUE_DIFFERS,
+                differsMessage(modifierId, path)));
     }
 
     private static Diagnostic at(String modifierId, String path) {

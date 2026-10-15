@@ -428,7 +428,7 @@ public final class ModifierYaml {
                 spec = new SettingsTree.SettingSpec(
                         type == null ? null : String.valueOf(type),
                         valueMap.get("default"), valueMap.get("allowed"),
-                        valuePresent ? map.get("value") : null);
+                        valuePresent ? map.get("value") : null, valuePresent);
             }
             if (defMap.get("meta") instanceof Map<?, ?> metaMap) {
                 Object rawIcon = metaMap.get("icon");

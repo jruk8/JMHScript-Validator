@@ -58,6 +58,8 @@ public enum DiagnosticCode {
     W_DEFAULT_OUTSIDE_ALLOWED("Default outside allowed"),
     /** Live setting value falls outside its type or allowed range. */
     W_VALUE_INVALID("Value invalid"),
+    W_REDUNDANT_VALUE("Redundant value"),
+    E_VALUE_DIFFERS("Value differs from default"),
     /** One YAML mapping repeats a key; the loader keeps the last. */
     W_DUPLICATE_KEY("Duplicate YAML key"),
     /** Scanned id reuses an engine-bundled id without being its copy. */

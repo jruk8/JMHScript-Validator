@@ -99,6 +99,19 @@ Message text stays byte-identical to the engine.
   resets it at load. Absent values fill from the default
   silently. Example: `Modifier 'fog' setting 'rate' value
   is invalid; reset to default.`.
+- `W_REDUNDANT_VALUE`: Redundant value. A stored setting
+  value repeats its default, so the key is noise; omit it
+  and let the default show through. Validator-side only,
+  the engine loads such files fine. Example: `Modifier
+  'fog' setting 'rate' value repeats the default; omit
+  it.`.
+- `E_VALUE_DIFFERS`: Value differs from default. A stored
+  setting value differs from its default, which means a
+  shipped file carries an operator override. Validator-side
+  only, the engine never emits this since overrides are
+  legitimate at load. Example: `Modifier 'fog' setting
+  'rate' value differs from the default; shipped files must
+  not carry overrides.`.
 - `W_DUPLICATE_KEY`: Duplicate YAML key. One mapping repeats
   a key, so the loader keeps the last value and drops the
   earlier ones. Anchors with merge-plus-override never match
