@@ -32,7 +32,7 @@ public final class TagRaycast {
                     + example(name) + ".");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() < 3 || parts.size() > (extended ? 5 : 4)) {
+        if (parts.size() < 3 || parts.size() > (extended ? 6 : 4)) {
             return Optional.of("Tag <" + name + "> needs " + shape(extended) + " like "
                     + example(name) + ".");
         }
@@ -52,9 +52,9 @@ public final class TagRaycast {
         return Optional.empty();
     }
 
-    /** Arg-count shape per head: raycast takes 3 or 4, raycastext 3 to 5. */
+    /** Arg-count shape per head: raycast takes 3 or 4, raycastext 3 to 6. */
     private static String shape(boolean extended) {
-        return extended ? "3, 4, or 5 args" : "3 or 4 args";
+        return extended ? "3, 4, 5, or 6 args" : "3 or 4 args";
     }
 
     public static String example() {
@@ -63,7 +63,7 @@ public final class TagRaycast {
 
     public static String example(String name) {
         if ("raycastext".equals(name)) {
-            return "<raycastext:point,dir,reach,mask,ignore>";
+            return "<raycastext:point,dir,reach,mask,ignore,spread>";
         }
         return "<raycast:point,dir,reach,mask>";
     }

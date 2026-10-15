@@ -38,18 +38,20 @@ class TagRaycastValidationTest {
         assertTrue(TagRaycast.opError("raycastext", null).isPresent());
         assertTrue(TagRaycast.opError("raycastext", "[0,64,0,world,0,0],[1,0,0]").isPresent());
         assertTrue(TagRaycast.opError("raycastext",
-                "[0,64,0,world,0,0],[1,0,0],10,player,Steve,extra").isPresent());
+                "[0,64,0,world,0,0],[1,0,0],10,player,Steve,1,extra").isPresent());
         assertTrue(TagRaycast.opError("raycastext", "[0,64,0,world,0,0],[1,0,0],10").isEmpty());
         assertTrue(TagRaycast.opError("raycastext",
                 "[0,64,0,world,0,0],[1,0,0],10,block+player,Steve").isEmpty());
         assertTrue(TagRaycast.opError("raycastext",
+                "[0,64,0,world,0,0],[1,0,0],10,block+player,Steve,1").isEmpty());
+        assertTrue(TagRaycast.opError("raycastext",
                 "[0,64,0,world,0,0],[1,0,0],10,stone").isPresent());
         assertTrue(TagRaycast.opError("raycast",
                 "[0,64,0,world,0,0],[1,0,0],10,player,Steve").isPresent());
-        assertEquals("Tag <raycastext> needs 3, 4, or 5 args like "
-                        + "<raycastext:point,dir,reach,mask,ignore>.",
+        assertEquals("Tag <raycastext> needs 3, 4, 5, or 6 args like "
+                        + "<raycastext:point,dir,reach,mask,ignore,spread>.",
                 TagRaycast.opError("raycastext", "[0,64,0,world,0,0],[1,0,0]").orElseThrow());
-        assertEquals("<raycastext:point,dir,reach,mask,ignore>",
+        assertEquals("<raycastext:point,dir,reach,mask,ignore,spread>",
                 TagRaycast.example("raycastext"));
     }
 }
