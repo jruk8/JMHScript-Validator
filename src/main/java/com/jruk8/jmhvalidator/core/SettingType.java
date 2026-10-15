@@ -14,6 +14,8 @@ public enum SettingType {
     STRING,
     ENUM,
     MATERIAL,
+    BLOCK,
+    SOLID_BLOCK,
     COLOR,
     LIST,
     EFFECTS,

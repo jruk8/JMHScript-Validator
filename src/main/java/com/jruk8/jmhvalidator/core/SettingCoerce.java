@@ -33,7 +33,7 @@ public final class SettingCoerce {
             case BOOLEAN -> Boolean.FALSE;
             case INTEGER -> 0L;
             case DOUBLE -> 0.0;
-            case STRING, ENUM, MATERIAL, COLOR -> "";
+            case STRING, ENUM, MATERIAL, BLOCK, SOLID_BLOCK, COLOR -> "";
             case LIST, EFFECTS, ITEMS, WEIGHTED_ITEM -> new ArrayList<>();
             case MESSAGE -> List.of(false, "");
             case SOUND -> List.of(false, "", 1.0, 1.0);
@@ -66,6 +66,8 @@ public final class SettingCoerce {
             case STRING -> coerceString(value, allowed);
             case ENUM -> coerceEnum(value, allowed);
             case MATERIAL -> coerceMaterial(value, known);
+            case BLOCK -> coerceBlock(value, known);
+            case SOLID_BLOCK -> coerceSolidBlock(value, known);
             case COLOR -> coerceColor(value);
             case LIST -> coerceList(value, allowed);
             case EFFECTS -> coerceTriples(value, 3, false, known);
@@ -214,6 +216,33 @@ public final class SettingCoerce {
             return text;
         }
         return known.isKnown(KnownMaterials.normalize(text)) ? text : null;
+    }
+
+    /**
+     * Block names: known blocks only. Registries that predate the
+     * block sets carry no data, so those fall back to the
+     * known-name check and the engine enforces at load.
+     */
+    private static String coerceBlock(Object value, KnownMaterials known) {
+        String text = String.valueOf(value).trim().toUpperCase(Locale.ROOT);
+        if (known == null || known.blocks().isEmpty()) {
+            return known == null || known.isKnown(KnownMaterials.normalize(text))
+                    ? text : null;
+        }
+        return known.isBlock(KnownMaterials.normalize(text)) ? text : null;
+    }
+
+    /**
+     * Solid-block names: known collidable blocks only, with the
+     * same pre-block-set fallback as {@link #coerceBlock}.
+     */
+    private static String coerceSolidBlock(Object value, KnownMaterials known) {
+        String text = String.valueOf(value).trim().toUpperCase(Locale.ROOT);
+        if (known == null || known.solidBlocks().isEmpty()) {
+            return known == null || known.isKnown(KnownMaterials.normalize(text))
+                    ? text : null;
+        }
+        return known.isSolidBlock(KnownMaterials.normalize(text)) ? text : null;
     }
 
     private static String coerceColor(Object value) {
