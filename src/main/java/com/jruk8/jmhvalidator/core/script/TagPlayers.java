@@ -162,6 +162,13 @@ public final class TagPlayers {
             case "clearslot" -> "<clearslot:player,slot>";
             case "rclearslot" -> "<rclearslot:role,slot>";
             case "gclearslot" -> "<gclearslot:slot>";
+            default -> exampleLedger(name);
+        };
+    }
+
+    /** Examples for the ledger, title, max-health, and slot twins. */
+    private static String exampleLedger(String name) {
+        return switch (name) {
             case "pfx.set" -> "<pfx.set:player,id,effects>";
             case "rfx.set" -> "<rfx.set:role,id,effects>";
             case "gfx.set" -> "<gfx.set:id,effects>";

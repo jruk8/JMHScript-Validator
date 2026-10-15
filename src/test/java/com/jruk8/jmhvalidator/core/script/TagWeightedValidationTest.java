@@ -1,6 +1,5 @@
 package com.jruk8.jmhvalidator.core.script;
 
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

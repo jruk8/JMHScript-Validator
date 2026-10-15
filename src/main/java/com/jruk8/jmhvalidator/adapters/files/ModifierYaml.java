@@ -10,9 +10,6 @@ import com.jruk8.jmhvalidator.core.model.SettingsTree.SettingsNode;
 import com.jruk8.jmhvalidator.core.model.Severity;
 import com.jruk8.jmhvalidator.core.DupKeys;
 import com.jruk8.jmhvalidator.core.ShapeMessages;
-import com.jruk8.jmhvalidator.core.TriggerParams;
-import com.jruk8.jmhvalidator.core.UnknownKeys;
-import com.jruk8.jmhvalidator.core.UnknownKeys.Level;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -87,14 +84,14 @@ public final class ModifierYaml {
         if (behavior == null) {
             return new ReadResult(BehaviorFile.empty(), readSettings(doc),
                     presetMembers(modifierId, doc, early, shapes), early,
-                    readKeys(modifierId, doc), shapes);
+                    ModifierKeyScan.readKeys(modifierId, doc), shapes);
         }
         if (!(behavior instanceof Map<?, ?> blocks)) {
             early.add(fileDiagnostic(modifierId,
                     DiagnosticCode.E_YAML_SHAPE, "'behavior' must be a map"));
             return new ReadResult(BehaviorFile.empty(), readSettings(doc),
                     presetMembers(modifierId, doc, early, shapes), early,
-                    readKeys(modifierId, doc), shapes);
+                    ModifierKeyScan.readKeys(modifierId, doc), shapes);
         }
         Map<String, BehaviorFile.BehaviorBlock> out = new LinkedHashMap<>();
         for (Map.Entry<?, ?> block : blocks.entrySet()) {
@@ -106,7 +103,7 @@ public final class ModifierYaml {
         }
         return new ReadResult(new BehaviorFile(out), readSettings(doc),
                 presetMembers(modifierId, doc, early, shapes), early,
-                readKeys(modifierId, doc), shapes);
+                ModifierKeyScan.readKeys(modifierId, doc), shapes);
     }
 
     /**
@@ -182,158 +179,6 @@ public final class ModifierYaml {
      * that fail their shape stay silent here for the shape
      * suite to own. Never throws.
      */
-    static List<Diagnostic> readKeys(String modifierId, Map<?, ?> doc) {
-        List<Diagnostic> keys = new ArrayList<>();
-        keys.addAll(UnknownKeys.check(modifierId, rootLevel(doc), "", "", names(doc)));
-        keys.addAll(readMetaKeys(modifierId, doc.get("meta")));
-        keys.addAll(readConfigKeys(modifierId, doc.get("config")));
-        Object behavior = doc.get("behavior");
-        if (behavior instanceof Map<?, ?> blocks) {
-            for (Map.Entry<?, ?> block : blocks.entrySet()) {
-                keys.addAll(readBlockKeys(modifierId,
-                        String.valueOf(block.getKey()), block.getValue()));
-            }
-        }
-        return keys;
-    }
-
-    private static UnknownKeys.Level rootLevel(Map<?, ?> doc) {
-        boolean modifierLike = doc.containsKey("behavior")
-                || doc.containsKey("enabled") || doc.containsKey("config");
-        boolean presetLike =
-                doc.containsKey("modifiers") || doc.containsKey("presets");
-        if (modifierLike && !presetLike) {
-            return Level.MODIFIER_ROOT;
-        }
-        if (presetLike && !modifierLike) {
-            return Level.PRESET_ROOT;
-        }
-        return Level.ANY_ROOT;
-    }
-
-    private static List<Diagnostic> readMetaKeys(String modifierId, Object raw) {
-        List<Diagnostic> keys = new ArrayList<>();
-        if (!(raw instanceof Map<?, ?> meta)) {
-            return keys;
-        }
-        keys.addAll(UnknownKeys.check(modifierId, Level.MODIFIER_META, "", "", names(meta)));
-        if (meta.get("visibility") instanceof Map<?, ?> visibility) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.VISIBILITY, "", "",
-                    names(visibility)));
-        }
-        return keys;
-    }
-
-    private static List<Diagnostic> readConfigKeys(String modifierId, Object raw) {
-        List<Diagnostic> keys = new ArrayList<>();
-        if (!(raw instanceof Map<?, ?> config)) {
-            return keys;
-        }
-        keys.addAll(UnknownKeys.check(modifierId, Level.CONFIG, "", "", names(config)));
-        if (config.get("advanced") instanceof Map<?, ?> advanced) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.ADVANCED, "", "",
-                    names(advanced)));
-        }
-        if (config.get("settings") instanceof Map<?, ?> settings) {
-            keys.addAll(readSettingsKeys(modifierId, settings, ""));
-        }
-        return keys;
-    }
-
-    private static List<Diagnostic> readSettingsKeys(String modifierId,
-            Map<?, ?> level, String parent) {
-        List<Diagnostic> keys = new ArrayList<>();
-        for (Map.Entry<?, ?> entry : level.entrySet()) {
-            String path = parent.isEmpty()
-                    ? String.valueOf(entry.getKey()) : parent + "." + entry.getKey();
-            if (!(entry.getValue() instanceof Map<?, ?> node)) {
-                continue;
-            }
-            keys.addAll(UnknownKeys.check(modifierId, Level.NODE, "", path, names(node)));
-            if (node.get("def") instanceof Map<?, ?> def) {
-                keys.addAll(readDefKeys(modifierId, path, def));
-            }
-        }
-        return keys;
-    }
-
-    private static List<Diagnostic> readDefKeys(String modifierId, String path, Map<?, ?> def) {
-        List<Diagnostic> keys = new ArrayList<>();
-        keys.addAll(UnknownKeys.check(modifierId, Level.DEF, "", path, names(def)));
-        if (def.get("meta") instanceof Map<?, ?> meta) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.SETTING_META, "", path,
-                    names(meta)));
-        }
-        if (def.get("value") instanceof Map<?, ?> spec) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.SPEC, "", path, names(spec)));
-        }
-        if (def.get("folder") instanceof List<?> folder) {
-            for (Object item : folder) {
-                if (!(item instanceof Map<?, ?> entry) || entry.size() != 1) {
-                    continue;
-                }
-                Map.Entry<?, ?> single = entry.entrySet().iterator().next();
-                if (single.getValue() instanceof Map<?, ?> node) {
-                    String child = path + "." + single.getKey();
-                    keys.addAll(UnknownKeys.check(modifierId, Level.NODE, "", child,
-                            names(node)));
-                    if (node.get("def") instanceof Map<?, ?> childDef) {
-                        keys.addAll(readDefKeys(modifierId, child, childDef));
-                    }
-                }
-            }
-        }
-        return keys;
-    }
-
-    private static List<Diagnostic> readBlockKeys(String modifierId, String blockId, Object raw) {
-        List<Diagnostic> keys = new ArrayList<>();
-        if (!(raw instanceof Map<?, ?> block)) {
-            return keys;
-        }
-        keys.addAll(UnknownKeys.check(modifierId, Level.BLOCK, blockId, "", names(block)));
-        if (block.get("on-start") instanceof Map<?, ?> onStart) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.ON_START, blockId, "",
-                    names(onStart)));
-        }
-        if (block.get("options") instanceof Map<?, ?> options) {
-            keys.addAll(readOptionsKeys(modifierId, blockId, options));
-        }
-        return keys;
-    }
-
-    private static List<Diagnostic> readOptionsKeys(String modifierId, String blockId,
-            Map<?, ?> options) {
-        List<Diagnostic> keys = new ArrayList<>();
-        keys.addAll(UnknownKeys.check(modifierId, Level.OPTIONS, blockId, "",
-                names(options)));
-        if (options.get("interval-settings") instanceof Map<?, ?> interval) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.INTERVAL_SETTINGS, blockId, "",
-                    names(interval)));
-        }
-        if (options.get("success-chance") instanceof Map<?, ?> chance) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.SUCCESS_CHANCE, blockId, "",
-                    names(chance)));
-        }
-        if (options.get("execution") instanceof Map<?, ?> execution) {
-            keys.addAll(UnknownKeys.check(modifierId, Level.EXECUTION, blockId, "",
-                    names(execution)));
-            if (execution.get("pick-random") instanceof Map<?, ?> pick) {
-                keys.addAll(UnknownKeys.check(modifierId, Level.PICK_RANDOM, blockId, "",
-                        names(pick)));
-            }
-        }
-        return keys;
-    }
-
-    private static List<String> names(Map<?, ?> map) {
-        List<String> names = new ArrayList<>();
-        for (Map.Entry<?, ?> entry : map.entrySet()) {
-            names.add(String.valueOf(entry.getKey()));
-        }
-        return names;
-    }
-
     /**
      * Preset member ids: string entries of the top-level
      * `modifiers` list, in file order. Anything else (missing,
@@ -476,7 +321,7 @@ public final class ModifierYaml {
         }
         List<String> runsOn = readRunsOn(modifierId, blockId, block, early, shapes);
         OptionsNode options = readOptions(block);
-        readOptionShapes(modifierId, blockId, block, early);
+        ModifierOptionShapes.readOptionShapes(modifierId, blockId, block, early);
         readCommands(modifierId, blockId, block.get("commands"), lists, early, shapes);
         return new BehaviorFile.BehaviorBlock(lists, runsOn, options);
     }
@@ -562,102 +407,6 @@ public final class ModifierYaml {
         return new OptionsNode(interval, deviation, intervalBehavior, chance,
                 chanceBehavior, selection, pickCount, pickBehavior,
                 options.get("delay"), preStartOrder);
-    }
-
-    /**
-     * Shape scan of one block's option subtrees: every
-     * non-map subtree and non-binder scalar fails the engine
-     * load, so each errors here. Bindability reuses the core
-     * loader table; absent values stay silent.
-     */
-    private static void readOptionShapes(String modifierId, String blockId,
-            Map<?, ?> block, List<Diagnostic> early) {
-        String base = "'behavior." + blockId + ".";
-        Object onStart = block.get("on-start");
-        if (onStart != null && !(onStart instanceof Map)) {
-            early.add(shaped(modifierId, blockId, base + "on-start' must be a map"));
-        } else if (onStart instanceof Map<?, ?> start) {
-            mustBeString(early, modifierId, blockId,
-                    start.get("pre-start-order"), base + "on-start.pre-start-order'");
-        }
-        if (!(block.get("options") instanceof Map<?, ?> options)) {
-            if (block.get("options") != null) {
-                early.add(shaped(modifierId, blockId, base + "options' must be a map"));
-            }
-            return;
-        }
-        if (!(options.get("interval-settings") instanceof Map<?, ?> settings)) {
-            if (options.get("interval-settings") != null) {
-                early.add(shaped(modifierId, blockId,
-                        base + "options.interval-settings' must be a map"));
-            }
-        } else {
-            mustBeNumber(early, modifierId, blockId, settings.get("interval"),
-                    base + "options.interval-settings.interval'");
-            mustBeNumber(early, modifierId, blockId, settings.get("deviation"),
-                    base + "options.interval-settings.deviation'");
-            mustBeString(early, modifierId, blockId, settings.get("behavior"),
-                    base + "options.interval-settings.behavior'");
-        }
-        if (!(options.get("success-chance") instanceof Map<?, ?> success)) {
-            if (options.get("success-chance") != null) {
-                early.add(shaped(modifierId, blockId,
-                        base + "options.success-chance' must be a map"));
-            }
-        } else {
-            mustBeNumber(early, modifierId, blockId, success.get("chance"),
-                    base + "options.success-chance.chance'");
-            mustBeString(early, modifierId, blockId, success.get("behavior"),
-                    base + "options.success-chance.behavior'");
-        }
-        if (!(options.get("execution") instanceof Map<?, ?> execution)) {
-            if (options.get("execution") != null) {
-                early.add(shaped(modifierId, blockId,
-                        base + "options.execution' must be a map"));
-            }
-        } else {
-            mustBeString(early, modifierId, blockId, execution.get("selection"),
-                    base + "options.execution.selection'");
-            if (!(execution.get("pick-random") instanceof Map<?, ?> pick)) {
-                if (execution.get("pick-random") != null) {
-                    early.add(shaped(modifierId, blockId,
-                            base + "options.execution.pick-random' must be a map"));
-                }
-            } else {
-                mustBeInteger(early, modifierId, blockId, pick.get("count"),
-                        base + "options.execution.pick-random.count'", true);
-                mustBeString(early, modifierId, blockId, pick.get("behavior"),
-                        base + "options.execution.pick-random.behavior'");
-            }
-        }
-        mustBeInteger(early, modifierId, blockId, options.get("delay"),
-                base + "options.delay'", false);
-    }
-
-    private static void mustBeNumber(List<Diagnostic> early, String modifierId,
-            String blockId, Object raw, String path) {
-        if (raw != null && TriggerParams.asDouble(raw) == null) {
-            early.add(shaped(modifierId, blockId, path + " must be a number"));
-        }
-    }
-
-    private static void mustBeInteger(List<Diagnostic> early, String modifierId,
-            String blockId, Object raw, String path, boolean intRange) {
-        if (raw == null) {
-            return;
-        }
-        Long value = TriggerParams.asLong(raw);
-        if (value == null
-                || (intRange && (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE))) {
-            early.add(shaped(modifierId, blockId, path + " must be an integer"));
-        }
-    }
-
-    private static void mustBeString(List<Diagnostic> early, String modifierId,
-            String blockId, Object raw, String path) {
-        if (raw instanceof Map || raw instanceof List) {
-            early.add(shaped(modifierId, blockId, path + " must be a string"));
-        }
     }
 
     /**
@@ -838,7 +587,7 @@ public final class ModifierYaml {
         return lines;
     }
 
-    private static Diagnostic shaped(String modifierId, String blockId, String message) {
+    static Diagnostic shaped(String modifierId, String blockId, String message) {
         return shapedAt(modifierId, blockId, "", -1, message);
     }
 

@@ -524,6 +524,10 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <i:x> x").isPresent());
         assertTrue(CommandSyntax.error("give <p> apple <min:8>").isPresent());
         assertTrue(CommandSyntax.error("give <p> apple <clamp:8,1>").isPresent());
+    }
+
+    @Test
+    void extendedTagArityFailsMessagesAndIf() {
         assertTrue(CommandSyntax.error("say <gmessage> done").isPresent());
         assertTrue(CommandSyntax.error("say <gsound> done").isPresent());
         assertTrue(CommandSyntax.error("say <pmessage:yo> done").isPresent());

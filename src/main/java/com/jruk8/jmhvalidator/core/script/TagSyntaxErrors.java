@@ -22,18 +22,11 @@ final class TagSyntaxErrors {
         return switch (name) {
             case "random-num" -> randomNumberError(args); case "random-pick" -> randomPickError(args);
             case "id", "i", "pi", "e" -> noArgsError(name, args);
-            case "min", "max" -> arityError(name, args, 2, "two numbers");
-            case "clamp" -> arityError(name, args, 3, "a value plus low and high");
-            case "atan2" -> arityError(name, args, 2, "y and x");
-            case "lerp" -> arityError(name, args, 3, "a start, an end, and a blend");
-            case "smoothstep", "smootherstep" ->
-                    arityError(name, args, 3, "two edges and a value");
-            case "sum", "average", "avg", "median" ->
-                    arityAtLeastError(name, args, 1, "one or more numbers");
+            case "min", "max", "clamp", "atan2", "lerp", "smoothstep", "smootherstep",
+                    "sum", "average", "avg", "median" ->
+                    mathError(name, args);
             case "if" -> ifError(args); case "switch" -> TagSwitch.opError(name, args);
-            case "pstat" -> playerStatError(name, args);
-            case "gstat" -> statError(name, args, 0, TagStats.GSTAT_KEYS);
-            case "rstat" -> roleStatError(name, args);
+            case "pstat", "gstat", "rstat" -> statDispatchError(name, args);
             case "phasitem", "pcountitem", "rhasitem", "rcountitem", "ghasitem", "gcountitem" ->
                     itemError(name, args);
             case "gflag", "gf", "pflag", "pf", "lflag", "lf" -> flagError(name, args);
@@ -46,6 +39,56 @@ final class TagSyntaxErrors {
             case "default" -> topLevelArityError(name, args, 2, "<default:value,fallback>");
             case "active-players" -> activePlayersError(name, args);
             case "rcolor" -> rcolorError(name, args);
+            case "plocation", "ploc", "prole", "peliminated", "pworld", "world", "px", "py", "pz",
+                    "pyaw", "ppitch", "pheld", "pdirx", "pdiry", "pdirz", "rlocation", "rloc",
+                    "reliminated", "rworld", "rx", "ry", "rz", "ryaw", "rpitch", "rheld", "rdirx",
+                    "rdiry", "rdirz", "glocation", "gloc", "geliminated", "gworld", "gx", "gy", "gz",
+                    "gyaw", "gpitch", "gheld", "gdirx", "gdiry", "gdirz" ->
+                    spotError(name, args);
+            case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
+                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
+                    "rdir", "gdir", "raycast", "raycastext", "intercept", "give", "dropitem",
+                    "itemtag", "rgive", "ggive", "ritemtag", "gitemtag", "summon", "gamerule",
+                    "rule", "timeset", "timeadd", "timeget", "place", "kill" ->
+                    shapeError(name, args);
+            case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
+                    "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
+                    "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
+                    "parts.l", "parts.line2d", "parts.point", "parts.players", "parts.sphere", "parts.circle",
+                    "parts.circle2d", "parts.rectangle", "parts.box", "parts.cube", "parts.block",
+                    "parts.cancel" -> TagParticles.opError(name, args);
+            default -> collectionsError(name, args);
+        };
+    }
+
+    /** Stat tags behind {@link #tagError}. */
+    private static Optional<String> statDispatchError(String name, String args) {
+        return switch (name) {
+            case "pstat" -> playerStatError(name, args);
+            case "gstat" -> statError(name, args, 0, TagStats.GSTAT_KEYS);
+            case "rstat" -> roleStatError(name, args);
+            default -> throw new IllegalArgumentException("Unknown stat tag: " + name);
+        };
+    }
+
+    /** Math-arity tags behind {@link #tagError}. */
+    private static Optional<String> mathError(String name, String args) {
+        return switch (name) {
+            case "min", "max" -> arityError(name, args, 2, "two numbers");
+            case "clamp" -> arityError(name, args, 3, "a value plus low and high");
+            case "atan2" -> arityError(name, args, 2, "y and x");
+            case "lerp" -> arityError(name, args, 3, "a start, an end, and a blend");
+            case "smoothstep", "smootherstep" ->
+                    arityError(name, args, 3, "two edges and a value");
+            case "sum", "average", "avg", "median" ->
+                    arityAtLeastError(name, args, 1, "one or more numbers");
+            default -> throw new IllegalArgumentException("Unknown math tag: " + name);
+        };
+    }
+
+    /** Spot and roster-name tags behind {@link #tagError}. */
+    private static Optional<String> spotError(String name, String args) {
+        return switch (name) {
             case "plocation", "ploc", "prole", "peliminated", "pworld", "world", "px", "py",
                     "pz", "pyaw", "ppitch", "pheld", "pdirx", "pdiry", "pdirz" ->
                     playerNameError(name, args);
@@ -53,6 +96,13 @@ final class TagSyntaxErrors {
                     "rpitch", "rheld", "rdirx", "rdiry", "rdirz" -> roleNameError(name, args);
             case "glocation", "gloc", "geliminated", "gworld", "gx", "gy", "gz", "gyaw",
                     "gpitch", "gheld", "gdirx", "gdiry", "gdirz" -> arglessError(name, args);
+            default -> throw new IllegalArgumentException("Unknown spot tag: " + name);
+        };
+    }
+
+    /** Shape, world-write, and spawn tags behind {@link #tagError}. */
+    private static Optional<String> shapeError(String name, String args) {
+        return switch (name) {
             case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
                     "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
                     "rdir", "gdir" ->
@@ -65,13 +115,7 @@ final class TagSyntaxErrors {
             case "gamerule", "rule", "timeset", "timeadd", "timeget" ->
                     TagWorldClock.opError(name, args);
             case "place", "kill" -> TagPlaceKill.opError(name, args);
-            case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
-                    "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
-                    "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
-                    "parts.l", "parts.line2d", "parts.point", "parts.players", "parts.sphere", "parts.circle",
-                    "parts.circle2d", "parts.rectangle", "parts.box", "parts.cube", "parts.block",
-                    "parts.cancel" -> TagParticles.opError(name, args);
-            default -> collectionsError(name, args);
+            default -> throw new IllegalArgumentException("Unknown shape tag: " + name);
         };
     }
 
@@ -104,7 +148,7 @@ final class TagSyntaxErrors {
             case "pcooldown", "pcooldown.get", "pcooldown.reset", "gcooldown", "gcooldown.get",
                     "gcooldown.reset", "rcooldown", "rcooldown.get", "rcooldown.reset" ->
                     TagCooldowns.syntaxError(name, args);
-            default -> tailError(name, args);
+            default -> TagTailErrors.tailError(name, args);
         };
     }
 
@@ -223,58 +267,6 @@ final class TagSyntaxErrors {
         };
     }
 
-    /** Trailing tag names behind {@link #tagError}: sinks, proximity, math, loops, defs. */
-    public static Optional<String> tailError(String name, String args) {
-        return switch (name) {
-            case "gmessage", "gmsg" -> TagSinks.messageError(name, args);
-            case "pmessage", "pmsg" -> TagSinks.playerMessageError(name, args);
-            case "rmessage", "rmsg" -> RoleTagSyntax.messageError(name, args);
-            case "gerror", "gerrormessage" -> TagSinks.messageError(name, args);
-            case "perror", "perrormessage" -> TagSinks.playerMessageError(name, args);
-            case "rerror", "rerrormessage" -> RoleTagSyntax.messageError(name, args);
-            case "gsound" -> TagSinks.soundError(name, args);
-            case "psound" -> TagSinks.playerSoundError(name, args);
-            case "rsound" -> RoleTagSyntax.soundError(name, args);
-            case "phaseffect", "rhaseffect", "ghaseffect" -> TagEffects.effectError(name, args);
-            case "gteleport" -> TagSinks.teleportError(name, args);
-            case "pteleport" -> TagSinks.playerTeleportError(name, args);
-            case "rteleport" -> RoleTagSyntax.teleportError(name, args);
-            case "fill" -> TagFill.fillError(name, args);
-            case "replace" -> TagReplace.replaceError(name, args);
-            case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle",
-                    "pslot", "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get",
-                    "pmaxhp.clear", "pfx.set", "pfx.get", "pfx.clear", "pfx.duration",
-                    "pisusinghanditem", "pdamage", "puuid" ->
-                    TagPlayers.opError(name, args);
-            case "rstate", "rstandingon", "rblock", "rismoving", "rremoveitem", "rtitle",
-                    "rslot", "rclearslot", "rmaxhp.set", "rmaxhp.modify", "rmaxhp.get",
-                    "rmaxhp.clear", "rfx.set", "rfx.get", "rfx.clear", "rfx.duration",
-                    "risusinghanditem", "rdamage", "ruuid" ->
-                    TagPlayers.opError(name, args);
-            case "gstate", "gstandingon", "gblock", "gismoving", "gremoveitem", "gtitle",
-                    "gslot", "gclearslot", "gmaxhp.set", "gmaxhp.modify", "gmaxhp.get",
-                    "gmaxhp.clear", "gfx.set", "gfx.get", "gfx.clear", "gfx.duration",
-                    "gisusinghanditem", "gdamage", "guuid" ->
-                    TagPlayers.opError(name, args);
-            case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
-            case "overlap-players", "nearby-players" -> proximityError(name, args);
-            case "distance" -> topLevelArityError(name, args, 2, "<distance:loc1,loc2>");
-            case "ismobhostile" -> TagEntities.opError(name, args);
-            case "floor", "ceil", "round", "abs", "sign", "sqrt", "cbrt", "cos", "sin",
-                    "tan", "arccos", "acos", "arcsin", "asin", "arctan", "sec", "csc",
-                    "cot", "asec", "acsc", "acot", "log", "log10", "ln", "easein",
-                    "easeout", "easeinout", "radtodeg", "r2d", "degtorad", "d2r" ->
-                    mathUnaryError(name, args);
-            case "root" -> topLevelArityError(name, args, 2, "<root:x,n>");
-            case "while", "for" -> loopError(name, args);
-            case "def" -> defError(name, args);
-            case "format" -> TagFormat.syntaxError(name, args);
-            case "runblock" -> TagRunBlock.opError(name, args);
-            case "setting", "s" -> Optional.ofNullable(TagSettings.settingError(args));
-            case "modcolor" -> noArgsError(name, args);
-            default -> Optional.empty();
-        };
-    }
 
     public static Optional<String> defError(String name, String args) {
         if (args == null || args.isBlank()) {
@@ -370,26 +362,6 @@ final class TagSyntaxErrors {
     public static Optional<String> noArgsError(String name, String args) {
         if (args != null && !args.isBlank()) {
             return Optional.of("Tag <" + name + "> takes no arguments.");
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Loop shape: a condition or list plus a body. Split top-level
-     * so list args survive, mirroring the runtime split.
-     */
-    public static Optional<String> loopError(String name, String args) {
-        if (args == null || args.isBlank()) {
-            return Optional.of("Tag <" + name + "> needs a condition or list plus a body.");
-        }
-        List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 2) {
-            return Optional.of("Tag <" + name + "> needs a condition or list plus a body.");
-        }
-        for (String part : parts) {
-            if (TagHeads.parsePickItem(part).isEmpty()) {
-                return Optional.of("Tag <" + name + "> mixes quotes.");
-            }
         }
         return Optional.empty();
     }
@@ -509,15 +481,6 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    /** Single-number math tags share one example shape. */
-    public static Optional<String> mathUnaryError(String name, String args) {
-        return topLevelArityError(name, args, 1, "<" + name + ":x>");
-    }
-
-    /**
-     * Active-players shape: one role, HUNTER, SPEEDRUNNER, or ALL.
-     * A masked nested tag abstains (runtime resolves it).
-     */
     /**
      * Range shape: one to three quote-clean bounds; values are
      * checked at runtime since they may be math or nested tags.
@@ -538,36 +501,6 @@ final class TagSyntaxErrors {
         return Optional.empty();
     }
 
-    /**
-     * Proximity shape: an origin or player, a role, a radius, and
-     * a max. A masked nested role abstains (runtime resolves it).
-     */
-    public static Optional<String> proximityError(String name, String args) {
-        String shape = name.equals("overlap-players") ? "an origin" : "a player";
-        if (args == null || args.isBlank()) {
-            return Optional.of("Tag <" + name + "> needs " + shape
-                    + ", a role, a radius, and a max.");
-        }
-        List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 4) {
-            return Optional.of("Tag <" + name + "> needs " + shape
-                    + ", a role, a radius, and a max.");
-        }
-        for (String part : parts) {
-            if (TagHeads.parsePickItem(part).isEmpty()) {
-                return Optional.of("Tag <" + name + "> mixes quotes.");
-            }
-        }
-        String role = TagHeads.parsePickItem(parts.get(1)).orElse("").strip()
-                .toUpperCase(Locale.ROOT);
-        if (role.contains("?")) {
-            return Optional.empty();
-        }
-        if (!role.equals("HUNTER") && !role.equals("SPEEDRUNNER") && !role.equals("ALL")) {
-            return Optional.of("Tag <" + name + "> needs HUNTER, SPEEDRUNNER, or ALL.");
-        }
-        return Optional.empty();
-    }
 
     public static Optional<String> activePlayersError(String name, String args) {
         if (args == null || args.isBlank()) {
