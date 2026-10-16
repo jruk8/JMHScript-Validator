@@ -48,7 +48,8 @@ final class TagSyntaxErrors {
             case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
                     "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
                     "rdir", "gdir", "raycast", "raycastext", "intercept", "give", "dropitem",
-                    "itemtag", "rgive", "ggive", "ritemtag", "gitemtag", "summon", "gamerule",
+                    "itemtag", "itemkeep", "rgive", "ggive", "ritemtag", "ritemkeep",
+                    "gitemtag", "gitemkeep", "summon", "gamerule",
                     "rule", "timeset", "timeadd", "timeget", "place", "kill" ->
                     shapeError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
@@ -117,8 +118,8 @@ final class TagSyntaxErrors {
                     "rdir", "gdir" ->
                     TagVectors.opError(name, args);
             case "raycast", "raycastext" -> TagRaycast.opError(name, args);
-            case "intercept", "give", "dropitem", "itemtag", "rgive", "ggive", "ritemtag",
-                    "gitemtag" ->
+            case "intercept", "give", "dropitem", "itemtag", "itemkeep", "rgive", "ggive",
+                    "ritemtag", "ritemkeep", "gitemtag", "gitemkeep" ->
                     TagItemOps.opError(name, args);
             case "summon" -> TagSummon.opError(name, args);
             case "gamerule", "rule", "timeset", "timeadd", "timeget" ->

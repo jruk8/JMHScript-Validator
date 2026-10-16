@@ -6,8 +6,9 @@ import java.util.Optional;
 
 /**
  * Item-payload tags for JMHScript: {@code <give:player,item>},
- * {@code <dropitem:location,item,cooldown>}, and
- * {@code <itemtag:player,slot>}. Arity plus quote hygiene per head,
+ * {@code <dropitem:location,item,cooldown>},
+ * {@code <itemtag:player,slot>}, and
+ * {@code <itemkeep:player,slot>}. Arity plus quote hygiene per head,
  * with literal JMH tag-length checks on the item payloads (literals
  * only; dynamic values validate at runtime). The intercept head
  * routes here too and delegates to its own shape check, keeping one
@@ -30,8 +31,9 @@ public final class TagItemOps {
     public static Optional<String> opError(String name, String args) {
         return switch (name) {
             case "intercept" -> TagIntercept.opError(name, args);
-            case "give", "itemtag", "rgive", "ritemtag" -> fixedArity(name, args, 2);
-            case "ggive", "gitemtag" -> fixedArity(name, args, 1);
+            case "give", "itemtag", "itemkeep", "rgive", "ritemtag", "ritemkeep" ->
+                    fixedArity(name, args, 2);
+            case "ggive", "gitemtag", "gitemkeep" -> fixedArity(name, args, 1);
             case "dropitem" -> dropitemError(args);
             default -> Optional.empty();
         };
@@ -166,6 +168,9 @@ public final class TagItemOps {
             case "ggive" -> "<ggive:item>";
             case "ritemtag" -> "<ritemtag:role,slot>";
             case "gitemtag" -> "<gitemtag:slot>";
+            case "itemkeep" -> "<itemkeep:player,slot>";
+            case "ritemkeep" -> "<ritemkeep:role,slot>";
+            case "gitemkeep" -> "<gitemkeep:slot>";
             case "dropitem" -> "<dropitem:location,item,cooldown>";
             default -> "<itemtag:player,slot>";
         };

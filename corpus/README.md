@@ -21,7 +21,8 @@ used at generation is `src/test/resources/tag-registry.json`
 materials from the current export). Shipped inputs stay frozen
 at `10e2b55` even as the engine converts its own copies, so
 the three retired-list inputs now pin the `W_UNKNOWN_LIST`
-warnings those lists produce.
+warnings those lists produce, and every shipped input pins
+the `W_UNKNOWN_KEY` warning for the retired `meta.icon`.
 
 ## Coverage
 
@@ -33,7 +34,7 @@ The line-sweep codes appear at least once: `E_SYNTAX`,
 `E_UNKNOWN_ITEM`) are pinned by the ported
 `CommandValidationTest` instead. The file-set codes
 (`W_DUPLICATE_ID`, `W_DUPLICATE_SETTING`, `W_UNKNOWN_SETTING`,
-`W_UNKNOWN_TRIGGER`, `W_UNKNOWN_KEY`,
+`W_UNKNOWN_TRIGGER`,
 `W_UNKNOWN_SETTING_TYPE`, `W_DEFAULT_OUTSIDE_ALLOWED`,
 `W_VALUE_INVALID`, `W_DUPLICATE_KEY`, `W_SHADOWED_ID`,
 `W_UNKNOWN_BEHAVIOR`, `W_BEHAVIOR_CYCLE`,
@@ -42,6 +43,9 @@ The line-sweep codes appear at least once: `E_SYNTAX`,
 input by design; their pins live in the core unit tests
 and the CLI tests. `W_UNCALLED_BEHAVIOR` fires once, on
 the crafted input's intentionally dead block.
+`W_UNKNOWN_KEY` fires once on every shipped input by
+design: frozen files carry the retired top-level
+`meta.icon`, so the goldens pin the nudge to drop it.
 `W_REDUNDANT_VALUE` fires on the shipped inputs by
 design: frozen files carry the old value-plus-default
 convention, so the goldens pin the nudge to omit the key.

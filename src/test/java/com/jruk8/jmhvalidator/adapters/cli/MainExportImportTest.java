@@ -119,7 +119,9 @@ class MainExportImportTest {
     @Test
     void importInlineRoundTrip(@TempDir Path tmp) throws Exception {
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Beef", null, "TNT", null, null), null, null, null);
+                new ShareModel.Meta("Beef", null, null,
+                        new ShareModel.Visibility("TNT", null, null)),
+                null, null, null);
         String payload = ShareCodec.exportModifier("beef", modifier);
 
         String output = capture(
@@ -137,7 +139,7 @@ class MainExportImportTest {
     @Test
     void importFromFileIgnoresExtension(@TempDir Path tmp) throws Exception {
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Beef", null, null, null, null), null, null, null);
+                new ShareModel.Meta("Beef", null, null, null), null, null, null);
         Path holder = tmp.resolve("share.dat");
         Files.writeString(holder, ShareCodec.exportModifier("beef", modifier),
                 StandardCharsets.UTF_8);

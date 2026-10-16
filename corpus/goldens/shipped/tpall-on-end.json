@@ -8,12 +8,22 @@
   "files": [
     {
       "file": "shipped/tpall-on-end.yml",
-      "diagnostics": []
+      "diagnostics": [
+        {
+          "behavior": "",
+          "list": "meta",
+          "line": 0,
+          "char": null,
+          "severity": "warning",
+          "code": "W_UNKNOWN_KEY",
+          "message": "Unknown key 'icon' in meta; ignoring it."
+        }
+      ]
     }
   ],
   "summary": {
     "files": 1,
     "errors": 0,
-    "warnings": 0
+    "warnings": 1
   }
 }

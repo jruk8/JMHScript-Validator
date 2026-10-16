@@ -40,7 +40,7 @@ public final class UnknownKeys {
         ADVANCED("config.advanced", false, "config.advanced", false,
                 Set.of("exclusive-group", "exclusive-as")),
         MODIFIER_META("meta", false, "meta", false,
-                Set.of("name", "description", "icon", "author", "visibility")),
+                Set.of("name", "description", "author", "visibility")),
         VISIBILITY("meta.visibility", false, "meta.visibility", false,
                 Set.of("icon", "color", "broadcast")),
         BLOCK("behavior '{b}'", true, "", false,

@@ -63,9 +63,20 @@ class MainTest {
     }
 
     @Test
-    void cleanFileExitsZero() {
+    void cleanFileExitsZero(@TempDir Path tmp) throws Exception {
+        Path cleaned = tmp.resolve("diamond.yml");
+        String yaml = Files.readString(
+                Path.of("corpus/inputs/shipped/diamond-on-advancement.yml"),
+                StandardCharsets.UTF_8);
+        StringBuilder kept = new StringBuilder();
+        for (String line : yaml.split("\n", -1)) {
+            if (!line.startsWith("  icon: ")) {
+                kept.append(line).append("\n");
+            }
+        }
+        Files.writeString(cleaned, kept.toString(), StandardCharsets.UTF_8);
         String output = run(0, "--registry", "src/test/resources/tag-registry.json",
-                "corpus/inputs/shipped/diamond-on-advancement.yml");
+                cleaned.toString());
         assertTrue(output.contains("1 clean"), output);
     }
 
