@@ -23,7 +23,7 @@ public final class ShareModel {
     }
 
     /** Display meta shared by modifiers and presets. */
-    public record Meta(String name, String description, String icon,
+    public record Meta(String name, String description,
             String author, Visibility visibility) {
     }
 

@@ -29,12 +29,12 @@ class ShareCodecTest {
     @Test
     void tinyModifierEncodesWithExactJson() throws Exception {
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Beef", null, null, null, null), null, null, null);
+                new ShareModel.Meta("Beef", null, null, null), null, null, null);
 
         String payload = ShareCodec.exportModifier("beef", modifier);
 
         assertEquals("{\"type\":\"modifier\",\"id\":\"beef\",\"data\":{\"enabled\":false,"
-                + "\"meta\":{\"name\":\"Beef\",\"icon\":\"STONE\"}}}",
+                + "\"meta\":{\"name\":\"Beef\"}}}",
                 framedJson(payload));
         assertChecksumMatches(payload);
     }
@@ -42,7 +42,7 @@ class ShareCodecTest {
     @Test
     void exclusiveGroupRoundTrips() throws Exception {
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Bingo", null, null, null, null),
+                new ShareModel.Meta("Bingo", null, null, null),
                 null, Map.of("exclusive-group", "bingo"), null);
 
         String payload = ShareCodec.exportModifier("bingo", modifier);
@@ -71,7 +71,7 @@ class ShareCodecTest {
         assertEquals(ShareCodec.Kind.PRESET, decoded.get().kind());
         assertEquals("pack", decoded.get().id());
         assertEquals("Pack", decoded.get().preset().meta().name());
-        assertEquals("STONE", decoded.get().preset().meta().icon());
+        assertNull(decoded.get().preset().meta().visibility());
     }
 
     @Test
@@ -87,7 +87,7 @@ class ShareCodecTest {
         ShareModel.Modifier back = decoded.get().modifier();
         assertEquals("Gear Dice", back.meta().name());
         assertEquals("Roll for gear", back.meta().description());
-        assertEquals("TNT", back.meta().icon());
+        assertEquals("TNT", back.meta().visibility().icon());
         assertEquals("jruk", back.meta().author());
         assertEquals(List.of("INTERVAL", "ON_START"), back.behaviors().get("0").runsOn());
         assertEquals("AFTER", back.behaviors().get("0").preStartOrder());
@@ -117,7 +117,8 @@ class ShareCodecTest {
     @Test
     void presetRoundTripsExactly() {
         ShareModel.Preset preset = new ShareModel.Preset(
-                new ShareModel.Meta("Chaos", "Everything on", "TNT", "JManhunt", null),
+                new ShareModel.Meta("Chaos", "Everything on", "JManhunt",
+                        new ShareModel.Visibility("TNT", "ffa000", true)),
                 List.of("gear-dice", "beef"), null);
 
         String payload = ShareCodec.exportPreset("chaos", preset);
@@ -128,6 +129,9 @@ class ShareCodecTest {
         assertEquals("chaos", decoded.get().id());
         assertEquals("Chaos", decoded.get().preset().meta().name());
         assertEquals("JManhunt", decoded.get().preset().meta().author());
+        assertEquals("TNT", decoded.get().preset().meta().visibility().icon());
+        assertEquals("ffa000", decoded.get().preset().meta().visibility().color());
+        assertEquals(true, decoded.get().preset().meta().visibility().broadcast());
         assertEquals(List.of("gear-dice", "beef"), decoded.get().preset().modifiers());
         assertEquals(payload, ShareCodec.exportPreset(decoded.get().id(), decoded.get().preset()));
     }
@@ -135,7 +139,7 @@ class ShareCodecTest {
     @Test
     void nestedPresetRoundTripsWithRefs() {
         ShareModel.Preset preset = new ShareModel.Preset(
-                new ShareModel.Meta("Outer", "Nests inner", null, "JManhunt", null),
+                new ShareModel.Meta("Outer", "Nests inner", "JManhunt", null),
                 List.of("beef"), List.of("inner"));
 
         String payload = ShareCodec.exportPreset("outer", preset);
@@ -183,7 +187,7 @@ class ShareCodecTest {
         commands.put("player", List.of("say " + "x".repeat(2000), "say " + "y".repeat(2000)));
         ShareModel.Behavior behavior = new ShareModel.Behavior(null, null, null, commands);
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Big", null, null, null, null),
+                new ShareModel.Meta("Big", null, null, null),
                 null, null, Map.of("0", behavior));
 
         String payload = ShareCodec.exportModifier("big", modifier);
@@ -212,7 +216,7 @@ class ShareCodecTest {
         commands.put("player", List.of("say " + "z".repeat(1_200_000)));
         ShareModel.Behavior behavior = new ShareModel.Behavior(null, null, null, commands);
         ShareModel.Modifier modifier = new ShareModel.Modifier(
-                new ShareModel.Meta("Huge", null, null, null, null),
+                new ShareModel.Meta("Huge", null, null, null),
                 null, null, Map.of("0", behavior));
 
         String payload = ShareCodec.exportModifier("huge", modifier);
@@ -238,9 +242,10 @@ class ShareCodecTest {
                 + "\"data\":{\"meta\":{\"name\":\"  \",\"icon\":\"STONE\"}}}";
         assertTrue(ShareCodec.decode(envelope(blankName), STRICT).isEmpty());
 
-        String badItem = "{\"type\":\"modifier\",\"id\":\"a\","
-                + "\"data\":{\"meta\":{\"name\":\"A\",\"icon\":\"NOPE\"}}}";
-        assertTrue(ShareCodec.decode(envelope(badItem), STRICT).isEmpty());
+        String badVisibilityItem = "{\"type\":\"modifier\",\"id\":\"a\","
+                + "\"data\":{\"meta\":{\"name\":\"A\","
+                + "\"visibility\":{\"icon\":\"NOPE\"}}}}";
+        assertTrue(ShareCodec.decode(envelope(badVisibilityItem), STRICT).isEmpty());
 
         String badTrigger = "{\"type\":\"modifier\",\"id\":\"a\",\"data\":{\"meta\":{\"name\":\"A\","
                 + "\"icon\":\"STONE\"},\"behavior\":{\"0\":{\"runs-on\":[\"nope\"]}}}}";
@@ -293,13 +298,25 @@ class ShareCodecTest {
     @Test
     void lenientMaterialsAcceptUnknownIcons() {
         String json = "{\"type\":\"modifier\",\"id\":\"a\","
-                + "\"data\":{\"meta\":{\"name\":\"A\",\"icon\":\"NOPE\"}}}";
+                + "\"data\":{\"meta\":{\"name\":\"A\","
+                + "\"visibility\":{\"icon\":\"NOPE\"}}}}";
 
         Optional<ShareCodec.Imported> decoded =
                 ShareCodec.decode(envelope(json), ShareMaterials.lenient());
 
         assertTrue(decoded.isPresent());
-        assertEquals("NOPE", decoded.get().modifier().meta().icon());
+        assertEquals("NOPE", decoded.get().modifier().meta().visibility().icon());
+    }
+
+    @Test
+    void staleTopLevelIconDecodesIgnored() {
+        String json = "{\"type\":\"modifier\",\"id\":\"a\","
+                + "\"data\":{\"meta\":{\"name\":\"A\",\"icon\":\"NOPE\"}}}";
+
+        Optional<ShareCodec.Imported> decoded = ShareCodec.decode(envelope(json), STRICT);
+
+        assertTrue(decoded.isPresent());
+        assertNull(decoded.get().modifier().meta().visibility());
     }
 
     @Test
@@ -314,11 +331,12 @@ class ShareCodecTest {
 
     private static ShareModel.Modifier namedModifier(String name) {
         return new ShareModel.Modifier(
-                new ShareModel.Meta(name, null, null, null, null), null, null, null);
+                new ShareModel.Meta(name, null, null, null), null, null, null);
     }
 
     private static ShareModel.Modifier fullModifier() {
-        ShareModel.Meta meta = new ShareModel.Meta("Gear Dice", "Roll for gear", "TNT", "jruk", null);
+        ShareModel.Meta meta = new ShareModel.Meta("Gear Dice", "Roll for gear", "jruk",
+                new ShareModel.Visibility("TNT", null, null));
         ShareModel.Interval interval = new ShareModel.Interval(15.0, 5.0, "PER_EXECUTOR");
         ShareModel.Chance chance = new ShareModel.Chance(0.5, null);
         ShareModel.Execution execution =

@@ -73,6 +73,21 @@ class UnknownKeysTest {
         assertEquals("targeting.rate", setting.provenance().listName());
     }
 
+    @Test
+    void staleTopLevelIconFlagsWhileVisibilityIconStaysSilent() {
+        List<Diagnostic> stale = UnknownKeys.check("fog", UnknownKeys.Level.MODIFIER_META,
+                "", "", List.of("name", "icon"));
+
+        assertEquals(1, stale.size());
+        assertEquals(DiagnosticCode.W_UNKNOWN_KEY, stale.get(0).code());
+        assertEquals("Unknown key 'icon' in meta; ignoring it.", stale.get(0).message());
+
+        List<Diagnostic> current = UnknownKeys.check("fog", UnknownKeys.Level.VISIBILITY,
+                "", "", List.of("icon", "color", "broadcast"));
+
+        assertTrue(current.isEmpty());
+    }
+
     private static String message(UnknownKeys.Level level, String key) {
         return UnknownKeys.check("fog", level, "main", "targeting.rate",
                 List.of(key)).get(0).message();

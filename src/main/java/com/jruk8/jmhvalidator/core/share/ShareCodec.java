@@ -27,7 +27,7 @@ public final class ShareCodec {
     public static final String DEFAULT_MODIFIER_NAME = "My Modifier";
     /** Name written when an exported preset has none. */
     public static final String DEFAULT_PRESET_NAME = "My Preset";
-    /** Icon written when an exported meta block has none. */
+    /** Icon read when an imported visibility block names none. */
     public static final String DEFAULT_ICON = "STONE";
 
     private static final Pattern ID_PATTERN = Pattern.compile("[A-Za-z0-9][A-Za-z0-9_-]{0,63}");
@@ -143,8 +143,6 @@ public final class ShareCodec {
         if (meta != null && meta.description() != null) {
             written.put("description", meta.description());
         }
-        written.put("icon", meta == null || meta.icon() == null || meta.icon().isBlank()
-                ? DEFAULT_ICON : meta.icon());
         if (meta != null && meta.author() != null) {
             written.put("author", meta.author());
         }
@@ -248,10 +246,11 @@ public final class ShareCodec {
         if (meta != null && meta.description() != null) {
             written.put("description", meta.description());
         }
-        written.put("icon", meta == null || meta.icon() == null || meta.icon().isBlank()
-                ? DEFAULT_ICON : meta.icon());
         if (meta != null && meta.author() != null) {
             written.put("author", meta.author());
+        }
+        if (meta != null && meta.visibility() != null) {
+            written.put("visibility", visibilityData(meta.visibility()));
         }
         return written;
     }
@@ -297,17 +296,13 @@ public final class ShareCodec {
         if (name.isBlank()) {
             throw new Invalid();
         }
-        String icon = optionalString(meta, "icon", materials.fallbackIcon());
-        if (!materials.validIcon(icon)) {
-            throw new Invalid();
-        }
         ShareModel.Visibility visibility = null;
         Map<String, Object> visibilityData = optionalObject(meta, "visibility");
         if (visibilityData != null) {
             visibility = readVisibility(visibilityData, materials);
         }
         ShareModel.Meta written = new ShareModel.Meta(name,
-                optionalString(meta, "description", ""), icon,
+                optionalString(meta, "description", ""),
                 optionalString(meta, "author", ""), visibility);
         Map<String, Object> settings = null;
         Map<String, Object> advanced = null;
@@ -461,13 +456,14 @@ public final class ShareCodec {
         if (name.isBlank()) {
             throw new Invalid();
         }
-        String icon = optionalString(meta, "icon", materials.fallbackIcon());
-        if (!materials.validIcon(icon)) {
-            throw new Invalid();
+        ShareModel.Visibility visibility = null;
+        Map<String, Object> visibilityData = optionalObject(meta, "visibility");
+        if (visibilityData != null) {
+            visibility = readVisibility(visibilityData, materials);
         }
         ShareModel.Meta written = new ShareModel.Meta(name,
-                optionalString(meta, "description", ""), icon,
-                optionalString(meta, "author", ""), null);
+                optionalString(meta, "description", ""),
+                optionalString(meta, "author", ""), visibility);
         return new ShareModel.Preset(written,
                 readIdList(data, "modifiers"), readIdList(data, "presets"));
     }

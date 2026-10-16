@@ -180,7 +180,7 @@ public final class ShareYaml {
                     text(raw.get("icon")), text(raw.get("color")), broadcast);
         }
         return new ShareModel.Meta(text(meta.get("name")), text(meta.get("description")),
-                text(meta.get("icon")), text(meta.get("author")), visibility);
+                text(meta.get("author")), visibility);
     }
 
     private static ShareModel.Behavior readBehavior(Map<String, Object> map)
@@ -245,8 +245,6 @@ public final class ShareYaml {
         if (meta != null && meta.description() != null && !meta.description().isEmpty()) {
             written.put("description", meta.description());
         }
-        written.put("icon", meta == null || meta.icon() == null || meta.icon().isBlank()
-                ? ShareCodec.DEFAULT_ICON : meta.icon());
         if (meta != null && meta.author() != null && !meta.author().isEmpty()) {
             written.put("author", meta.author());
         }
