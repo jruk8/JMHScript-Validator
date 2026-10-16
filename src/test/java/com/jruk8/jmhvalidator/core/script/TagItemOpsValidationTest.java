@@ -42,6 +42,23 @@ class TagItemOpsValidationTest {
     }
 
     @Test
+    void itemkeepArity() {
+        assertTrue(TagItemOps.opError("itemkeep", null).isPresent());
+        assertTrue(TagItemOps.opError("itemkeep", "Steve").isPresent());
+        assertTrue(TagItemOps.opError("itemkeep", "Steve,mainhand,extra").isPresent());
+        assertTrue(TagItemOps.opError("itemkeep", "Steve,mainhand").isEmpty());
+        assertEquals("<itemkeep:player,slot>", TagItemOps.example("itemkeep"));
+        assertTrue(TagItemOps.opError("ritemkeep", "hunter").isPresent());
+        assertTrue(TagItemOps.opError("ritemkeep", "hunter,helmet").isEmpty());
+        assertEquals("<ritemkeep:role,slot>", TagItemOps.example("ritemkeep"));
+        assertTrue(TagItemOps.opError("gitemkeep", "helmet,extra").isPresent());
+        assertTrue(TagItemOps.opError("gitemkeep", "helmet").isEmpty());
+        assertEquals("<gitemkeep:slot>", TagItemOps.example("gitemkeep"));
+        assertEquals("Tag <itemkeep> mixes quotes.",
+                TagItemOps.opError("itemkeep", "\"Ste\"ve,mainhand").orElseThrow());
+    }
+
+    @Test
     void literalTagLengthFailsOnPayloads() {
         String overlong = "[tag, " + "x".repeat(101) + "]";
         assertEquals("Tag <give> tag value allows 100 chars at most.",
