@@ -66,10 +66,32 @@ public final class TagRegistryFiles {
             }
             names.add(name);
         }
-        return new LoadedRegistry(TagRegistry.of(names), readTriggers(map),
+        return new LoadedRegistry(TagRegistry.of(names, readPaidTags(map)), readTriggers(map),
                 readInterceptable(map), readMaterials(map),
                 stringOr(map.get("engine"), "unknown"),
                 stringOr(map.get("engineVersion"), "unknown"));
+    }
+
+    /**
+     * Paid tag names behind free-edition validation. Registries that
+     * predate the array read empty, and paid checks stay silent then.
+     */
+    private static List<String> readPaidTags(Map<?, ?> map) throws IOException {
+        Object paid = map.get("paidTags");
+        if (paid == null) {
+            return List.of();
+        }
+        if (!(paid instanceof List<?> items)) {
+            throw new IOException("registry 'paidTags' must be a list");
+        }
+        List<String> names = new ArrayList<>();
+        for (Object entry : items) {
+            if (!(entry instanceof String name)) {
+                throw new IOException("registry paid tags must be strings");
+            }
+            names.add(name);
+        }
+        return names;
     }
 
     private static KnownTriggers readTriggers(Map<?, ?> map) throws IOException {

@@ -189,12 +189,21 @@ public final class CommandSyntax {
     /** Warnings for one line; knownFunctions holds lowercase def names. */
     public static List<String> warnings(String command, Collection<String> knownFunctions,
             TagRegistry registry) {
+        return warnings(command, knownFunctions, registry, false);
+    }
+
+    /**
+     * Warnings for one line against the target edition: free
+     * validation flags paid tags distinctly from unknown ones.
+     */
+    public static List<String> warnings(String command, Collection<String> knownFunctions,
+            TagRegistry registry, boolean freeEdition) {
         List<String> found = new ArrayList<>();
         if (command == null || command.isBlank() || error(command).isPresent()) {
             return found;
         }
         for (String body : tagBodies(EngineEscapes.substitute(command))) {
-            TagSyntaxErrors.collectWarnings(body, found, knownFunctions, registry);
+            TagSyntaxErrors.collectWarnings(body, found, knownFunctions, registry, freeEdition);
         }
         return found.stream().map(EngineEscapes::restore).toList();
     }

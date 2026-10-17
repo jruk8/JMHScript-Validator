@@ -123,7 +123,7 @@ public final class Main {
         List<ReportJson.FileReport> reports = new ArrayList<>();
         for (Path file : files) {
             reports.add(checkFile(file, registry, known, pass.duplicates().get(file),
-                    pass.shadows().get(file)));
+                    pass.shadows().get(file), options.free()));
         }
         if (options.format.equals("json")) {
             System.out.print(ReportJson.report(version(), registry.engine(),
@@ -215,7 +215,7 @@ public final class Main {
 
     private static ReportJson.FileReport checkFile(Path file,
             TagRegistryFiles.LoadedRegistry registry, KnownModifiers known,
-            Diagnostic duplicate, Diagnostic shadow) {
+            Diagnostic duplicate, Diagnostic shadow, boolean freeEdition) {
         String stem = stemOf(file);
         ModifierYaml.ReadResult read = ModifierYaml.read(file, stem);
         List<Diagnostic> found = new ArrayList<>();
@@ -231,7 +231,7 @@ public final class Main {
             found.addAll(JmhValidator.validatePreset(stem, read.presetMembers(), known));
         } else {
             found.addAll(JmhValidator.validateBehavior(
-                    stem, read.behavior(), registry.registry()));
+                    stem, read.behavior(), registry.registry(), freeEdition));
         }
         SettingsNormalize.Result normalized =
                 SettingsNormalize.check(stem, read.settings(), registry.materials());
@@ -637,7 +637,7 @@ public final class Main {
         return """
                 JMHScript-Validator CLI.
                 Usage: validator --registry REGISTRY [--format text|json]
-                         [--expect-engine-version V] [--defaults FILE|DIR] PATH...
+                         [--expect-engine-version V] [--defaults FILE|DIR] [--free] PATH...
                        validator fetch-defaults --engine-rev REV --out DIR
                          [--repo OWNER/NAME]
                        validator export PATH...
@@ -651,7 +651,7 @@ public final class Main {
     /** Parsed CLI options. */
     private record Options(Path registry, String format,
             String expectEngine, Path defaults, List<Path> paths,
-            boolean help, boolean version) {
+            boolean help, boolean version, boolean free) {
         static Options parse(List<String> args) {
             Parser parser = new Parser();
             for (int index = 0; index < args.size(); index++) {
@@ -670,6 +670,7 @@ public final class Main {
         private final List<Path> paths = new ArrayList<>();
         private boolean help;
         private boolean version;
+        private boolean free;
 
         int take(List<String> args, int index) {
             String arg = args.get(index);
@@ -677,6 +678,8 @@ public final class Main {
                 help = true;
             } else if (arg.equals("--version")) {
                 version = true;
+            } else if (arg.equals("--free")) {
+                free = true;
             } else if (arg.startsWith("--")) {
                 return takeValued(args, index);
             } else {
@@ -707,7 +710,7 @@ public final class Main {
         Options build() {
             if (help || version) {
                 return new Options(registry, format, expectEngine, defaults,
-                        paths, help, version);
+                        paths, help, version, free);
             }
             if (registry == null) {
                 throw new IllegalArgumentException("missing --registry PATH");
@@ -719,7 +722,7 @@ public final class Main {
                 throw new IllegalArgumentException("no paths to validate");
             }
             return new Options(registry, format, expectEngine, defaults,
-                    paths, false, false);
+                    paths, false, false, free);
         }
     }
 }

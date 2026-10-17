@@ -20,6 +20,8 @@ public enum DiagnosticCode {
     E_UNKNOWN_ITEM("Unknown item"),
     /** Tag name outside the registry and def scope. */
     W_UNKNOWN_TAG("Unknown tag"),
+    /** Paid tag under free-edition validation. */
+    W_PAID_TAG("Paid tag"),
     /** Random-pick item skipped at runtime. */
     W_RANDOM_PICK_ITEM("Skipped pick item"),
     /** All-players filter outside letters-only. */

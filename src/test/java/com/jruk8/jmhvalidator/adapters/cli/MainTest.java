@@ -63,6 +63,25 @@ class MainTest {
     }
 
     @Test
+    void freeFlagReportsPaidTags(@TempDir Path tmp) throws Exception {
+        Path registry = tmp.resolve("registry.json");
+        Files.writeString(registry,
+                "{\"format\": 1, \"tags\": [\"p\", \"win\"], \"paidTags\": [\"win\"]}",
+                StandardCharsets.UTF_8);
+        Path mod = tmp.resolve("mod.yml");
+        Files.writeString(mod,
+                "behavior:\n  main:\n    runs-on:\n      - ON_START\n    commands:\n"
+                        + "      console:\n        - \"say <win:HUNTER,done>\"\n",
+                StandardCharsets.UTF_8);
+
+        String output = run(1, "--registry", registry.toString(), "--free", mod.toString());
+        assertTrue(output.contains("W_PAID_TAG"), output);
+
+        String silent = run(0, "--registry", registry.toString(), mod.toString());
+        assertTrue(!silent.contains("W_PAID_TAG"), silent);
+    }
+
+    @Test
     void cleanFileExitsZero(@TempDir Path tmp) throws Exception {
         Path cleaned = tmp.resolve("diamond.yml");
         String yaml = Files.readString(

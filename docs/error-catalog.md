@@ -27,6 +27,8 @@ Message text stays byte-identical to the engine.
 
 - `W_UNKNOWN_TAG`: Unknown tag. Outside the registry and def
   scope; the engine leaves it untouched at runtime.
+- `W_PAID_TAG`: Paid tag. A paid-edition tag under `--free`
+  validation; the free engine refuses the whole mod.
 - `W_RANDOM_PICK_ITEM`: Skipped pick item. A random-pick entry
   the runtime skips.
 - `W_ALL_PLAYERS_FILTER`: Weak filter. An all-players filter
