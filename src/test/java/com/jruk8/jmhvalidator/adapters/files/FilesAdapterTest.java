@@ -156,4 +156,32 @@ class FilesAdapterTest {
         Files.writeString(file, "{\"format\": 1, \"tags\": [42]}", StandardCharsets.UTF_8);
         assertThrows(Exception.class, () -> TagRegistryFiles.read(file));
     }
+
+    @Test
+    void registryReadsPaidTags(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("registry.json");
+        Files.writeString(file,
+                "{\"format\": 1, \"tags\": [\"p\", \"win\"], \"paidTags\": [\"win\"]}",
+                StandardCharsets.UTF_8);
+        TagRegistryFiles.LoadedRegistry loaded = TagRegistryFiles.read(file);
+        assertTrue(loaded.registry().isPaid("win"));
+        assertTrue(!loaded.registry().isPaid("p"));
+    }
+
+    @Test
+    void registryWithoutPaidTagsReadsEmpty(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("registry.json");
+        Files.writeString(file, "{\"format\": 1, \"tags\": [\"p\"]}", StandardCharsets.UTF_8);
+        TagRegistryFiles.LoadedRegistry loaded = TagRegistryFiles.read(file);
+        assertTrue(loaded.registry().paidTags().isEmpty());
+        assertTrue(!loaded.registry().isPaid("p"));
+    }
+
+    @Test
+    void registryRejectsNonStringPaidTags(@TempDir Path tmp) throws Exception {
+        Path file = tmp.resolve("registry.json");
+        Files.writeString(file,
+                "{\"format\": 1, \"tags\": [\"p\"], \"paidTags\": [42]}", StandardCharsets.UTF_8);
+        assertThrows(Exception.class, () -> TagRegistryFiles.read(file));
+    }
 }

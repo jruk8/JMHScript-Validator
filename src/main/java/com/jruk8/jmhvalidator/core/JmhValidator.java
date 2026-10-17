@@ -56,40 +56,51 @@ public final class JmhValidator {
     /** Sweep every behavior list of one modifier, in file order. */
     public static List<Diagnostic> validateBehavior(String modifierId,
             BehaviorFile file, TagRegistry registry) {
+        return validateBehavior(modifierId, file, registry, false);
+    }
+
+    /**
+     * Sweep every behavior list against the target edition: free
+     * validation flags paid tags distinctly from unknown ones.
+     */
+    public static List<Diagnostic> validateBehavior(String modifierId,
+            BehaviorFile file, TagRegistry registry, boolean freeEdition) {
         List<Diagnostic> found = new ArrayList<>();
         for (Map.Entry<String, BehaviorFile.BehaviorBlock> block : file.blocks().entrySet()) {
-            validateBlock(modifierId, block.getKey(), block.getValue(), registry, found);
+            validateBlock(modifierId, block.getKey(), block.getValue(), registry, freeEdition,
+                    found);
         }
         return found;
     }
 
     private static void validateBlock(String modifierId, String blockId,
-            BehaviorFile.BehaviorBlock block, TagRegistry registry, List<Diagnostic> found) {
+            BehaviorFile.BehaviorBlock block, TagRegistry registry, boolean freeEdition,
+            List<Diagnostic> found) {
         if (block == null || block.lists() == null) {
             return;
         }
         for (Map.Entry<String, List<String>> list : block.lists().entrySet()) {
             validateList(modifierId, blockId, list.getKey(), list.getValue(),
-                    block.lists(), registry, found);
+                    block.lists(), registry, freeEdition, found);
         }
     }
 
     private static void validateList(String modifierId, String blockId, String listName,
             List<String> lines, Map<String, List<String>> lists,
-            TagRegistry registry, List<Diagnostic> found) {
+            TagRegistry registry, boolean freeEdition, List<Diagnostic> found) {
         if (lines == null) {
             return;
         }
         Set<String> functions = functions(lists, listName);
         for (int index = 0; index < lines.size(); index++) {
             validateLine(modifierId, blockId, listName, index,
-                    lines.get(index), functions, registry, found);
+                    lines.get(index), functions, registry, freeEdition, found);
         }
     }
 
     private static void validateLine(String modifierId, String blockId, String listName,
             int index, String line, Set<String> functions,
-            TagRegistry registry, List<Diagnostic> found) {
+            TagRegistry registry, boolean freeEdition, List<Diagnostic> found) {
         if (line == null) {
             return;
         }
@@ -108,7 +119,7 @@ public final class JmhValidator {
                     DiagnosticCode.E_SYNTAX, problem.get()));
             return;
         }
-        for (String warning : CommandSyntax.warnings(line, functions, registry)) {
+        for (String warning : CommandSyntax.warnings(line, functions, registry, freeEdition)) {
             int at = ErrorLocate.charInLine(line, warning).orElse(-1);
             found.add(new Diagnostic(provenance, at, Severity.WARNING,
                     warnCode(warning), warning));
@@ -143,6 +154,9 @@ public final class JmhValidator {
     private static DiagnosticCode warnCode(String warning) {
         if (warning.startsWith("Unknown tag '")) {
             return DiagnosticCode.W_UNKNOWN_TAG;
+        }
+        if (warning.startsWith("Paid tag '")) {
+            return DiagnosticCode.W_PAID_TAG;
         }
         if (warning.startsWith("Tag '") && warning.contains("was removed; use")) {
             return DiagnosticCode.W_REMOVED_TAG;

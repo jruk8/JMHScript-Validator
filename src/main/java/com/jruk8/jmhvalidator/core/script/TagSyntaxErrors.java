@@ -296,6 +296,16 @@ final class TagSyntaxErrors {
 
     public static void collectWarnings(String body, List<String> found,
             Collection<String> knownFunctions, TagRegistry registry) {
+        collectWarnings(body, found, knownFunctions, registry, false);
+    }
+
+    /**
+     * Warning sweep with the target edition: free validation flags
+     * paid tags distinctly from unknown ones, since free refuses
+     * the whole mod instead of leaving the tag untouched.
+     */
+    public static void collectWarnings(String body, List<String> found,
+            Collection<String> knownFunctions, TagRegistry registry, boolean freeEdition) {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
@@ -306,6 +316,11 @@ final class TagSyntaxErrors {
         }
         if (!registry.isKnown(name) && !knownFunctions.contains(name)) {
             found.add("Unknown tag '<" + body.trim() + ">', left untouched at runtime.");
+            return;
+        }
+        if (freeEdition && registry.isPaid(name)) {
+            found.add("Paid tag '<" + body.trim()
+                    + ">' needs the paid edition and will not load on free.");
             return;
         }
         if ("random-pick".equals(name) && args != null) {
