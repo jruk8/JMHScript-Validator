@@ -22,10 +22,9 @@ final class TagSyntaxErrors {
         return switch (name) {
             case "random-num", "random-pick", "random-sound", "random-effect", "random-enchant",
                     "random-biome", "random-hunter", "random-runner" -> picksError(name, args);
-            case "id", "i", "pi", "e" -> noArgsError(name, args);
-            case "min", "max", "clamp", "atan2", "lerp", "smoothstep", "smootherstep",
-                    "sum", "average", "avg", "median" ->
-                    mathError(name, args);
+            case "id", "i", "pi", "e", "mvp" -> noArgsError(name, args);
+            case "min", "max", "clamp", "atan2", "lerp", "smoothstep", "smootherstep", "sum",
+                    "average", "avg", "median" -> mathError(name, args);
             case "if" -> ifError(args); case "switch" -> TagSwitch.opError(name, args);
             case "pstat", "gstat", "rstat" -> statDispatchError(name, args);
             case "phasitem", "pcountitem", "rhasitem", "rcountitem", "ghasitem", "gcountitem" ->

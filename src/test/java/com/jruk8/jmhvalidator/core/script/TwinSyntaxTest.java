@@ -26,7 +26,9 @@ class TwinSyntaxTest {
         assertTrue(CommandSyntax.error("say <rmaxhp.clear:hunter> <gmaxhp.clear> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rgive:hunter,[STONE,1]> <ggive:[STONE,1]> x").isEmpty());
         assertTrue(CommandSyntax.error("say <ritemtag:hunter,helmet> <gitemtag:helmet> x").isEmpty());
-        assertTrue(CommandSyntax.error("say <itemkeep:Steve,helmet> <ritemkeep:hunter,helmet> <gitemkeep:helmet> x").isEmpty());
+        assertTrue(CommandSyntax.error(
+                "say <itemkeep:Steve,helmet> <ritemkeep:hunter,helmet> <gitemkeep:helmet> x")
+                .isEmpty());
         assertTrue(CommandSyntax.error("say <rhasitem:hunter,stone> <ghasitem:stone> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rcountitem:hunter,stone> <gcountitem:stone> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rheld:hunter> <gheld> x").isEmpty());
