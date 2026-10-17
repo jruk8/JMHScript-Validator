@@ -245,6 +245,7 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <active-players:ALL> x").isEmpty());
         assertTrue(CommandSyntax.error("say <plocation:Steve> x").isEmpty());
         assertTrue(CommandSyntax.error("say <prole:Steve> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <mvp> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rcolor:HUNTER> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rcolor:afk> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rcolor:<prole:Steve>> x").isEmpty());
@@ -468,6 +469,7 @@ class CommandSyntaxTest {
         assertTrue(CommandSyntax.error("say <active-players> x").isPresent());
         assertTrue(CommandSyntax.error("say <plocation> x").isPresent());
         assertTrue(CommandSyntax.error("say <prole:> x").isPresent());
+        assertTrue(CommandSyntax.error("say <mvp:Steve> x").isPresent());
         assertTrue(CommandSyntax.error("say <rcolor:REF> x").isPresent());
         assertTrue(CommandSyntax.error("say <rcolor:> x").isPresent());
         assertTrue(CommandSyntax.error("say <distance:[0,0,0]> x").isPresent());
