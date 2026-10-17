@@ -8,7 +8,7 @@ Behavior stays 1:1 with the engine; the corpus proves it.
 
 | Read | Why |
 |---|---|
-| `README.md` | Layout, SSOT rules, releases |
+| `CONTRIBUTING.md` | Layout, SSOT rules, releases |
 | `corpus/README.md` | Golden provenance and refresh |
 | `docs/error-catalog.md` | Stable codes |
 | `contract/report-schema.json` | JSON shape consumers parse |
@@ -42,4 +42,4 @@ Behavior stays 1:1 with the engine; the corpus proves it.
 3. Update `docs/error-catalog.md` for new codes (the catalog
    test enforces it) and bump `reportVersion` for format
    changes.
-4. Follow the README release order (validator, JManhunt).
+4. Follow the CONTRIBUTING.md release order (validator, JManhunt).
