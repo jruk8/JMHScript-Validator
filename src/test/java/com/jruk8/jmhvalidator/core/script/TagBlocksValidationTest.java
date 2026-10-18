@@ -44,4 +44,21 @@ class TagBlocksValidationTest {
         assertTrue(TagBlocks.blocksError("getblock", "[0, 64, 0]").isPresent());
         assertTrue(TagBlocks.blocksError("getblock", "?").isEmpty());
     }
+
+    @Test
+    void issolidArity() {
+        assertTrue(TagBlocks.blocksError("issolid", null).isPresent());
+        assertTrue(TagBlocks.blocksError("issolid", "").isPresent());
+        assertTrue(TagBlocks.blocksError("issolid", "stone").isEmpty());
+        assertTrue(TagBlocks.blocksError("issolid", "STONE").isEmpty());
+        assertTrue(TagBlocks.blocksError("issolid", "minecraft:stone").isEmpty());
+        assertTrue(TagBlocks.blocksError("issolid", "stone,extra").isPresent());
+    }
+
+    @Test
+    void issolidShapes() {
+        assertTrue(TagBlocks.blocksError("issolid", "   ").isPresent());
+        assertTrue(TagBlocks.blocksError("issolid", "'stone").isPresent());
+        assertTrue(TagBlocks.blocksError("issolid", "?").isEmpty());
+    }
 }
