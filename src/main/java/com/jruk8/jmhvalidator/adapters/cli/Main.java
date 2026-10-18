@@ -10,6 +10,7 @@ import com.jruk8.jmhvalidator.core.CommandLists;
 import com.jruk8.jmhvalidator.core.DuplicateIds;
 import com.jruk8.jmhvalidator.core.JmhValidator;
 import com.jruk8.jmhvalidator.core.NaturalOrder;
+import com.jruk8.jmhvalidator.core.PaidContent;
 import com.jruk8.jmhvalidator.core.RunTriggers;
 import com.jruk8.jmhvalidator.core.SettingsNormalize;
 import com.jruk8.jmhvalidator.core.TriggerParams;
@@ -121,17 +122,24 @@ public final class Main {
         ShadowUniverse shadow = universes == null ? null : universes.shadow();
         IdPass pass = duplicateIds(files, shadow);
         List<ReportJson.FileReport> reports = new ArrayList<>();
+        List<Boolean> premiums = new ArrayList<>();
         for (Path file : files) {
-            reports.add(checkFile(file, registry, known, pass.duplicates().get(file),
-                    pass.shadows().get(file), options.free()));
+            CheckedFile checked = checkFile(file, registry, known, pass.duplicates().get(file),
+                    pass.shadows().get(file), options.free());
+            reports.add(checked.report());
+            premiums.add(checked.premium());
         }
         if (options.format.equals("json")) {
             System.out.print(ReportJson.report(version(), registry.engine(),
                     registry.engineVersion(), reports));
         } else {
-            System.out.print(ReportText.renderText(reports));
+            System.out.print(ReportText.renderText(reports, premiums));
         }
         return exitFor(reports);
+    }
+
+    /** One checked file: its report plus the premium marker behind the text output. */
+    private record CheckedFile(ReportJson.FileReport report, boolean premium) {
     }
 
     private static int exitFor(List<ReportJson.FileReport> reports) {
@@ -213,7 +221,7 @@ public final class Main {
                         Set.copyOf(bundledPresets), root));
     }
 
-    private static ReportJson.FileReport checkFile(Path file,
+    private static CheckedFile checkFile(Path file,
             TagRegistryFiles.LoadedRegistry registry, KnownModifiers known,
             Diagnostic duplicate, Diagnostic shadow, boolean freeEdition) {
         String stem = stemOf(file);
@@ -247,7 +255,8 @@ public final class Main {
             found.addAll(SettingsStyle.check(stem, read.settings()));
         }
         found.addAll(UncalledSweep.check(stem, read.behavior(), refTree));
-        return new ReportJson.FileReport(file.toString(), found);
+        boolean premium = PaidContent.isPremium(read.behavior(), registry.registry());
+        return new CheckedFile(new ReportJson.FileReport(file.toString(), found), premium);
     }
 
     /** Per-block trigger, list, and intercept findings behind one file. */

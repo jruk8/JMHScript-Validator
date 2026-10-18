@@ -10,11 +10,22 @@ final class ReportText {
     }
 
     static String renderText(List<ReportJson.FileReport> reports) {
+        return renderText(reports, List.of());
+    }
+
+    /**
+     * Text rendering with per-file premium markers: after each
+     * file's diagnostics, premium files print their path plus
+     * {@code (premium)}. Premium flags run parallel to the
+     * reports; short lists read as free.
+     */
+    static String renderText(List<ReportJson.FileReport> reports, List<Boolean> premiums) {
         StringBuilder out = new StringBuilder();
         int errors = 0;
         int warnings = 0;
         int dirty = 0;
-        for (ReportJson.FileReport report : reports) {
+        for (int index = 0; index < reports.size(); index++) {
+            ReportJson.FileReport report = reports.get(index);
             if (!report.diagnostics().isEmpty()) {
                 dirty++;
             }
@@ -25,6 +36,9 @@ final class ReportText {
                     warnings++;
                 }
                 out.append(textLine(report.file(), found)).append("\n");
+            }
+            if (index < premiums.size() && premiums.get(index)) {
+                out.append(report.file()).append(" (premium)\n");
             }
         }
         out.append("%d files: %d clean, %d with diagnostics (errors: %d, warnings: %d)%n"

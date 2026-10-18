@@ -25,7 +25,10 @@ java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json --f
 
 Exit codes: 0 clean, 1 diagnostics found, 2 usage or setup
 error. Add `--expect-engine-version <rev>` to fail closed when
-the registry does not match the engine you target.
+the registry does not match the engine you target. In text
+form, each modifier that uses paid content prints its path
+plus ` (premium)` after its findings: a marked mod is one the
+free edition would refuse whole.
 
 ## Checking presets too
 

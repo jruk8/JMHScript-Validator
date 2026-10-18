@@ -49,7 +49,7 @@ final class TagSyntaxErrors {
                     "rdir", "gdir", "raycast", "raycastext", "intercept", "give", "dropitem",
                     "itemtag", "itemkeep", "rgive", "ggive", "ritemtag", "ritemkeep",
                     "gitemtag", "gitemkeep", "summon", "gamerule",
-                    "rule", "timeset", "timeadd", "timeget", "place", "kill" ->
+                    "rule", "timeset", "timeadd", "timeget", "place", "kill", "delay", "delaycancel" ->
                     shapeError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
                     "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
@@ -124,6 +124,7 @@ final class TagSyntaxErrors {
             case "gamerule", "rule", "timeset", "timeadd", "timeget" ->
                     TagWorldClock.opError(name, args);
             case "place", "kill" -> TagPlaceKill.opError(name, args);
+            case "delay", "delaycancel" -> TagDelay.opError(name, args);
             default -> throw new IllegalArgumentException("Unknown shape tag: " + name);
         };
     }
