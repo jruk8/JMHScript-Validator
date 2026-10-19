@@ -50,12 +50,25 @@ public final class InterceptCheck {
                     found.add(new Diagnostic(provenance, at, Severity.ERROR,
                             DiagnosticCode.E_INTERCEPT_CONTEXT,
                             "Tag <intercept> runs only in an interceptable block "
-                                    + "(ON_MOB_KILLED, ON_BLOCK_BROKEN, or ON_CRAFT_PREPARE)."));
+                                    + triggerList(known) + "."));
                     return found;
                 }
             }
         }
         return found;
+    }
+
+    /** Parenthesized trigger names in port order, with an or before the last. */
+    private static String triggerList(InterceptableTriggers known) {
+        List<String> names = new ArrayList<>(known.triggers());
+        if (names.isEmpty()) {
+            return "(none)";
+        }
+        if (names.size() == 1) {
+            return "(" + names.get(0) + ")";
+        }
+        return "(" + String.join(", ", names.subList(0, names.size() - 1)) + ", or "
+                + names.get(names.size() - 1) + ")";
     }
 
     /** True when any runs-on trigger is interceptable. */
