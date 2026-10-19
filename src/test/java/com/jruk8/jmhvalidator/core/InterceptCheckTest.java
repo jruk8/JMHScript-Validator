@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class InterceptCheckTest {
 
-    private static final InterceptableTriggers KNOWN = InterceptableTriggers.of(
-            List.of("ON_MOB_KILLED", "ON_BLOCK_BROKEN", "ON_CRAFT_PREPARE"));
+    private static final InterceptableTriggers KNOWN = InterceptableTriggers.of(List.of(
+            "ON_MOB_KILLED", "ON_BLOCK_BROKEN", "ON_CRAFT_PREPARE", "ON_BLOCK_PLACED"));
 
     private static BehaviorFile.BehaviorBlock block(List<String> lines, List<String> runsOn) {
         return new BehaviorFile.BehaviorBlock(Map.of("player", lines), runsOn);
@@ -40,7 +40,19 @@ class InterceptCheckTest {
         assertEquals(0, only.provenance().lineIndex());
         assertEquals(1, only.charOneBased());
         assertEquals("Tag <intercept> runs only in an interceptable block (ON_MOB_KILLED,"
-                + " ON_BLOCK_BROKEN, or ON_CRAFT_PREPARE).", only.message());
+                + " ON_BLOCK_BROKEN, ON_CRAFT_PREPARE, or ON_BLOCK_PLACED).", only.message());
+    }
+
+    @Test
+    void messageDerivesFromPortOrder() {
+        InterceptableTriggers placed =
+                InterceptableTriggers.of(List.of("ON_BLOCK_PLACED"));
+        List<Diagnostic> found = InterceptCheck.check("fog",
+                block(List.of("<intercept:[dirt, 1]>"), List.of("INTERVAL")), "main", placed);
+
+        assertEquals(1, found.size());
+        assertEquals("Tag <intercept> runs only in an interceptable block"
+                + " (ON_BLOCK_PLACED).", found.get(0).message());
     }
 
     @Test
@@ -60,6 +72,9 @@ class InterceptCheckTest {
                 block(List.of("<intercept:[dirt, 1]>"),
                         List.of("INTERVAL", "ON_BLOCK_BROKEN")),
                 "main", KNOWN).isEmpty());
+        assertTrue(InterceptCheck.check("fog",
+                block(List.of("<intercept:[air, 1]>"), List.of("on_block_placed")), "main",
+                KNOWN).isEmpty());
     }
 
     @Test

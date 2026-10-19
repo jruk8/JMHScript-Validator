@@ -1,6 +1,8 @@
 package com.jruk8.jmhvalidator.core.ports;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -29,9 +31,9 @@ public interface InterceptableTriggers {
         return false;
     }
 
-    /** Fixed registry for tests and adapters. */
+    /** Fixed registry for tests and adapters; keeps written order for messages. */
     static InterceptableTriggers of(Collection<String> triggers) {
-        Set<String> copy = Set.copyOf(triggers);
+        Set<String> copy = Collections.unmodifiableSet(new LinkedHashSet<>(triggers));
         return () -> copy;
     }
 }
