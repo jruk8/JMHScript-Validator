@@ -18,6 +18,8 @@ final class TagTailErrors {
             case "gerror", "gerrormessage" -> TagSinks.messageError(name, args);
             case "perror", "perrormessage" -> TagSinks.playerMessageError(name, args);
             case "rerror", "rerrormessage" -> RoleTagSyntax.messageError(name, args);
+            case "actionbar.set" -> TagSinks.actionbarError(name, args);
+            case "actionbar.clear" -> TagSinks.actionbarClearError(name, args);
             case "gsound" -> TagSinks.soundError(name, args);
             case "psound" -> TagSinks.playerSoundError(name, args);
             case "lsound" -> TagSinks.locatedSoundError(name, args);

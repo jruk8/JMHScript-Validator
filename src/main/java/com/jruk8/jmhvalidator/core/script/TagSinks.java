@@ -6,8 +6,8 @@ import java.util.Optional;
 
 /**
  * Side-effect delivery tags: messages and sounds in their global,
- * player, and role flavors. Each sends or plays through the context
- * sinks and returns empty. No Bukkit types.
+ * player, and role flavors, plus the global actionbar. Each sends
+ * or plays through the context sinks and returns empty. No Bukkit types.
   * Validation carve: evaluation stays engine-side.
 */
 public final class TagSinks {
@@ -332,6 +332,39 @@ public final class TagSinks {
     /** Strips one quote pair for list-shape detection, else the raw part. */
     private static String unquoted(String part) {
         return TagHeads.parsePickItem(part.strip()).orElse(part.strip());
+    }
+
+    /**
+     * Edit-time shape for {@code <actionbar.set>}: a message plus
+     * optional stay and fade-out seconds, quotes parsed. Mirrors
+     * the runtime warns.
+     */
+    public static Optional<String> actionbarError(String name, String args) {
+        if (args == null || args.isBlank()) {
+            return Optional.of("Tag <" + name + "> needs a message.");
+        }
+        List<String> parts = TagLists.splitTopLevel(args);
+        if (parts.size() < 1 || parts.size() > 3) {
+            return Optional.of("Tag <" + name + "> needs a message plus optional stay "
+                    + "and fadeout seconds.");
+        }
+        for (String part : parts) {
+            if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
+                return Optional.of("Tag <" + name + "> mixes quotes.");
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Edit-time shape for {@code <actionbar.clear>}: no arguments.
+     * Mirrors the runtime warns.
+     */
+    public static Optional<String> actionbarClearError(String name, String args) {
+        if (args != null && !args.isBlank()) {
+            return Optional.of("Tag <" + name + "> takes no arguments.");
+        }
+        return Optional.empty();
     }
 
 }
