@@ -12,6 +12,8 @@ import java.util.Optional;
  * reads held item use with an optional material filter;
  * {@code <premoveitem>} removes
  * items all-or-nothing; {@code <ptitle>} sends a center-screen title;
+ * {@code <pactionbar.set>} and {@code <pactionbar.clear>} own one
+ * player's actionbar line;
  * {@code <pslot>} gets and sets inventory slots by name or raw index;
  * {@code <clearslot>} empties one slot by name or raw index;
  * {@code <pfx.set>}, {@code <pfx.get>}, {@code <pfx.clear>}, and
@@ -81,6 +83,10 @@ public final class TagPlayers {
             case "gfx.duration" -> count == 2;
             case "ptitle", "rtitle" -> count >= 3 && count <= 6;
             case "gtitle" -> count >= 2 && count <= 5;
+            case "pactionbar.set", "ractionbar.set" -> count >= 2 && count <= 4;
+            case "gactionbar.set" -> count >= 1 && count <= 3;
+            case "pactionbar.clear", "ractionbar.clear" -> count == 1;
+            case "gactionbar.clear" -> count == 0;
             case "pmaxhp.set", "pmaxhp.modify", "rmaxhp.set", "rmaxhp.modify" -> count == 3;
             case "gmaxhp.set", "gmaxhp.modify" -> count == 2;
             case "pmaxhp.get", "rmaxhp.get" -> count == 2;
@@ -123,6 +129,10 @@ public final class TagPlayers {
             case "gfx.duration" -> "2 args";
             case "ptitle", "rtitle" -> "3 to 6 args";
             case "gtitle" -> "2 to 5 args";
+            case "pactionbar.set", "ractionbar.set" -> "2 to 4 args";
+            case "gactionbar.set" -> "1 to 3 args";
+            case "pactionbar.clear", "ractionbar.clear" -> "1 arg";
+            case "gactionbar.clear" -> "no args";
             case "pmaxhp.set", "pmaxhp.modify", "rmaxhp.set", "rmaxhp.modify" -> "3 args";
             case "gmaxhp.set", "gmaxhp.modify" -> "2 args";
             case "pmaxhp.get", "rmaxhp.get" -> "2 args";
@@ -166,7 +176,7 @@ public final class TagPlayers {
         };
     }
 
-    /** Examples for the ledger, title, max-health, and slot twins. */
+    /** Examples for the ledger, title, max-health, slot, and actionbar twins. */
     private static String exampleLedger(String name) {
         return switch (name) {
             case "pfx.set" -> "<pfx.set:player,id,effects>";
@@ -184,6 +194,12 @@ public final class TagPlayers {
             case "ptitle" -> "<ptitle:player,title,subtitle>";
             case "rtitle" -> "<rtitle:role,title,subtitle>";
             case "gtitle" -> "<gtitle:title,subtitle>";
+            case "pactionbar.set" -> "<pactionbar.set:Steve,Go!>";
+            case "ractionbar.set" -> "<ractionbar.set:hunter,Go!>";
+            case "gactionbar.set" -> "<gactionbar.set:Go!>";
+            case "pactionbar.clear" -> "<pactionbar.clear:Steve>";
+            case "ractionbar.clear" -> "<ractionbar.clear:hunter>";
+            case "gactionbar.clear" -> "<gactionbar.clear>";
             case "pmaxhp.set" -> "<pmaxhp.set:player,id,amount>";
             case "rmaxhp.set" -> "<rmaxhp.set:role,id,amount>";
             case "gmaxhp.set" -> "<gmaxhp.set:id,amount>";

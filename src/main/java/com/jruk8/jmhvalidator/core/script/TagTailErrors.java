@@ -40,7 +40,9 @@ final class TagTailErrors {
                     "risusinghanditem", "rdamage", "ruuid", "gstate", "gstandingon", "gblock",
                     "gismoving", "gremoveitem", "gtitle", "gslot", "gclearslot", "gmaxhp.set",
                     "gmaxhp.modify", "gmaxhp.get", "gmaxhp.clear", "gfx.set", "gfx.get", "gfx.clear",
-                    "gfx.duration", "gisusinghanditem", "gdamage", "guuid" ->
+                    "gfx.duration", "gisusinghanditem", "gdamage", "guuid",
+                    "pactionbar.set", "ractionbar.set", "gactionbar.set",
+                    "pactionbar.clear", "ractionbar.clear", "gactionbar.clear" ->
                     TagPlayers.opError(name, args);
             case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
             case "overlap-players", "nearby-players" -> proximityError(name, args);

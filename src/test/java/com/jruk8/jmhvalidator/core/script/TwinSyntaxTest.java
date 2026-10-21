@@ -46,6 +46,13 @@ class TwinSyntaxTest {
         assertTrue(CommandSyntax.error("say <rhaseffect:hunter,speed> <ghaseffect:speed> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rswitch:hunter,SPEEDRUNNER> <gswitch:SPEEDRUNNER> x").isEmpty());
         assertTrue(CommandSyntax.error("say <gfx.set:glow> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pactionbar.set:Steve,Go!> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pactionbar.set:Steve,Go!,1,0.5> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <ractionbar.set:hunter,Go!> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <gactionbar.set:Go!> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <pactionbar.clear:Steve> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <ractionbar.clear:hunter> x").isEmpty());
+        assertTrue(CommandSyntax.error("say <gactionbar.clear> x").isEmpty());
     }
 
     @Test
@@ -79,5 +86,11 @@ class TwinSyntaxTest {
         assertTrue(CommandSyntax.error("say <gswitch> x").isPresent());
         assertTrue(CommandSyntax.error("say <rswitch:hunter,ref> x").isPresent());
         assertTrue(CommandSyntax.error("say <gswitch:ref> x").isPresent());
+        assertTrue(CommandSyntax.error("say <pactionbar.set:Steve> x").isPresent());
+        assertTrue(CommandSyntax.error("say <ractionbar.set:hunter> x").isPresent());
+        assertTrue(CommandSyntax.error("say <gactionbar.set> x").isPresent());
+        assertTrue(CommandSyntax.error("say <pactionbar.clear> x").isPresent());
+        assertTrue(CommandSyntax.error("say <ractionbar.clear> x").isPresent());
+        assertTrue(CommandSyntax.error("say <gactionbar.clear:x> x").isPresent());
     }
 }
