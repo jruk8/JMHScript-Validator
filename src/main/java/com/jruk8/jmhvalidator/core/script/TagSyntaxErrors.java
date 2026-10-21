@@ -325,6 +325,12 @@ final class TagSyntaxErrors {
                     + REMOVED_TAGS.get(name) + ">' instead.");
             return;
         }
+        if (name.equals("?")) {
+            // Double-bracket MiniMessage wrap: the outer pair is
+            // literal brackets around a nested tag (validated on
+            // its own span), never a tag itself.
+            return;
+        }
         if (!registry.isKnown(name) && !knownFunctions.contains(name)) {
             found.add("Unknown tag '<" + body.trim() + ">', left untouched at runtime.");
             return;

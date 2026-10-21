@@ -69,6 +69,21 @@ class CommandSyntaxTest {
     }
 
     @Test
+    void doubleBracketWrapStaysSilent() {
+        String command = "say <<p>>hi";
+        assertTrue(CommandSyntax.error(command).isEmpty());
+        assertTrue(CommandSyntax.warnings(command, TestRegistries.pinned()).isEmpty());
+    }
+
+    @Test
+    void doubleBracketInnerStillWarns() {
+        String command = "say <<bogus>>hi";
+        assertTrue(CommandSyntax.error(command).isEmpty());
+        assertEquals(1, CommandSyntax.warnings(command, TestRegistries.pinned()).size());
+        assertTrue(CommandSyntax.warnings(command, TestRegistries.pinned()).get(0).contains("bogus"));
+    }
+
+    @Test
     void randomNumberRules() {
         assertTrue(CommandSyntax.error("give <p> apple <random-num:1,6>").isEmpty());
         assertTrue(CommandSyntax.error("give <p> apple <random-num:6,1>").isEmpty());
