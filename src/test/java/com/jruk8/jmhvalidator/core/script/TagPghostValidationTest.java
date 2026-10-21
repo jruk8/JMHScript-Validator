@@ -27,6 +27,17 @@ class TagPghostValidationTest {
         assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[a, 64, 0, world]").isPresent());
         assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, ]").isPresent());
         assertTrue(TagPghost.opError("pghost.enter", "?,?,?").isEmpty());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],CAMERA")
+                .isEmpty());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],camera")
+                .isEmpty());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],WORLD")
+                .isEmpty());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],UP").isPresent());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],").isPresent());
+        assertTrue(TagPghost.opError("pghost.enter", "Steve,drone,[0, 64, 0, world],CAMERA,x")
+                .isPresent());
+        assertTrue(TagPghost.opError("pghost.enter", "?,?,?,?").isEmpty());
         assertTrue(TagPghost.opError("something-else", "Steve,drone,[0, 64, 0, world]").isEmpty());
     }
 
@@ -73,6 +84,10 @@ class TagPghostValidationTest {
         assertTrue(CommandSyntax.error("say <pghost.enter:Steve,drone,[0, 64, 0, world]>")
                 .isEmpty());
         assertTrue(CommandSyntax.error("say <pghost.enter:Steve>").isPresent());
+        assertTrue(CommandSyntax.error("say <pghost.enter:Steve,drone,[0, 64, 0, world],CAMERA>")
+                .isEmpty());
+        assertTrue(CommandSyntax.error("say <pghost.enter:Steve,drone,[0, 64, 0, world],UP>")
+                .isPresent());
         assertTrue(CommandSyntax.error("say <pghost.exit:drone>").isEmpty());
         assertTrue(CommandSyntax.error("say <pghost.exit:>").isPresent());
         assertTrue(CommandSyntax.error("say <pghost.control:drone,[0, 1, 0]>").isEmpty());

@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Ghost tags for JMHScript: {@code <pghost.enter:player,id,loc>} opens a
- * ghost session (a static mannequin decoy plus a detached moving anchor),
- * {@code <pghost.exit:id>} closes one,
+ * Ghost tags for JMHScript: {@code <pghost.enter:player,id,loc,ymode?>}
+ * opens a ghost session (a static mannequin decoy plus a detached moving
+ * anchor), {@code <pghost.exit:id>} closes one,
  * {@code <pghost.control:id,movement,smoothness?>} steers the anchor with
  * a 3-element movement vector and an optional 0..1 smoothness (default
- * 0.3), and {@code <pisghost:player>} reads the state. Locs are strict
- * 4- or 6-element lists. Masked nested tags abstain (runtime resolves
- * them).
+ * 0.3), and {@code <pisghost:player>} reads the state. The ymode is an
+ * optional WORLD (default) or CAMERA lift axis. Locs are strict 4- or
+ * 6-element lists. Masked nested tags abstain (runtime resolves them).
  * Validation carve: evaluation stays engine-side.
  */
 public final class TagPghost {
@@ -33,16 +33,16 @@ public final class TagPghost {
         };
     }
 
-    /** Enter: player, id, plus a loc list. */
+    /** Enter: player, id, a loc list, plus an optional ymode. */
     private static Optional<String> enterError(String args) {
         if (args == null || args.isBlank()) {
-            return Optional.of("Tag <pghost.enter> needs 3 args like "
-                    + "<pghost.enter:Steve,drone,[0, 64, 0, world]>.");
+            return Optional.of("Tag <pghost.enter> needs 3 or 4 args like "
+                    + "<pghost.enter:Steve,drone,[0, 64, 0, world],CAMERA>.");
         }
         List<String> parts = TagLists.splitTopLevel(args);
-        if (parts.size() != 3) {
-            return Optional.of("Tag <pghost.enter> needs 3 args like "
-                    + "<pghost.enter:Steve,drone,[0, 64, 0, world]>.");
+        if (parts.size() < 3 || parts.size() > 4) {
+            return Optional.of("Tag <pghost.enter> needs 3 or 4 args like "
+                    + "<pghost.enter:Steve,drone,[0, 64, 0, world],CAMERA>.");
         }
         for (String part : parts) {
             if (TagHeads.parsePickItem(part).isEmpty() && !part.isBlank()) {
@@ -61,7 +61,25 @@ public final class TagPghost {
             return Optional.of("Tag <pghost.enter> needs a loc like "
                     + "[0, 64, 0, world].");
         }
-        return locError("pghost.enter", parts.get(2));
+        Optional<String> loc = locError("pghost.enter", parts.get(2));
+        if (loc.isPresent()) {
+            return loc;
+        }
+        if (parts.size() == 4) {
+            return ymodeError(parts.get(3).strip());
+        }
+        return Optional.empty();
+    }
+
+    /** Ymode: WORLD or CAMERA, case-blind; masked tags abstain. */
+    private static Optional<String> ymodeError(String raw) {
+        if (raw.contains("?")) {
+            return Optional.empty();
+        }
+        if (raw.equalsIgnoreCase("WORLD") || raw.equalsIgnoreCase("CAMERA")) {
+            return Optional.empty();
+        }
+        return Optional.of("Tag <pghost.enter> ymode \"" + raw + "\" must be WORLD or CAMERA.");
     }
 
     /** Exit: exactly one id. */
