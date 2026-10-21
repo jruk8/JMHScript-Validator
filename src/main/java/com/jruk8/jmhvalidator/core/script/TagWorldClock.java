@@ -6,7 +6,8 @@ import java.util.Optional;
 /**
  * World-clock tags for JMHScript: {@code <gamerule:name,value>}
  * and its {@code <rule>} alias, {@code <timeset:value>},
- * {@code <timeadd:value>}, and argless {@code <timeget>}.
+ * {@code <timeadd:value>}, and argless {@code <timeget>},
+ * plus {@code <weatherset:mode>} and argless {@code <weatherget>}.
  * Validation carve: evaluation stays engine-side.
  */
 public final class TagWorldClock {
@@ -19,9 +20,9 @@ public final class TagWorldClock {
      * per-head arity. Mirrors the runtime warns.
      */
     public static Optional<String> opError(String name, String args) {
-        if (name.equals("timeget")) {
+        if (name.equals("timeget") || name.equals("weatherget")) {
             if (args != null && !args.isBlank()) {
-                return Optional.of("Tag <timeget> takes no args like <timeget>.");
+                return Optional.of("Tag <" + name + "> takes no args like <" + name + ">.");
             }
             return Optional.empty();
         }
@@ -72,6 +73,7 @@ public final class TagWorldClock {
             case "gamerule" -> "<gamerule:doDaylightCycle,false>";
             case "rule" -> "<rule:doDaylightCycle,false>";
             case "timeset" -> "<timeset:midnight>";
+            case "weatherset" -> "<weatherset:rain>";
             default -> "<timeadd:-500>";
         };
     }

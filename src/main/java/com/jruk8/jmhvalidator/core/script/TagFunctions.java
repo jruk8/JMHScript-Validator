@@ -42,6 +42,7 @@ public final class TagFunctions {
             "set.tolist",
             "weighted-pick", "weighted-picks",
             "string.listformat", "string.lformat", "s.listformat", "s.lformat",
+            "string.timeformat", "string.tformat", "s.timeformat", "s.tformat",
             "active-players", "plocation", "prole", "rcolor", "distance",
             "floor", "ceil", "round", "abs", "sign", "sqrt", "cbrt",
             "cos", "sin", "tan", "arccos", "acos", "arcsin", "asin", "arctan",

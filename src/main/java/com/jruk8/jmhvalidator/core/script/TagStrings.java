@@ -9,7 +9,10 @@ import java.util.Optional;
  * {@code <str.upper>}, {@code <str.contains>}, {@code <str.slice>},
  * and {@code <str.matches>}, plus the Oxford list formatter
  * {@code <string.listformat>} (aliases {@code <string.lformat>},
- * {@code <s.listformat>}, {@code <s.lformat>}).
+ * {@code <s.listformat>}, {@code <s.lformat>}) and the duration
+ * formatter {@code <string.timeformat>} (aliases
+ * {@code <string.tformat>}, {@code <s.timeformat>},
+ * {@code <s.tformat>}).
  * {@code <list.join>} delegates to the same join. Splits are
  * literal (never regex) and keep every part, so a join-split
  * round trip restores the list exactly. No Bukkit types.
@@ -50,6 +53,9 @@ public final class TagStrings {
         if (isListformat(name)) {
             return count >= 1 && count <= 3;
         }
+        if (isTimeformat(name)) {
+            return count == 1;
+        }
         return switch (name) {
             case "str.lower", "str.upper" -> count == 1;
             default -> count == 2;
@@ -63,6 +69,9 @@ public final class TagStrings {
         if (isListformat(name)) {
             return "1 to 3 args";
         }
+        if (isTimeformat(name)) {
+            return "1 arg";
+        }
         return switch (name) {
             case "str.lower", "str.upper" -> "1 arg";
             default -> "2 args";
@@ -74,12 +83,21 @@ public final class TagStrings {
                 || name.equals("s.listformat") || name.equals("s.lformat");
     }
 
+    private static boolean isTimeformat(String name) {
+        return name.equals("string.timeformat") || name.equals("string.tformat")
+                || name.equals("s.timeformat") || name.equals("s.tformat");
+    }
+
     public static String example(String name) {
         return switch (name) {
             case "string.listformat" -> "<string.listformat:list,itemcolor,sepcolor>";
             case "string.lformat" -> "<string.lformat:list,itemcolor,sepcolor>";
             case "s.listformat" -> "<s.listformat:list,itemcolor,sepcolor>";
             case "s.lformat" -> "<s.lformat:list,itemcolor,sepcolor>";
+            case "string.timeformat" -> "<string.timeformat:90>";
+            case "string.tformat" -> "<string.tformat:90>";
+            case "s.timeformat" -> "<s.timeformat:90>";
+            case "s.tformat" -> "<s.tformat:90>";
             case "str.join" -> "<str.join:list,sep>";
             case "str.split" -> "<str.split:text,delim>";
             case "str.lower" -> "<str.lower:text>";

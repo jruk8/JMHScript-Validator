@@ -123,7 +123,8 @@ final class TagSyntaxErrors {
                     "ritemtag", "ritemkeep", "gitemtag", "gitemkeep" ->
                     TagItemOps.opError(name, args);
             case "summon" -> TagSummon.opError(name, args);
-            case "gamerule", "rule", "timeset", "timeadd", "timeget" ->
+            case "gamerule", "rule", "timeset", "timeadd", "timeget", "weatherget",
+                    "weatherset" ->
                     TagWorldClock.opError(name, args);
             case "place", "kill" -> TagPlaceKill.opError(name, args);
             case "delay", "delaycancel" -> TagDelay.opError(name, args);
@@ -161,6 +162,8 @@ final class TagSyntaxErrors {
                     "str.slice", "str.matches" ->
                     TagStrings.opError(name, args);
             case "string.listformat", "string.lformat", "s.listformat", "s.lformat" ->
+                    TagStrings.opError(name, args);
+            case "string.timeformat", "string.tformat", "s.timeformat", "s.tformat" ->
                     TagStrings.opError(name, args);
             case "pcooldown", "pcooldown.get", "pcooldown.reset", "gcooldown", "gcooldown.get",
                     "gcooldown.reset", "rcooldown", "rcooldown.get", "rcooldown.reset" ->
