@@ -22,6 +22,10 @@ guidelines.
   code (see `corpus/README.md`).
 - `docs/error-catalog.md`: stable diagnostic codes (pinned by a
   test).
+- `tag-registry.json`, `engine-defaults/`: engine-derived data
+  vendored per release (the engine repo is private, so the CLI
+  reads this public copy). Never hand-edit; sync from a
+  JManhunt checkout per the release steps.
 
 ## Single Sources of Truth
 
@@ -64,9 +68,13 @@ cross-repo work, it uses a conditional `includeBuild`.
 
 Releases run in a fixed order:
 
-1. Tag the validator (`v*`); the release workflow uploads the
-   CLI jar. Refresh `tag-registry.json` in JManhunt first when
-   the tag table changed.
+1. Sync the engine data from a JManhunt checkout at the target
+   rev: run `./gradlew exportTagRegistry` there, then copy its
+   `tag-registry.json` to the validator root and its
+   `src/main/resources/mods/{modifiers,presets}/` over
+   `engine-defaults/`. Commit the sync first, then tag the
+   validator (`v*`); the release workflow uploads the CLI jar
+   plus the registry.
 2. JManhunt bumps its validator version.
 
 ## Coding Conventions

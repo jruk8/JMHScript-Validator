@@ -91,6 +91,13 @@ class EngineDefaultsTest {
     }
 
     @Test
+    void fetchDefaultsToPublicValidatorRepo() {
+        assertEquals("jruk8/JMHScript-Validator", DefaultsFetch.DEFAULT_REPO);
+        assertEquals("engine-defaults/modifiers", DefaultsFetch.MODIFIERS_DIR);
+        assertEquals("engine-defaults/presets", DefaultsFetch.PRESETS_DIR);
+    }
+
+    @Test
     void fetchAssemblesFilesAndManifest(@TempDir Path tmp) throws Exception {
         Map<String, String> raw = new HashMap<>();
         raw.put("infection.yml", "behavior:\n  main:\n    commands:\n      player:\n        - say spooky\n");

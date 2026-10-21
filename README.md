@@ -12,7 +12,7 @@
 
 # Quick Start 🫈
 
-1. Download the CLI jar from [Releases](https://github.com/jruk8/JMHScript-Validator/releases), plus the `tag-registry.json` matching your JManhunt version (it lives at the root of the [JManhunt repo](https://github.com/jruk8/JManhunt)).
+1. Download the CLI jar and its `tag-registry.json` from [Releases](https://github.com/jruk8/JMHScript-Validator/releases) (one release, both files; the registry carries the engine version its tags came from).
 2. Point it at your mods folder (single files work too):
 
 ```sh
@@ -44,7 +44,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the build, layout, and release guidel
 ### Requirements
 
 - Java Version » **Java 25**
-- Tag table » **`tag-registry.json` from your JManhunt version**
+- Tag table » **`tag-registry.json` from the matching validator release**
 
 ### Links
 

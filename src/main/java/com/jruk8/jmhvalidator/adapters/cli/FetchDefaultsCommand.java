@@ -14,8 +14,8 @@ final class FetchDefaultsCommand {
 
     /**
      * Fetch the engine default modifiers and presets at one
-     * engine rev, for upstream preset checks (preset members
-     * resolve against the fetched manifest).
+     * validator release tag, for upstream preset checks
+     * (preset members resolve against the fetched manifest).
      */
     static int fetchDefaults(List<String> args) {
         Path out = null;

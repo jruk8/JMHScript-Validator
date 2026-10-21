@@ -17,28 +17,28 @@ import org.yaml.snakeyaml.error.YAMLException;
 
 /**
  * Engine defaults fetch: downloads the bundled JManhunt default
- * modifier and preset files at one engine rev, plus a manifest
- * listing their ids. Sources mirror the engine resources the
- * {@code ModsDefaults} unit test pins, so the fetched set and
- * the engine seed set cannot drift silently: a preset member
- * missing from the fetched modifiers fails the preset check
- * downstream. Layout under the output dir is {@code
- * modifiers/*.yml}, {@code presets/*.yml}, and {@code
- * engine-defaults.json}. Any transport or shape problem fails
- * loudly; nothing is cached or retried.
+ * modifier and preset files at one rev, plus a manifest listing
+ * their ids. The engine repo is private, so each validator
+ * release vendors its snapshot under {@code engine-defaults/}
+ * and the fetch reads that public copy; the rev is a validator
+ * release tag. A preset member missing from the fetched
+ * modifiers fails the preset check downstream. Layout under the
+ * output dir is {@code modifiers/*.yml}, {@code presets/*.yml},
+ * and {@code engine-defaults.json}. Any transport or shape
+ * problem fails loudly; nothing is cached or retried.
  */
 public final class DefaultsFetch {
     /** GitHub API base used unless a test overrides it. */
     public static final String GITHUB_API = "https://api.github.com";
 
-    /** Default engine repository. */
-    public static final String DEFAULT_REPO = "jruk8/JManhunt";
+    /** Default repository: this public validator repo. */
+    public static final String DEFAULT_REPO = "jruk8/JMHScript-Validator";
 
-    /** Engine resource dir holding the default modifiers. */
-    public static final String MODIFIERS_DIR = "src/main/resources/mods/modifiers";
+    /** Vendored dir holding the default modifiers. */
+    public static final String MODIFIERS_DIR = "engine-defaults/modifiers";
 
-    /** Engine resource dir holding the bundled presets. */
-    public static final String PRESETS_DIR = "src/main/resources/mods/presets";
+    /** Vendored dir holding the bundled presets. */
+    public static final String PRESETS_DIR = "engine-defaults/presets";
 
     /** One fetched tree: its dir plus the manifested ids. */
     public record Fetched(Path dir, List<String> modifiers,

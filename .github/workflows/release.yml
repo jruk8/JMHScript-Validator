@@ -28,8 +28,10 @@ jobs:
           chmod +x gradlew
           ./gradlew shadowJar
 
-      - name: Release CLI jar
+      - name: Release CLI jar and tag registry
         uses: softprops/action-gh-release@v2
         with:
-          files: build/libs/JMHScript-Validator-*-cli.jar
+          files: |
+            build/libs/JMHScript-Validator-*-cli.jar
+            tag-registry.json
           generate_release_notes: true

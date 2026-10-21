@@ -7,11 +7,10 @@ skip the GUI save check, so validate the folder before you ship
 the mod or start the match.
 
 The tag table comes from `tag-registry.json`, exported from the
-engine. Each copy carries the engine version its tags came from;
-refresh it from a JManhunt checkout with `./gradlew
-exportTagRegistry` when the tag, trigger, or material tables
-change. Registries without the newer arrays skip those checks
-silently.
+engine and shipped with each validator release. Grab the copy
+beside your CLI jar; each one carries the engine version its
+tags came from. Registries without the newer arrays skip those
+checks silently.
 
 ## Reading the results
 
@@ -39,19 +38,20 @@ only when the defaults are supplied:
 
 ```sh
 java -jar JMHScript-Validator-<version>-cli.jar fetch-defaults \
-  --engine-rev <jmanhunt-rev> --out engine-defaults/
+  --engine-rev <validator-tag> --out engine-defaults/
 java -jar JMHScript-Validator-<version>-cli.jar --registry tag-registry.json \
   --defaults engine-defaults/ mods/ presets/
 ```
 
 `fetch-defaults` downloads the default modifier and preset files
-at one JManhunt rev and writes `engine-defaults.json` (format 1:
-engine, engineVersion, sorted modifier ids, presets with members
-in file order) beside them. `--defaults` takes that file or its
-directory; known ids are the manifest plus the scanned modifier
-stems, mirroring the engine load order. Unknown members warn as
-`W_UNKNOWN_MODIFIER` with the engine's load message. Without
-`--defaults`, presets stay silent as before.
+vendored at one validator release tag and writes
+`engine-defaults.json` (format 1: engine, engineVersion, sorted
+modifier ids, presets with members in file order) beside them.
+Pass the tag matching your CLI jar. `--defaults` takes that file
+or its directory; known ids are the manifest plus the scanned
+modifier stems, mirroring the engine load order. Unknown members
+warn as `W_UNKNOWN_MODIFIER` with the engine's load message.
+Without `--defaults`, presets stay silent as before.
 
 ## Sharing mods
 
