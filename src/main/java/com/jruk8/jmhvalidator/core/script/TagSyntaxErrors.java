@@ -331,6 +331,12 @@ final class TagSyntaxErrors {
             // its own span), never a tag itself.
             return;
         }
+        if (MiniMessageTags.isMarker(name)) {
+            // MiniMessage markup the engine passes through
+            // untouched; warning fails gates on colors that
+            // render fine.
+            return;
+        }
         if (!registry.isKnown(name) && !knownFunctions.contains(name)) {
             found.add("Unknown tag '<" + body.trim() + ">', left untouched at runtime.");
             return;

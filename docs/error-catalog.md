@@ -26,7 +26,8 @@ Message text stays byte-identical to the engine.
 ## Warnings
 
 - `W_UNKNOWN_TAG`: Unknown tag. Outside the registry and def
-  scope; the engine leaves it untouched at runtime.
+  scope; the engine leaves it untouched at runtime. MiniMessage
+  markup (colors, hex, closers, resolved markers) never fires it.
 - `W_PAID_TAG`: Paid tag. A paid-edition tag under `--free`
   validation; the free engine refuses the whole mod.
 - `W_RANDOM_PICK_ITEM`: Skipped pick item. A random-pick entry
