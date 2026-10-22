@@ -687,9 +687,27 @@ class CommandSyntaxTest {
     void escapedShapesValidate() {
         assertTrue(CommandSyntax.error("<pmessage:Steve,hi\\,there>").isEmpty());
         assertTrue(CommandSyntax.warnings("<pmessage:Steve,hi\\,there>", TestRegistries.pinned()).isEmpty());
-        assertTrue(CommandSyntax.error("say \\\\<yellow\\\\>").isEmpty());
-        assertEquals(1, CommandSyntax.warnings("say \\\\<yellow\\\\>", TestRegistries.pinned()).size());
-        assertTrue(CommandSyntax.warnings("say \\\\<yellow\\\\>",
+        assertTrue(CommandSyntax.error("say \\<yellow\\>").isEmpty());
+        assertTrue(CommandSyntax.warnings("say \\<yellow\\>", TestRegistries.pinned()).isEmpty());
+        assertTrue(CommandSyntax.error("say \\\\<bogus\\\\>").isEmpty());
+        assertEquals(1, CommandSyntax.warnings("say \\\\<bogus\\\\>", TestRegistries.pinned()).size());
+        assertTrue(CommandSyntax.warnings("say \\\\<bogus\\\\>",
+                TestRegistries.pinned()).get(0).contains("Unknown tag"));
+    }
+
+    @Test
+    void miniMessageMarkupValidatesSilently() {
+        String give = "<give:<p>,[snowball,32,[name,<#e0dfad>Sky Flak],"
+                + "[lore,[Cold answer to a hot sky.,Throw at the <red>buzz</red>.]]]>";
+        assertTrue(CommandSyntax.error(give).isEmpty());
+        assertTrue(CommandSyntax.warnings(give, TestRegistries.pinned()).isEmpty());
+        assertTrue(CommandSyntax.warnings("say <gradient:red:blue>hi</gradient>",
+                TestRegistries.pinned()).isEmpty());
+        assertTrue(CommandSyntax.warnings("say <RED>x</RED>",
+                TestRegistries.pinned()).isEmpty());
+        assertEquals(1, CommandSyntax.warnings("say <giv>x</giv>",
+                TestRegistries.pinned()).size());
+        assertTrue(CommandSyntax.warnings("say <giv>x</giv>",
                 TestRegistries.pinned()).get(0).contains("Unknown tag"));
     }
 
