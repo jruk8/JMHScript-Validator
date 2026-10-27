@@ -29,6 +29,10 @@ class TwinSyntaxTest {
         assertTrue(CommandSyntax.error(
                 "say <itemkeep:Steve,helmet> <ritemkeep:hunter,helmet> <gitemkeep:helmet> x")
                 .isEmpty());
+    }
+
+    @Test
+    void twinReadsPassInventory() {
         assertTrue(CommandSyntax.error("say <rhasitem:hunter,stone> <ghasitem:stone> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rcountitem:hunter,stone> <gcountitem:stone> x").isEmpty());
         assertTrue(CommandSyntax.error("say <rheld:hunter> <gheld> x").isEmpty());

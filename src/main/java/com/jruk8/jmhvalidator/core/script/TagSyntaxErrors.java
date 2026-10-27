@@ -19,6 +19,10 @@ final class TagSyntaxErrors {
         String name = TagHeads.tagName(body);
         int separator = body.indexOf(':');
         String args = separator < 0 ? null : body.substring(separator + 1);
+        Optional<Optional<String>> shaped = TagShapeErrors.dispatch(name, args);
+        if (shaped.isPresent()) {
+            return shaped.get();
+        }
         return switch (name) {
             case "random-num", "random-pick", "random-sound", "random-effect", "random-enchant",
                     "random-biome", "random-hunter", "random-runner" -> picksError(name, args);
@@ -44,15 +48,6 @@ final class TagSyntaxErrors {
                     "rdiry", "rdirz", "glocation", "gloc", "geliminated", "gworld", "gx", "gy", "gz",
                     "gyaw", "gpitch", "gheld", "gdirx", "gdiry", "gdirz" ->
                     spotError(name, args);
-            case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
-                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
-                    "rdir", "gdir", "raycast", "raycastext", "intercept", "give", "dropitem",
-                    "itemtag", "itemkeep", "rgive", "ggive", "ritemtag", "ritemkeep",
-                    "gitemtag", "gitemkeep", "summon", "gamerule",
-                    "rule", "timeset", "timeadd", "timeget", "place", "kill", "delay", "delaycancel",
-                    "pghost.enter", "pghost.exit", "pghost.control", "pisghost", "display.item",
-                    "display.block", "display.head", "display.cancel", "display.teleport" ->
-                    shapeError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
                     "particles.sphere", "particles.circle", "particles.circle2d", "particles.rectangle",
                     "particles.box", "particles.cube", "particles.block", "particles.cancel", "parts.line",
@@ -112,31 +107,6 @@ final class TagSyntaxErrors {
     }
 
     /** Shape, world-write, and spawn tags behind {@link #tagError}. */
-    private static Optional<String> shapeError(String name, String args) {
-        return switch (name) {
-            case "vec.add", "vec.sub", "vec.mult", "vec.normalize", "vec.mag", "vec.mag2d", "vec.sqrdist", "vec.dist",
-                    "vec.sqrdist2d", "vec.dist2d", "vec.dot", "vec.cross", "loc.shift", "pdir",
-                    "rdir", "gdir" ->
-                    TagVectors.opError(name, args);
-            case "raycast", "raycastext" -> TagRaycast.opError(name, args);
-            case "intercept", "give", "dropitem", "itemtag", "itemkeep", "rgive", "ggive",
-                    "ritemtag", "ritemkeep", "gitemtag", "gitemkeep" ->
-                    TagItemOps.opError(name, args);
-            case "summon" -> TagSummon.opError(name, args);
-            case "gamerule", "rule", "timeset", "timeadd", "timeget", "weatherget",
-                    "weatherset" ->
-                    TagWorldClock.opError(name, args);
-            case "place", "kill" -> TagPlaceKill.opError(name, args);
-            case "delay", "delaycancel" -> TagDelay.opError(name, args);
-            case "pghost.enter", "pghost.exit", "pghost.control", "pisghost" ->
-                    TagPghost.opError(name, args);
-            case "display.item", "display.block", "display.head", "display.cancel",
-                    "display.teleport" ->
-                    TagDisplay.opError(name, args);
-            default -> throw new IllegalArgumentException("Unknown shape tag: " + name);
-        };
-    }
-
     /** Collection, text, and cooldown tags behind {@link #tagError}. */
     public static Optional<String> collectionsError(String name, String args) {
         return switch (name) {

@@ -20,6 +20,8 @@ import java.util.Optional;
  * {@code <pfx.duration>} own one named entry in the shared effect ledger;
  * {@code <pdamage>} deals damage with an optional attacker and type;
  * {@code <pmaxhp>} gets and sets max-health id contributions;
+ * {@code <pexp.get>}, {@code <pexp.add>}, and {@code <pexp.remove>}
+ * read and write vanilla experience levels (never raw xp points);
  * {@code <puuid>} reads the Mojang id as four ints. Reads resolve
  * {@code null} silently for offline or unknown players; writes warn.
  * No Bukkit types: every read and write runs through the context
@@ -53,6 +55,10 @@ public final class TagPlayers {
     }
 
     public static boolean arityOk(String name, int count) {
+        Boolean fx = arityOkFx(name, count);
+        if (fx != null) {
+            return fx;
+        }
         return switch (name) {
             case "pstate" -> count == 2;
             case "rstate" -> count == 2;
@@ -73,14 +79,6 @@ public final class TagPlayers {
             case "guuid" -> count == 0;
             case "clearslot", "rclearslot" -> count == 2;
             case "gclearslot" -> count == 1;
-            case "pfx.set", "rfx.set" -> count >= 2 && count <= 4;
-            case "gfx.set" -> count >= 1 && count <= 3;
-            case "pfx.get", "rfx.get" -> count == 2;
-            case "gfx.get" -> count == 1;
-            case "pfx.clear", "rfx.clear" -> count == 1 || count == 2;
-            case "gfx.clear" -> count == 0 || count == 1;
-            case "pfx.duration", "rfx.duration" -> count == 3;
-            case "gfx.duration" -> count == 2;
             case "ptitle", "rtitle" -> count >= 3 && count <= 6;
             case "gtitle" -> count >= 2 && count <= 5;
             case "pactionbar.set", "ractionbar.set" -> count >= 2 && count <= 4;
@@ -93,9 +91,26 @@ public final class TagPlayers {
             case "gmaxhp.get" -> count == 1;
             case "pmaxhp.clear", "rmaxhp.clear" -> count == 1 || count == 2;
             case "gmaxhp.clear" -> count == 0 || count == 1;
+            case "pexp.get" -> count == 1;
+            case "pexp.add", "pexp.remove" -> count == 2;
             case "pslot", "rslot" -> count == 2 || count == 3;
             case "gslot" -> count == 1 || count == 2;
             default -> count == 2 || count == 3;
+        };
+    }
+
+    /** Effect-ledger arity, or null when the head belongs elsewhere. */
+    private static Boolean arityOkFx(String name, int count) {
+        return switch (name) {
+            case "pfx.set", "rfx.set" -> count >= 2 && count <= 4;
+            case "gfx.set" -> count >= 1 && count <= 3;
+            case "pfx.get", "rfx.get" -> count == 2;
+            case "gfx.get" -> count == 1;
+            case "pfx.clear", "rfx.clear" -> count == 1 || count == 2;
+            case "gfx.clear" -> count == 0 || count == 1;
+            case "pfx.duration", "rfx.duration" -> count == 3;
+            case "gfx.duration" -> count == 2;
+            default -> null;
         };
     }
 
@@ -139,6 +154,8 @@ public final class TagPlayers {
             case "gmaxhp.get" -> "1 arg";
             case "pmaxhp.clear", "rmaxhp.clear" -> "1 or 2 args";
             case "gmaxhp.clear" -> "0 or 1 args";
+            case "pexp.get" -> "1 arg";
+            case "pexp.add", "pexp.remove" -> "2 args";
             default -> "2 or 3 args";
         };
     }
@@ -176,7 +193,7 @@ public final class TagPlayers {
         };
     }
 
-    /** Examples for the ledger, title, max-health, slot, and actionbar twins. */
+    /** Examples for the ledger, title, max-health, slot, actionbar, and exp twins. */
     private static String exampleLedger(String name) {
         return switch (name) {
             case "pfx.set" -> "<pfx.set:player,id,effects>";
@@ -212,6 +229,8 @@ public final class TagPlayers {
             case "pmaxhp.clear" -> "<pmaxhp.clear:player,id>";
             case "rmaxhp.clear" -> "<rmaxhp.clear:role,id>";
             case "gmaxhp.clear" -> "<gmaxhp.clear:id>";
+            case "pexp.get" -> "<pexp.get:Steve>";
+            case "pexp.add", "pexp.remove" -> "<" + name + ":Steve,5>";
             case "rslot" -> "<rslot:role,slot>";
             case "gslot" -> "<gslot:slot>";
             default -> "<pslot:player,slot>";
