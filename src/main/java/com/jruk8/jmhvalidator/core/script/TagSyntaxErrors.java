@@ -50,7 +50,8 @@ final class TagSyntaxErrors {
                     "itemtag", "itemkeep", "rgive", "ggive", "ritemtag", "ritemkeep",
                     "gitemtag", "gitemkeep", "summon", "gamerule",
                     "rule", "timeset", "timeadd", "timeget", "place", "kill", "delay", "delaycancel",
-                    "pghost.enter", "pghost.exit", "pghost.control", "pisghost", "display.item",
+                    "pghost.enter", "pghost.exit", "pghost.control", "pisghost",
+                    "pshapeshift.mob", "pshapeshift.exit", "display.item",
                     "display.block", "display.head", "display.cancel", "display.teleport" ->
                     shapeError(name, args);
             case "particles.line", "particles.l", "particles.line2d", "particles.point", "particles.players",
@@ -130,6 +131,8 @@ final class TagSyntaxErrors {
             case "delay", "delaycancel" -> TagDelay.opError(name, args);
             case "pghost.enter", "pghost.exit", "pghost.control", "pisghost" ->
                     TagPghost.opError(name, args);
+            case "pshapeshift.mob", "pshapeshift.exit" ->
+                    TagShapeshift.opError(name, args);
             case "display.item", "display.block", "display.head", "display.cancel",
                     "display.teleport" ->
                     TagDisplay.opError(name, args);

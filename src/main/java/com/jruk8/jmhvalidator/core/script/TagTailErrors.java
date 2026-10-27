@@ -42,12 +42,13 @@ final class TagTailErrors {
                     "gmaxhp.modify", "gmaxhp.get", "gmaxhp.clear", "gfx.set", "gfx.get", "gfx.clear",
                     "gfx.duration", "gisusinghanditem", "gdamage", "guuid",
                     "pactionbar.set", "ractionbar.set", "gactionbar.set",
-                    "pactionbar.clear", "ractionbar.clear", "gactionbar.clear" ->
+                    "pactionbar.clear", "ractionbar.clear", "gactionbar.clear",
+                    "pexp.get", "pexp.add", "pexp.remove" ->
                     TagPlayers.opError(name, args);
             case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
             case "overlap-players", "nearby-players" -> proximityError(name, args);
             case "distance" -> TagSyntaxErrors.topLevelArityError(name, args, 2, "<distance:loc1,loc2>");
-            case "ismobhostile" -> TagEntities.opError(name, args);
+            case "ismobhostile", "islivingentity" -> TagEntities.opError(name, args);
             case "floor", "ceil", "round", "abs", "sign", "sqrt", "cbrt", "cos", "sin",
                     "tan", "arccos", "acos", "arcsin", "asin", "arctan", "sec", "csc",
                     "cot", "asec", "acsc", "acot", "log", "log10", "ln", "easein",
