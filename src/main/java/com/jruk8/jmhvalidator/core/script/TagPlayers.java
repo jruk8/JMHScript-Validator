@@ -55,6 +55,10 @@ public final class TagPlayers {
     }
 
     public static boolean arityOk(String name, int count) {
+        Boolean fx = arityOkFx(name, count);
+        if (fx != null) {
+            return fx;
+        }
         return switch (name) {
             case "pstate" -> count == 2;
             case "rstate" -> count == 2;
@@ -75,14 +79,6 @@ public final class TagPlayers {
             case "guuid" -> count == 0;
             case "clearslot", "rclearslot" -> count == 2;
             case "gclearslot" -> count == 1;
-            case "pfx.set", "rfx.set" -> count >= 2 && count <= 4;
-            case "gfx.set" -> count >= 1 && count <= 3;
-            case "pfx.get", "rfx.get" -> count == 2;
-            case "gfx.get" -> count == 1;
-            case "pfx.clear", "rfx.clear" -> count == 1 || count == 2;
-            case "gfx.clear" -> count == 0 || count == 1;
-            case "pfx.duration", "rfx.duration" -> count == 3;
-            case "gfx.duration" -> count == 2;
             case "ptitle", "rtitle" -> count >= 3 && count <= 6;
             case "gtitle" -> count >= 2 && count <= 5;
             case "pactionbar.set", "ractionbar.set" -> count >= 2 && count <= 4;
@@ -100,6 +96,21 @@ public final class TagPlayers {
             case "pslot", "rslot" -> count == 2 || count == 3;
             case "gslot" -> count == 1 || count == 2;
             default -> count == 2 || count == 3;
+        };
+    }
+
+    /** Effect-ledger arity, or null when the head belongs elsewhere. */
+    private static Boolean arityOkFx(String name, int count) {
+        return switch (name) {
+            case "pfx.set", "rfx.set" -> count >= 2 && count <= 4;
+            case "gfx.set" -> count >= 1 && count <= 3;
+            case "pfx.get", "rfx.get" -> count == 2;
+            case "gfx.get" -> count == 1;
+            case "pfx.clear", "rfx.clear" -> count == 1 || count == 2;
+            case "gfx.clear" -> count == 0 || count == 1;
+            case "pfx.duration", "rfx.duration" -> count == 3;
+            case "gfx.duration" -> count == 2;
+            default -> null;
         };
     }
 

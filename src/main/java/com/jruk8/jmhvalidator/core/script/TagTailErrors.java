@@ -11,6 +11,10 @@ final class TagTailErrors {
 
     /** Trailing tag names behind {@link #tagError}: sinks, proximity, math, loops, defs. */
     public static Optional<String> tailError(String name, String args) {
+        Optional<Optional<String>> players = playersDispatch(name, args);
+        if (players.isPresent()) {
+            return players.get();
+        }
         return switch (name) {
             case "gmessage", "gmsg" -> TagSinks.messageError(name, args);
             case "pmessage", "pmsg" -> TagSinks.playerMessageError(name, args);
@@ -31,6 +35,25 @@ final class TagTailErrors {
             case "fill" -> TagFill.fillError(name, args);
             case "replace" -> TagReplace.replaceError(name, args);
             case "setblock", "getblock", "issolid" -> TagBlocks.blocksError(name, args);
+            case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
+            case "overlap-players", "nearby-players" -> proximityError(name, args);
+            case "distance" -> TagSyntaxErrors.topLevelArityError(name, args, 2, "<distance:loc1,loc2>");
+            case "ismobhostile", "islivingentity" -> TagEntities.opError(name, args);
+            case "floor", "ceil", "round", "abs", "sign", "sqrt", "cbrt", "cos", "sin",
+                    "tan", "arccos", "acos", "arcsin", "asin", "arctan", "sec", "csc",
+                    "cot", "asec", "acsc", "acot", "log", "log10", "ln", "easein",
+                    "easeout", "easeinout", "radtodeg", "r2d", "degtorad", "d2r" ->
+                    mathUnaryError(name, args);
+            case "root", "while", "for", "def", "format", "runblock", "setting", "s",
+                    "modcolor" ->
+                    flowError(name, args);
+            default -> Optional.empty();
+        };
+    }
+
+    /** Player, role, and group op heads behind {@link #tailError}. */
+    private static Optional<Optional<String>> playersDispatch(String name, String args) {
+        return switch (name) {
             case "pstate", "pstandingon", "pblock", "pismoving", "premoveitem", "ptitle", "pslot",
                     "clearslot", "pmaxhp.set", "pmaxhp.modify", "pmaxhp.get", "pmaxhp.clear",
                     "pfx.set", "pfx.get", "pfx.clear", "pfx.duration", "pisusinghanditem",
@@ -44,19 +67,7 @@ final class TagTailErrors {
                     "pactionbar.set", "ractionbar.set", "gactionbar.set",
                     "pactionbar.clear", "ractionbar.clear", "gactionbar.clear",
                     "pexp.get", "pexp.add", "pexp.remove" ->
-                    TagPlayers.opError(name, args);
-            case "plos", "rlos", "glos" -> TagPlos.opError(name, args);
-            case "overlap-players", "nearby-players" -> proximityError(name, args);
-            case "distance" -> TagSyntaxErrors.topLevelArityError(name, args, 2, "<distance:loc1,loc2>");
-            case "ismobhostile", "islivingentity" -> TagEntities.opError(name, args);
-            case "floor", "ceil", "round", "abs", "sign", "sqrt", "cbrt", "cos", "sin",
-                    "tan", "arccos", "acos", "arcsin", "asin", "arctan", "sec", "csc",
-                    "cot", "asec", "acsc", "acot", "log", "log10", "ln", "easein",
-                    "easeout", "easeinout", "radtodeg", "r2d", "degtorad", "d2r" ->
-                    mathUnaryError(name, args);
-            case "root", "while", "for", "def", "format", "runblock", "setting", "s",
-                    "modcolor" ->
-                    flowError(name, args);
+                    Optional.of(TagPlayers.opError(name, args));
             default -> Optional.empty();
         };
     }
