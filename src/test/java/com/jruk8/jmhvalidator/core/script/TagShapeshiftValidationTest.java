@@ -78,14 +78,19 @@ class TagShapeshiftValidationTest {
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,\"true\"").isEmpty());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,maybe").isPresent());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,").isPresent());
-        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,false").isPresent());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,5").isEmpty());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,5,3").isEmpty());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,false,?,?").isEmpty());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,fast").isPresent());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,5,slow").isPresent());
+        assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,true,5,3,1").isPresent());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", ",").isPresent());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,\"unclosed").isPresent());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "?,true").isEmpty());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "Steve,?").isEmpty());
         assertTrue(TagShapeshift.opError("pshapeshift.mob", "?,?").isEmpty());
-        assertEquals("Tag <pshapeshift.mob> needs 1 or 2 args like <pshapeshift.mob:Steve,true>.",
-                TagShapeshift.opError("pshapeshift.mob", "Steve,true,false").orElseThrow());
+        assertEquals("Tag <pshapeshift.mob> needs 1 to 4 args like <pshapeshift.mob:Steve,true,5,3>.",
+                TagShapeshift.opError("pshapeshift.mob", "Steve,true,5,3,1").orElseThrow());
         assertEquals("Tag <pshapeshift.mob> needs a player like <pshapeshift.mob:Steve>.",
                 TagShapeshift.opError("pshapeshift.mob", ",").orElseThrow());
         assertEquals("Tag <pshapeshift.mob> flag \"maybe\" must be true or false.",
@@ -111,8 +116,9 @@ class TagShapeshiftValidationTest {
     void shapeshiftDispatches() {
         assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve>").isEmpty());
         assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve,true>").isEmpty());
+        assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve,true,5,3>").isEmpty());
         assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve,maybe>").isPresent());
-        assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve,true,false>").isPresent());
+        assertTrue(CommandSyntax.error("say <pshapeshift.mob:Steve,true,fast>").isPresent());
         assertTrue(CommandSyntax.error("say <pshapeshift.mob:>").isPresent());
         assertTrue(CommandSyntax.error("say <pshapeshift.exit:Steve>").isEmpty());
         assertTrue(CommandSyntax.error("say <pshapeshift.exit:>").isPresent());
